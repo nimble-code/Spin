@@ -1,0 +1,183 @@
+An appendix to Chapter 6 of the book: some extra explanation on pid's
+and on temporal claims.  Updated for Spin Version 2.0 - January 1995.
+
+PROCESS IDs
+
+In Spin 2.0 and later the never claim can refer to the control state
+of any process, but not to their local variables.
+This functionality is meant to be used for building correctness assertions
+with never claims.  It should never be used for anything else.
+An example is
+	Receiver[pid]@place
+where `place' the name of a label within `proctype Receiver,' and
+`pid' is the value returned by the run statement that instantiated the
+copy of the Receiver proctype that we are interested in.
+
+There is a misleading suggestion in the book that says that you can
+usually guess the `pid's.  Wiser is to always use the explicit value
+returned by the `run()' statement that instantiated the proces.
+Processes started with the `active' prefix obtain instantiation
+numbers starting at value 1, in the order in which they appear in the
+specification.  Each process also has a local variable _pid that
+holds its own instantiation number.
+
+SPECIFYING TEMPORAL CLAIMS
+
+The body of a temporal claim is defined just like PROMELA proctype bodies.
+This means that all control flow structures, such as if-fi selections,
+do-od repetitions, and goto jumps, are allowed.
+There is, however, one important difference:
+
+	Every statement inside a temporal claim is (interpreted as) a condition.
+	A never claim should therefore never contain statements that can
+	have side-effects (assignments, communications, run-statements, etc.)
+
+Temporal claims are used to express behaviors that are considered undesirable
+or illegal.  We say that a temporal claim is `matched' if the undesirable
+behavior can be realized, and thus the claim violated.
+
+The recommended use of a temporal claim is in combination with acceptance labels.
+There are two ways to `match' a temporal claim, depending on whether the
+undesirable behavior defines a terminating or a cyclic execution sequence.
+
+o A temporal claim is matched when it terminates (reaches its closing curly brace).
+  That is, the claim can be violated if the closing curly brace of the PROMELA
+  body of the claim is reachable for at least one execution sequence.
+
+o For a cyclic execution sequence, the claim is matched only when an explicit
+  acceptance cycle exists.  The acceptance labels within temporal claims
+  are user defined, there are no defaults.  This means that in the absence of
+  acceptance labels no cyclic behavior can be matched by a temporal claim.
+  It also means that to check a cyclic temporal claim, acceptance labels should
+  only occur within the claim and not elsewhere in the PROMELA code.
+
+
+SEMANTICS
+
+The normal system behavior of a PROMELA system is defined as the
+`asynchronous product' of the behaviors of the individual processes.
+Given an arbitrary system state, its successor states are obtained
+in two steps.  In the first step all the executable (atomic) statements in the
+individual processes are identified.  In the second step, each one of these
+statements is executed.
+Each single execution produces a successor state in the asynchronous product.
+The complete system behavior is thus defined recursively and
+represents all possible interleavings of the individual process behaviors.
+Call this asynchronous product machine the `global machine'.
+
+The addition of a temporal claim defines an additional `synchronous product'
+of this global machine with the state machine that defines the temporal
+claim.  Call the latter machine the `claim machine', and call the new
+synchronous product the `labeled machine'.
+
+Every state in the labeled machine is a pair (p,q) with p a state in the global
+machine and q a state in the claim machine.  Every transition in the labeled
+machine is similarly defined by a pair (r,s) with r a transition in the global
+machine and s a transition in the claim machine.
+In other words, every transition in the `synchronous' product is a joint move
+of the global machine and the claim machine.
+(By contrast, every transition in an `asynchronous' product would correspond
+to a single transition in either the global machine or the claim machine, thus
+interleaving transitions instead of combining them.)
+
+Since all statements in the claim machine are boolean propositions, the second
+half of the transition pair (r,s) is either true or false.
+Call all transitions where this proposition is true `matching transitions'.
+In a matching transition proposition s evaluates to true in state system state r.
+Notice that the claim machine has at least one stop state E, the state
+at the closing curly brace of the claim body.
+
+The semantics of temporal claims can now be summed up as follows.
+
+o If the labeled machine contains any sequence of matching transitions only,
+  that connects its initial state with a state (p,E) for any p, the temporal
+  claim can be matched by a terminating sequence (a correctness violation).
+
+o If the labeled machine contains any cycle of matching transitions only, that
+  passes through an acceptance state, the temporal claim can be matched by a
+  cyclic sequence.
+
+
+EXAMPLES
+
+Listed below are the equivalent PROMELA definitions for the three basic
+temporal properties defined by Zohar Manna & Amir Pnueli in
+``Tools and Rules for the Practicing Verifier'' Stanford University,
+Report STAN-CS-90-1321, July 1990, 34 pgs.
+
+The following descriptions are quoted from Manna & Pnueli:
+
+	``There are three classes of properties we [...] believe to cover
+	the majority of properties one would ever wish to verify.''
+
+	1. Invariance
+	``An invariance property refers to an assertion p, and requires that p
+	is an invariant over all the computations of a program P, i.e. all
+	the states arising in a computation of P satisfy p.  In temporal
+	logic notation, such properties are expressed by [] p, for a state
+	formula p.''
+
+	Corresponding Temporal Claim in PROMELA:
+	never {
+		do
+		:: p
+		:: !p -> break
+		od
+	}
+
+	2. Response
+	``A response property refers to two assertions p and q, and
+	requires that every p-state (a state satisfying p) arising in
+	a computation is eventually followed by a q-state.
+	In temporal logic notation this is written as p -> <> q.''
+
+	Corresponding Temporal Claim in PROMELA:
+	never {
+		do
+		:: true
+		:: p && !q -> break
+		od;
+	accept:
+		do
+		:: !q
+		od
+	}
+
+	Note that using (!p || q) instead of `skip' would check only the
+	first occurrence of p becoming true while q is false.
+	The above formalization checks for all occurrences, also future ones.
+	Strictly seen, therefore, the claim above uses a common interpretation
+	of the formula, requiring it to hold always, or: [] { p -> <> q }
+
+	3. Precedence
+	``A simple precedence property refers to three assertions p, q, and r.
+	It requires that any p-state initiates a q-interval (i.e. an interval
+	all of whose states satisfy q) which, either runs to the end of the
+	computation, or is terminated by an r-state.
+	Such a property is useful to express the restriction that, following
+	a certain condition, one future event will always be preceded by
+	another future event.
+	For example, it may express the property that, from the time a certain
+	input has arrived, there will be an output before the next input.
+	Note that this does not guarantee [require] that the output will actually
+	be produced. It only guarantees [requires] that the next input (if any)
+	will be preceded by an output.  In temporal logic, this property is
+	expressed by p -> (q U r), using the unless operator (weak until) U.
+
+	Corresponding Temporal Claim in PROMELA:
+
+	never {
+		do
+		:: true		/* to match any occurrence */
+		:: p &&  q && !r -> break
+		:: p && !q && !r -> goto error
+		od;
+		do
+		::  q && !r
+		:: !q && !r -> break
+		od;
+	error:	skip
+	}
+
+	Strictly again, this encodes: [] { p -> (q U r) }
+	To match just the first occurence, replace 'true' with (!p || r).

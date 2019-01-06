@@ -1,0 +1,452 @@
+Errata for `Design and Validation of Computer Protocols'
+[trivial typos not listed]
+
+CHAPTER 2, page 26 - Example of a Shorter Error Scenario
+============================================================
+
+A duplicate message can be accepted after even a single
+transmission error occurs.  E.g.:
+
+          (A)                                (B)
+           ~                                  ~
+           |                                  |
+           |    ack 'z' /-----------<---------+
+           +-----------/                      |
+accept(z)  |                                  |
+           +-----------\ ack 'a' -> err       |
+           |             \----------->--------+
+           |                                  |
+           |     nak 'z' /-----------<--------+
+           +------------/                     |
+accept(z)  |                                  |
+
+
+CHAPTER 3, page 61/62 - Revised CRC-Algorithm
+(Bits renumbered in more standard right to left order.)
+============================================================
+
+The  following  C  program,  by Don Mitchell  of  AT&T  Bell
+Laboratories,  generates a  lookup table  for  an  arbitrary
+checksum polynomial.  Input  for  the  routine  is  an octal
+number, specified as an argument, that encodes the generator
+polynomial.
+In the version of the program shown here, compliments of Ned
+W.  Rhodes,  Software  Systems Group, bits are numbered from
+zero to r-1, with bit zero corresponding to  the  right-most
+bit,  and  r  the  degree  of the generator polynomial.  (In
+Mitchell's original algorithm the bits in  the  message  and
+generator polynomial were reversed.)  The r-th bit itself is
+omitted from the code word, since  it  is  implicit  in  the
+length.   Using  this  program  takes  two  separate  steps.
+First, the program is  compiled  and  run  to  generate  the
+lookup  tables.  Then the checksum generation routine can be
+compiled, with the precalculated lookup tables in place.  On
+a UNIX system, the program is compiled as
+
+            $ cc -o crc_init crc_init.c
+
+Lookup tables for the two most popular  CRC-polynomials  can
+now be produced as follows:
+
+            $ crc_init 0100005 > crc_16.h
+            $ crc_init  010041 > crc_ccitt.h
+
+This is the text of crc_init.c:
+
+
+    main(argc, argv)
+            int argc; char *argv[];
+    {
+            unsigned long crc, poly;
+            int n, i;
+
+            sscanf(argv[1], "%lo", &poly);
+            if (poly & 0xffff0000)
+            {       fprintf(stderr, "polynomial is too large\n");
+                    exit(1);
+            }
+
+            printf("/*\n *  CRC 0%o\n */\n", poly);
+            printf("static unsigned short crc_table[256] = {\n");
+            for (n = 0; n < 256; n++)
+            {       if (n % 8 == 0) printf("    ");
+                    crc = n << 8;
+                    for (i = 0; i < 8; i++)
+                    {       if (crc & 0x8000)
+                                    crc = (crc << 1) ^ poly;
+                            else
+                                    crc <<= 1;
+                            crc &= 0xFFFF;
+                    }
+                    if (n == 255) printf("0x%04X ", crc);
+                    else          printf("0x%04X, ", crc);
+                    if (n % 8 == 7) printf("\n");
+            }
+            exit(0);
+    }
+
+The table can now be used to generate checksums:
+
+    unsigned short
+    cksum(s, n)
+            register unsigned char *s;
+            register int n;
+    {
+            register unsigned short crc=0;
+
+            while (n-- > 0)
+               crc = crc_table[(crc>>8 ^ *s++) & 0xff] ^ (crc<<8);
+
+            return crc;
+    }
+
+
+CHAPTER 4, page 81 - Typo
+============================================================
+
+old<	Taking the modulo M effect into account, this becomes:
+	valid(m) = ( 0 < p - m <= W ) || ( 0 < p - M - m <= W )
+
+new>	Taking the modulo M effect into account (p is always
+	smaller than M), this becomes:
+	valid(m) = ( 0 < p - m <= W ) || ( 0 < p + M - m <= W )
+
+ERROR, Page 83, Figure 4.14
+===========================
+
+should not "accept:i" if (a==e) is false
+
+
+CHAPTER 5, error/typos
+===========================
+
+Page 96, bottom
+
+The mutual exclusion algorithm attributed to Dekker is
+really a simplication of Dekker's algorithm that is known
+as Peterson's algorithm.
+Dekker's original solution is modeled in Promela like this:
+
+#define true	1
+#define false	0
+#define Aturn	1
+#define Bturn	0
+
+bool x, y, t;
+
+proctype A()
+{
+	do
+	:: x = true;
+		if
+		:: y == true && t == Bturn ->
+			x = false;
+			(t == Aturn)
+		:: y == false ->
+			break
+		fi
+	od;
+
+	/* critical section */
+
+	t = Bturn;
+	x = false
+}
+
+proctype B()
+{
+	do
+	:: y = true;
+		if
+		:: x == true && t == Aturn ->
+			y = false;
+			(t == Bturn)
+		:: x == false ->
+			break
+		fi
+	od;
+
+	/* critical section */
+
+	t = Aturn;
+	y = false
+}
+
+init { run A(); run B() }
+
+===========================
+
+Page 98, last paragraph
+
+old>	"If the receive operation tries to retrieve more parameters
+	 than are available, the value of the extra parameters is undefined;
+	 if it receives fewer than the number of parameters that was sent,
+	 the extra information is lost."
+new>	"It is always an error if the receive operation tries to retrieve
+	 a different number of parameters than the corresponding channel
+	 declaration specifies."
+
+===========================
+
+Page 99, last line of "init", middle of page:
+
+old< 	qname!qforb
+
+new> 	qname[0]!qforb
+
+Page 100, delete last line on page:
+
+old<	byte name;	/* delete */
+
+Page 103, in the Dijkstra example:
+
+old<	chan sema = [0] of { bit };
+
+new>	chan sema = [0] of { mtype };
+
+Page 108, "init" section, top of page:
+
+old< 	chan Ain  = [2] of { byte };
+ 	chan Bin  = [2] of { byte };
+ 	chan Aout = [2] of { byte };
+	chan Bout = [2] of { byte };
+
+new> 	chan Ain  = [2] of { byte, byte };
+	chan Bin  = [2] of { byte, byte };
+	chan Aout = [2] of { byte, byte };
+ 	chan Bout = [2] of { byte, byte };
+
+===========================
+
+Page 107, last sentence of first paragraph Section 5.12:
+
+old<	discussed in Section 2.4.
+new>	discussed in Section 2.3.
+
+===========================
+
+Page 110, exercise 5-3:
+
+old<	Revise the two programs from Section 5.6
+new>	Revise the two programs from Section 5.8
+
+
+CHAPTER 6
+
+
+TYPO, page 117
+=======================
+old< chan sema[0] of {bit};
+new> chan sema = [0] of {bit};
+
+SERIOUS OMISSION, Section 6.4, page 116-117:
+=================================================
+The treatment of formalizing system invariants in a 1-statement
+monitor process is correct only if the model does not contain
+any timeout statements.
+If it does, the statements in the model that would be executed
+after a timeout expires are not checked (since assert is always
+executable, it would always be executed before the timeout expires
+under default timeout heuristics used in spin).
+there are two possible solutions:
+
+- disable the default timeout heuristics for a fully exhaustive
+  search for all possible choices of timeouts (brute force)
+  to do this, include a single line
+	#define timeout skip
+  as the first line of your model - and nothing else has to change
+
+- use a safer formalization of the system invariant, using a never claim.
+  the simples formalization is:
+	never { do :: assert(invariant) od }
+  which checks the truth of the invariant for every reachable state,
+  independent of timeouts.
+  another way would be to use the implicit matching behavior of a never
+  claim, without an explicit assertion:
+	never
+	{	do
+		::  (invariant)	/* things are fine, the invariant holds */
+		:: !(invariant) -> break	/* invariant fails - match */
+		od
+	}
+
+CLARIFICATION, page 118, Section 6.5
+====================================
+The validator SPIN does not enforce the second criterion
+for a proper endstate, i.e., the emptiness of all channels.
+It does enforce the revised first criterion from the bottom
+of page 118.
+
+TYPO, page 121 middle:
+=================================================
+
+old< never { do :: skip od -> P -> !Q }
+
+new> never { do :: skip :: break od -> P -> !Q }
+
+ADDED EXPLANATIONS (throughout page 121 and onw.):
+=================================================
+
+A terminating claim is matched, and the corresponding correctness
+property thereby violated, if and when the claim body terminates.
+
+A non-terminating claim is matched, and the corresponding
+correctness property violated, if and when an acceptance cycle
+is detected.
+
+SPECIFYING TEMPORAL CLAIMS
+
+The body of a temporal claim is defined just like  PROMELA
+proctype  bodies.   This  means that all control flow struc-
+tures, such as  if-fi selections,  do-od repetitions,  and
+goto  jumps,  are allowed.  There is, however, one important
+difference:
+
+  Every statement inside a temporal claim is  (interpreted
+  as) a boolean condition.
+
+Specifically, this means that the statements inside temporal
+claims  should  be free of side-effects.  For reference, the
+PROMELA  statements  with  side-effects  are:   assignments,
+assertions,   sends,   receives,  and    printf  statements.
+
+Temporal  claims  are  used  to  express  system
+behaviors  that  are  considered undesirable or illegal.  We
+say that a temporal claim  is  matched  if  the  undesirable
+behavior can be realized, and thus our correctness claim can
+be violated.  The most useful application of temporal claims
+is  in  combination  with acceptance labels.  There are then
+two ways to match a temporal claim, depending on whether the
+undesirable behavior defines terminating or cyclic execution
+sequences.
+
+     For a terminating execution sequence, a temporal  claim
+     is  matched  only  when  it  can terminate (reaches the
+     closing curly brace) That is, the claim can be violated
+     if  the  closing curly brace of the PROMELA body of the
+     claim is reachable.
+
+     For a cyclic execution sequence, the claim  is  matched
+     only  when  an  explicit  acceptance cycle exists.  The
+     acceptance  labels  within  temporal  claims  are  user
+     defined, there are no defaults.  This means that in the
+     absence of acceptance labels no cyclic behavior can  be
+     matched  by  a  temporal  claim.  It also means that to
+     check a cyclic temporal claim, acceptance labels should
+     only  occur  within  the claim and not elsewhere in the
+     PROMELA code.
+
+ERROR, page 124, top
+=======================
+old<	:: len(receiver) == 0
+
+new>	:: skip	/* allow any time delay */
+
+ERROR, page 125, top
+=======================
+the claim can of course always be violated (== matched),
+whether timeout is redefined or not.
+
+CHAPTER 7
+
+ERROR, page 139, bottom
+=======================
+old< Pr(Burst >= 17) = 0.08  . e ^ { -0.08  . 17 } = 0.007
+
+new> Pr(Burst >= 17) = 0.009 . e ^ { -0.009 . 17 } = 0.007
+
+ERROR, page 156, middle
+=======================
+old< 			flow_to_dll[n]!sync_ack,0
+new> 			flow_to_dll[n]!sync_ack,m
+			(and move the new line up to precede: "m=0;")
+
+old< 			flow_to_ses[n]!sync_ack,0
+new> 			flow_to_ses[n]!sync_ack,m
+
+old<	To avoid circularity, the synchronization messages
+	do not carry sequence numbers.
+new>	The sync_ack message echos the session number of the
+	sync message.
+
+ERROR, page 156, bottom
+=======================
+old< 			||   (0<p-m-M && p-m-M<=W));
+new> 			||   (0<p-m+M && p-m+M<=W));
+
+
+CHAPTER 11
+
+ERROR, page 224, algorithm "analyze()"
+======================================
+old< 	q = element from W;
+new> 	q = last element from W;
+
+further down:
+=============
+old<	If states are stored in set W in first-in first-out order,
+	the algorithm performs a breadth-first search of the state space tree.
+new>	If states are stored in set W in first-in last-out (i.e., stack)
+	order, the algorithm performs a depth-first search of the state space tree.
+
+further down:
+=============
+old<	If states are stored in first-in last-out (i.e., stack)
+	< order, this changes into a depth-first search.
+
+new>	If states are stored and removed in first-in first-out
+	order, this changes into a breadth-first search
+	(element q must be deleted upon retrieval from set W in
+	this type of algorithm).
+
+Page 227, top
+=============
+old< 	q = element from W;
+new> 	q = last element from W;
+
+Page 237, bottom
+================
+old<	after removing states 4, 3, and 2 from the stack...
+new>	after removing states 4, and 3 from the stack...
+
+CHAPTER 13
+
+Page 315, 2nd para in 13.9
+==========================
+The first two sentences of this paragraph are incorrect.
+At the low end, just 1 state would be stored in the hash-array,
+taking up 2 bits of storage out of N available bits; at the
+high end, all N bits would be set at the end of the run, and 
+(allowing overlaps) we cannot have seen more than N states.
+This leads to a possible range of values for the hash factor
+of N/2 >= hf >= 1
+For full state space storage the hash factor is meaningless.
+
+CHAPTER 14
+
+Page 331, lines 86, 88, and 94
+==============================
+See the corrections described for CHAPTER 7, page 156.
+
+APPENDIX C
+==============================
+
+Page 387-388
+The syntax of remote referencing has changed in SPIN Version 2.0.
+Remote referencing to local variables is no longer allowed
+(page 387, 5th line from below).
+The syntax for referencing the state of another process has changed
+from (page 388, 3rd line):
+	same[2]:here
+to:
+	same[2]@here
+
+/===================================================================\
+| Final Erratum:                                                    |
+|                                                                   |
+| This book is now replaced with the new, up to date description of |
+| the current version of Spin (per 9/2003):                         |
+| 	http://spinroot.com/spin/Doc/Book_extras/index.html         |
+\===================================================================/
+
+=end errata=

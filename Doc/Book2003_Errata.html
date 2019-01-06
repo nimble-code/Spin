@@ -1,0 +1,383 @@
+<html>
+<head>
+<title>Book Errata - The Spin Model Checker</title>
+</head>
+<h3>Typos found in the first printing (August 2003)</h3>
+<font face=helvetica,arial>
+<ul>
+<li>p. vi	chapter 8 topic listings, Breath-First -> Breadth-First</li>
+<li>p.  2	line 16 "always explicitly" -> "usually"</li>
+<li>p.  3	figure 1.1 is mirror reversed</li>
+<li>p.	4	the website crashdatabas.com no longer seems to exist</li>
+<li>p. 20	See note (*) below, provided by Heikki Tauriainen (Feb 1, 2006).
+<li>p. 22	6th line from the bottom: "if" -> "of"</li>
+<li>p. 25	4th line from the bottom: "variable in" -> "variable cnt"</li>
+<li>p. 26	10th line from bottom: "set to false" -> "set to true"</li>
+<li>p. 27	an error slipped into Figure 2.6. The fragment
+<pre>
+	M?data ->       /* receive data */
+	do
+	:: W!data       /* send data */
+	:: W!shutup;    /* or shutdown */
+		break
+	od
+</pre>
+is an unfortunate last-minute rewrite of the originally intended version:
+<pre>
+	do
+	:: M?data -> W!data
+	:: M?data -> W!shutup;
+		break
+	od
+</pre>
+The behavior is of course not equivalent.
+In particular, the version in the book cannot create the error scenario
+given on page 29, but the intended version can.</li>
+<li>p. 33	8th line from bottom: "the specification" -> "the specification of"</li>
+<li>p. 33	3rd line from bottom: "functions pointers" -> "function pointers</li>
+<li>p. 41	"1 <= n <= 32" -> "1 <= n < 32".</li>
+<li>p. 43	appel -> apple</li>
+<li>p. 52	11th line from the top: "p. 39." -> "p. 38."</li>
+<li>p. 69	bottom line: "exclusive read and exclusive write" -> "exclusive receive and exclusive send"</li>
+<li>p. 75 and 548	Goldstein -> Goldstine</li>
+<li>p. 81 and 271	pan.trail -> fair.pml.trail</li>
+<li>p. 81	3rd line from the bottom: "trace fpr" -> "trace for"</li>
+<li>p. 82	18th line from the bottom: "process than" -> "process that"</li>
+<li>p. 92	4th line from bottom: "Even traces" -> "Event traces"</li>
+<li>p. 96	middle of page identify -> identity</li>
+<li>p. 96	l. -6, for -> by</li>
+<li>p. 111	below figure 5.4: "f==free" -> "f=free"</li>
+<li>p. 119	12th line from the bottom; "xDm" -> "Dm"</li>
+<li>p. 121	figure 5.8, in captions on bottom two figures: "p" -> "q"</li>
+<li>p. 137	14th line from bottom (first rule in list): first 3 chars in wrong font</li>
+<li>p. 139	last line; italic P -> roman P</li>
+<li>p. 142	3rd line from bottom: "reach" -> "reached"</li>
+<li>p. 142	5th line from bottom: omit comma</li>
+<li>p. 148	middle of the page: "can be express" -> "can be expressed"</li>
+<li>p. 149	5th line from bottom: "eventually always" -> "always eventually"</li>
+<li>p. 150	replace "it is impossible for p to hold only in even steps in a run, but never at odd steps"
+with "it is possible for p to hold in even steps in a run, but it is not possible for p to hold in odd steps"</li>
+<li>p. 150	Omega-Regular Properties, line 1: "that" -> "than"</li>
+<li>p. 158	middle of page: redundant space after "("</li>
+<li>p. 168	the list of properties given for < and > is not exhaustive</li>
+<li>p. 174	11th line from bottom: "but" -> "by"</li>
+<li>p. 177	Procedure Search() in Figure 8.6 is incorrect. A corrected version is:
+<pre>
+Search()
+{
+	while (Empty_Queue(D) == false)
+	{	s = Del_Queue(D)
+		for each (s,1,s') member A.T
+		if In_Statespace(V, s') == false
+		{	Add_Statespace(V, s')
+			Add_Queue(D, s')
+		}
+	}
+}
+</pre>
+</li>
+<li>p. 178	2nd line from top: "at state" -> "at each state", "of each state" -> "of that state"</li>
+<li>p. 179	lead -> led</li>
+<li>p. 180	before first 'if' stmnt inside for loop add: if (toggle == true)</li>
+<li>p. 185	Fig. 8.10, circle at s^{1}_{2} should be dotted</li>
+<li>p. 187	line -11: "interative" -> "iterative"</li>
+<li>p. 188	replace "(RxB)+(k+2)" with "Rx(B+k+2)"</li>
+<li>p. 193	Fig. 9.2, the two circles labeled 0,1,0 should be dashed</li>
+<li>p. 193	7th line from bottom: "g=g*2," -> "g=g*2."</li>
+<li>p. 196	line -9: "control control" -> "control"</li>
+<li>p. 204	last line, "to 133 seconds" -> "to 53 seconds"</li>
+<li>p. 208	a goof: m changes from bits to bytes between 2nd and 3rd paragraph</li>
+<li>p. 209	in first two formulas: (1-1/m) sup {kr}.</li>
+<li>p. 211	3rd line from below: probabilitie -> probabilities</li>
+<li>p. 212	line -2: "ration" -> "ratio"</li>
+<li>p. 214	A formal -> Formal</li>
+<li>p. 216	1st-2nd line: 'collissions' -> 'collisions'</li>
+<li>p. 219	last paragraph: missing right parenthesis</li>
+<li>p. 228	Celcius -> Celsius</li>
+<li>p. 228	in the list at the bottom: there are just 6 entries with 'keep' as a target</li>
+<li>p. 237	12th line from below: "postive" -> "zero".</li>
+<li>p. 237	4th line from below: "unsound" -> "incomplete".</li>
+<li>p. 238	knifes -> knives</li>
+<li>p. 241	7th line from bottom: "world0" -> "world\n"</li>
+<li>p. 243	Pressburger -> Presburger</li>
+<li>p. 251	Selet -> Select</li>
+<li>p. 262	10th line from bottom: "do to" -> "due to"</li>
+<li>p. 272	an basic -> a basic</li>
+<li>p. 272	"As a special feature [...], if the statement" omit "if"</li>
+<li>p. 279	"#define q" -> "#define r"
+<!--
+<li>p. 280	(strong) -> (weak)</li>
+-->
+<li>p. 281	Automata View -> Automaton View</li>
+<li>p. 283	The correct wording of the quote from Willem L. van der Poel, as corrected by its author:
+		<pre>"There are no wrong programs, it simply is another program."</pre>
+		(email from the author, Feb 1, 2006).
+<li>p. 284	8th line from bottom: omit "blue"</li>
+<li>p. 287	6th line from top: omit "blue"</li>
+<li>p. 307	top of page: "ringtone" -> "ring tone" </li>
+<li>p. 307	top of page: "dialtone" -> "dial tone"</li>
+<li>p. 307	top of page: "notone" -> "no tone"</li>
+<!-- <li>p. 332	3rd line from bottom: UTS without a trademark (see also next page, 1x)</li> -->
+<li>p. 333	11th line from top: "and early version" -> "an early version"</li>
+<li>p. 338	the line numbered [19] is actually from the FIX</li>
+<li>p. 339	6th line from below: pid 1 -> pid 0</li>
+<li>p. 393	2nd line from top: "innermostn" -> "innermost"</li>
+<li>p. 341	10th line from top: "body ," -> "body,"</li>
+<li>p. 346	identificatio -> identification</li>
+<li>p. 346	middle of the page: "tranaction" -> "transaction"</li>
+<li>p. 349	55 is not the integer square root of either 1024 or 3601.</li>
+<li>p. 356	n=1<<30 does not fail on all systems</li>
+<li>p. 359	Fig. 15.8: what looks like commas are really single quotes</li>
+<li>p. 359	Fig. 15.8: the automaton fails to detect strings that start inside a comment;</li>
+unfortunate given the example that also appears on this page...</li>
+<li>p. 365	the grammar listing misses productions for inlines</li>
+<li>p. 365	[active] PROCTYPE -> [active ['[' const ']']] PROCTYPE</li>
+<li>p. 367	"PRINT" -> "PRINTF"</li>
+<li>p. 369	in PREDEFINED: "373last" -> "374"</li>
+<li>p. 369	in PREDEFINED: "373nr_pr" -> "376"</li>
+<li>p. 369	5th line from bottom: "special case" -> "special cases"</li>
+<li>p. 370	8th line from bottom: "p.272" -> "p. 272"</li>
+<li>p. 370	2nd line from bottom: "(434)" -> "(p. 434)"</li>
+<li>p. 370	2nd line from bottom: "(p, 483)" -> "(p. 483)"</li>
+<li>p. 371	2nd line from top: "Two" -> "Three"</li>
+<li>p. 371	9th line from top: "or both of the above two" -> "of the above" </li>
+<li>p. 374	11th line from bottom: "from into" -> "to"</li>
+<li>p. 376	5th line from bottom: "at 256" -> "at 255"</li>
+<li>p. 377	5th line in DESCRIPTION: "process" -> "processes"</li>
+<li>p. 381	4th line from bottom: "four process" -> "four processes"</li>
+<li>p. 381	3rd line from bottom: "to three" -> "to four"</li>
+<li>p. 390	9th line from bottom: "recepient" -> "recipient"</li>
+<li>p. 393	10th line from bottom: "label L1" -> "label L2"
+<li>p. 395	6th line from top: "multiple field" -> "multiple fields"</li>
+<li>p. 397	4th line from top: "the the" -> "the"</li>
+<li>p. 398	11th line from bottom: redundant space after "("</li>
+<li>p. 402	7th line from top, "accidentily" -> "accidentally"</li>
+<li>p. 404	mixed fonts in Table</li>
+<li>p. 404	5th line from bottom: "the fact the" -> "the fact that the"</li>
+<li>p. 407	in Notes, 2nd line: "tha" -> "that"</li>
+<li>p. 408	"(x < 0)" -> "(x <= 0)"</li>
+<li>p. 411	last line: "ltl len" -> "ltl, len"</li>
+<li>p. 425	11th line from top: "followin" -> "following"</li>
+<li>p. 440	11th line from top: "equivalents" -> "equivalent"</li>
+<li>p. 441	middle of page: "LTL formula" -> "LTL formulae"</li>
+<li>p. 446	10th line from top: "equivalents" -> "equivalent"</li>
+<li>p. 450	last example in notes should be: atomic { P && qname?[ack,var] -> qname?ack,var }</li>
+<li>p. 452	15th line from bottom: "will included" -> "will be included"</li>
+<li>p. 455	5th line from top: "restrction" -> "restriction"</li>
+<li>p. 456	middle of page: "type main" -> "type fact"</li>
+<li>p. 456	12th line from bottom: "2,147,483,648" ->"2,147,483,647"</li>
+<li>p. 456	10th line from bottom: 13! = 6,227,020,800  (and so even 13! > 2^31-1)</li>
+<li>p. 464	9th line from bottom: "just and safe" -> "justified and safe" (2x)</li>
+<li>p. 466	1st line in EFFECT: "to the" -> "of the" </li>
+<li>p. 476	in EXAMPLES (2x): "b = a" -> "b = tmp"</li>
+<li>p. 479	7th line from top: "can are" -> "are"</li>
+<li>p. 496	6th line: "in in" -> "in"</li>
+<li>p. 498	2nd line from bottom: "coord.trail" -> "example.trail"</li>
+<li>p. 509	13th line from bottom: "known the" -> "known. The"</li>
+<li>p. 512	middle of page: "an pointer" -> "a pointer"</li>
+<li>p. 518	l -8, most -> must</li>
+<li>p. 519	l -10, -rthis -> -r, this</li>
+<li>p. 521	5th line from bottom: "substitions" -> "substitutions"</li>
+<li>p. 528	under basic options -DBFS, "reducting" -> "reducing"</li>
+<li>p. 532	under -DSDUMP, replace "-DCHECK" with: "-DVERBOSE or -DDEBUG"</li>
+<li>p. 532	under -DSVDUMP, replace "a file named svdump" with "a file with extension .svd"</li>
+<li>p. 541	11th line from bottom: "-a" in wrong font</li>
+<li>p. 543	middle of page: "two for processes" -> "three for processes"</li>
+<li>p. 547	Americans would put "Dijkstra" above "Dillon" in alphabetical order. Dutchmen, though, recognize the "ij" as a single letter, and place "Dijkstra" below "Doran" as shown. Dijkstra was, of course, a Dutchman...</li>
+<li>p. 547	Entry for Emerson: "model logic" -> "modal logic"</li>
+<li>p. 553	13th line from bottom: "to represents" -> "to represent"</li>
+<li>p. 554	10th line from top: "product" -> "products"</li>
+<li>p. 561	DEADLOCK DETECTION, 1st line: "is system" -> "is a system"</li>
+<li>p. 561	10th line from bottom: replace "invalid endstate" with "valid endstate", and replace the subsentence after the comma with: "from which we can derive the definition of an invalid endstate, matching Spin's formalization of a system deadlock. In an invalid endstate at least one process has not reached its closing curly brace or a state marked with an endstate label."</li>
+<li>p. 565	4th line from top: "andq, r" -> "q and r"</li>
+<li>p. 566	define BDD (Binary Decision Diagram) and NP (Non-deterministic Polynomial)</li>
+<li>p. 572	l 8, wil -> will</li>
+<li>p. 575	10th line from bottom should be: spin -a -m ex2</li>
+<li>p. 575	9th line from bottom should be: cc -DPC -DBITSTATE -DSAFETY -o pan pan.c</li>
+<li>p. 577	C.9., 1st line: "an little" -> "a little"</li>
+<li>p. 579	5th line from top: "these tool" -> "these tools"</li>
+</ul>
+</font>
+<hr>
+Statistics:
+The list above contains
+roughly 128 reported typos and goofs in the first printing of the book.
+There are approximately 340K words in the book, giving 1 reported defect
+per 2,650 words written. At and average of 10 words per sentence, this is
+about 4 reported defects per 1,000 sentences in the book, which is roughly
+on par with a reasonably good software development process of 1-10 residual
+defects (<em>after</em> testing) per 1,000 lines of non-comment source code written.
+As in software, the number of reported defects depends both on the number of
+latent defects <em>and</em> on the number of users/readers
+(i.e., unread books will have no reported typos...).
+<hr>
+Note (*) on the example used on p. 20, provided by Heikki Tauriainen.
+<pre>
+Date: Wed, 01 Feb 2006 21:10:54 +0200 (EET) 
+From: heikki.tauriainen [atsign] tkk [dot] fi 
+Subject: Spin book: Doran & Thomas's mutual exclusion algorithm 
+
+Dear Dr. Holzmann,
+
+Keijo Heljanko and I are giving at Helsinki University of Technology
+a basic course on parallel and distributed systems, using Spin for
+examples on model checking.  To demonstrate using the tool, we
+considered Dekker's mutual exclusion algorithm found in your Spin
+book (p. 20) and the variant of the algorithm by Doran and Thomas
+mentioned on p. 22.
+
+According to the Spin book, Doran and Thomas's algorithm can be
+obtained from Dekker's algorithm by simply changing the outer do-loop
+of the algorithm into an if-selection, and this change is claimed to
+preserve the correctness of the algorithm.  This doesn't, however,
+seem to be the case, as the verification results using the Promela
+models distributed in the package
+<http://spinroot.com/spin/Doc/Book_extras/examples.tar.gz> were
+somewhat unexpected (unless, of course, the models in the package are
+deliberately faulty).  I'm referring to the file CH2/mutex.pml in the
+package.
+
+The Promela model uses a preprocessor directive (DORAN) to choose
+between the algorithm with the do-loop and the algorithm with the
+if-selection. Verifying the model with the do-loop indeed gives the
+expected result (no assertion violations).  Firstly, however, Spin
+doesn't directly accept the model of the variant of the algorithm:
+
+$ spin -DDORAN -a mutex.pml
+spin: line  30 "mutex.pml", Error: misplaced break statement    saw '-2'' near 'break'
+$
+
+After the obvious change of making the 'break' keyword at line 30
+apply only to the variant with the do-loop, that is, changing lines
+29--35 to read
+
+        :: else ->
+#ifdef DORAN
+        fi;
+#else
+                break
+        od;
+#endif
+
+and then verifying the mutual exclusion algorithm gives, however,
+the following (unexpected) result:
+
+$ spin -DDORAN -a mutex.pml
+$ gcc -o -DBFS -o pan pan.c
+$ ./pan
+pan: assertion violated (cnt==1) (at depth 9)
+pan: wrote mutex.pml.trail
+(Spin Version 4.2.6 -- 27 October 2005)
+Warning: Search not completed
+        + Using Breadth-First Search
+        + Partial Order Reduction
+
+Full statespace search for:
+        never claim             - (none specified)
+        assertion violations    +
+        cycle checks            - (disabled by -DSAFETY)
+        invalid end states      +
+
+State-vector 20 byte, depth reached 9, errors: 1
+      56 states, stored
+              56 nominal states (stored-atomic)
+      32 states, matched
+      88 transitions (= stored+matched)
+       0 atomic steps
+hash conflicts: 0 (resolved)
+
+2.302   memory usage (Mbyte)
+
+$ spin -DDORAN -p -t mutex.pml
+Starting mutex with pid 0
+Starting mutex with pid 1
+  1:    proc  1 (mutex) line  11 "mutex.pml" (state 1)  [i = _pid]
+  1:    proc  1 (mutex) line  12 "mutex.pml" (state 2)  [j = (1-_pid)]
+  2:    proc  0 (mutex) line  11 "mutex.pml" (state 1)  [i = _pid]
+  2:    proc  0 (mutex) line  12 "mutex.pml" (state 2)  [j = (1-_pid)]
+  3:    proc  1 (mutex) line  14 "mutex.pml" (state 3)  [flag[i] = 1]
+  4:    proc  1 (mutex) line  29 "mutex.pml" (state 12) [else]
+  5:    proc  1 (mutex) line  37 "mutex.pml" (state 15) [cnt = (cnt+1)]
+  6:    proc  0 (mutex) line  14 "mutex.pml" (state 3)  [flag[i] = 1]
+  7:    proc  0 (mutex) line  21 "mutex.pml" (state 4)  [(flag[j])]
+  8:    proc  0 (mutex) line  27 "mutex.pml" (state 9)  [else]
+  9:    proc  0 (mutex) line  37 "mutex.pml" (state 15) [cnt = (cnt+1)]
+spin: trail ends after 9 steps
+#processes: 2
+                turn = 0
+                flag[0] = 1
+                flag[1] = 1
+                cnt = 2
+  9:    proc  1 (mutex) line  38 "mutex.pml" (state 16)
+  9:    proc  0 (mutex) line  38 "mutex.pml" (state 16)
+2 processes created
+$
+
+Trying to find a reason for this unexpected result, I compared the
+model with the algorithm in Doran and Thomas's original article [1].
+It appears that the model in fact differs from that algorithm
+(repeated below from [1], Fig. 1)
+
+Process A                           Process B
+  1. A_needs := true;                    B_needs :=  true;
+  2. if B_needs then begin               if A_needs then begin
+  3.   if turn = 'B' then begin            if turn = 'A' then begin
+  4.     A_needs := false;                   B_needs := false;
+  5.     wait until turn = 'A';              wait until turn = 'B';
+  6.     A_needs := true;                    B_needs := true;
+  7.     end;                                end;
+  8.   wait until !B_needs;                wait until !A_needs;
+  9.   end;                                end;
+ 10. CRITICAL SECTION                    CRITICAL SECTION
+ 11. turn := 'B';                        turn := 'A';
+ 12. A_needs := false;                   B_needs := false;
+ 13. NON-CRITICAL SECTION                NON-CRITICAL SECTION
+
+In particular, the Promela model has no corresponding construct for
+line 8 of this algorithm, which appears to be critical to its
+correctness: changing the outer if-selection to read
+
+        if
+        :: flag[j] ->
+                if
+                :: turn == j ->
+                        flag[i] = false;
+                        !(turn == j);
+                        flag[i] = true
+                :: else
+                fi;
+                (!flag[j]);    /* needed for correctness */
+        :: else ->
+        fi;
+
+fixes the error.  However, it is not sufficient to simply
+replace the do-loop with an if-selection, although the wording
+on page 22 of the Spin book can be interpreteted to suggest
+otherwise (at least both I and Keijo were surprised, that's why
+we decided to write this report).
+
+(The example file suggests that the model is taken from the book
+[2] instead of directly from Doran and Thomas's original article [1].
+As a matter of fact, this book---at least its English translation---contains the same error.  This is probably also the
+reason why the model is faulty.)
+
+Best regards,
+Heikki Tauriainen
+
+
+References:
+
+[1] R. W. Doran and L. K. Thomas.  Variants of the software solution to
+    mutual exclusion.  Information Processing Letters 10(4--5):206--208,
+    1980.
+
+[2] M. Raynal.  Algorithms for mutual exclusion.  North Oxford Academic
+    Publishers Ltd., 1986.
+</pre>
+<hr>
+<a href="http://spinroot.com/spin/Doc/Book_extras/index.html">book home page</a>
+<br>
+<a href="http://spinroot.com/spin/">Spin home page</a>
+<hr>
+<font size=2>Last updated: 1 February 2006</font>
+</html>

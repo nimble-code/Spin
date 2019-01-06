@@ -1,0 +1,612 @@
+
+
+Answers to selected exercises from
+'Design and Validation of Computer Protocols'
+=============================================
+
+1.1
+Assuming that torches in the two groups would be
+raised and lowered simultaneously,
+the code for the first character in the first group
+could have clashed with the pre-defined start of text code.
+
+If torches are not raised simultaneously it is conceivable
+that group numbers could be paired with the wrong character numbers.
+
+A well-trained transmitter might also overestimate the receiver's
+ability to translate the codes on the fly.
+as is still true today: receiving is a more time consuming task
+than transmitting.
+
+1.2
+Assuming that a torch code is displayed for a minimum of 30 seconds,
+the torch telegraph transmits a choice of 1 out of 25 (between 4
+and 5 bits of information), giving a speed of roughly 0.15 bits/sec.
+Chappe's telegraph transmitted a choice of 1 out of 128 every 15 to 20
+seconds, giving a transmission speed of roughly 0.5 bits/sec.
+On Polybius' telegraph the 15 characters of the message
+``protocol failure'' would take 15x30 seconds or 7.5 minutes to transmit...
+(Note that a code for the space was not available.)
+On Chappe's system the 16 characters (space included) would be
+transmitted in 4 minutes, assuming that no predefined code
+was assigned to either the word `protocol' or the word `failure.'
+(As far as we know, there wasn't.)
+
+1.3
+Removing the redundancy in messages increases the chance that a
+single transmission error would make a large part of a message
+inrecognizable.  It could cause a lot of extra traffic from receiver
+back to sender, asking for retransmissions, and additional transmissions
+of messages.  The same tradeoff is still valid on today's communication
+channels (see Chapter 3).
+
+1.4
+The signalman at A had to make sure that not one but two
+trains would leave the tunnel, before he admitted the third.
+The two trains could reach signalman B in approximately 2 minutes.
+At 25 symbols per minute, that would allow the two signalmen
+to exchange roughly 50 characters of text.
+A could have signaled: "two trains now in tunnel - how many left?"
+for a total of 42 characters.
+Assuming that B would have answered eventually "one train left,"
+that would still leave A puzzling if B had really understood his
+message, and if so, where the second train could possibly be.
+Considering also that signalman A had been on duty for almost
+18 hours when the accident occured, it is not entirely certain
+that he could have succesfully resolved the protocol problem.
+Note that he still would have had to `invent' part of the protocol
+for resolving the problem in real-time.
+
+1.5
+Replace the message `train in tunnel' with `increment the number of
+trains in the tunnel by one.'  Similarly, replace the message `tunnel
+is clear' by `decrement the number of trains in the tunnel by one.'
+The message `is tunnel clear' becomes `how many trains are in the
+tunnel?' with the possible responses spelled out with numerals 0 to 9.
+Either signalman can increment or decrement the number.
+The rule of the tunnel is invariantly that the number of trains in
+the tunnel is either zero or one, and only one signalman may transmit
+at a time. (To resolve conflicts on access to the transmission line,
+one could simply give one of the signalmen a fixed priority.)
+
+1.6
+A livelock would result.  Assuming that the semaphore operators would
+quickly enough recognize the livelock, it is still an open question
+what they would (should) do to recover properly from such an occurence.
+
+1.7
+One possible scenario, observed by Jon Bentley in real life, is that
+two connections are made, and both parties are charged for the call.
+Clearly, a dream come true for the telephone companies.
+
+2.1
+Service - the simplex transfer of arbitrary messages from a designated
+sender to a designated receiver.
+
+Assumptions about the environment - sufficient visibility and small enough
+distance to make and accurate detection (and counting) of torches possible
+for both sender and receiver.  There seems to be an implicit assumption of
+an error-free channel.  There is also the implicit assumption that the
+receiver will always be able to keep up with the sender and will not get
+out of sync with the symbols that have to be decoded.
+
+Vocabulary - 24 characters from the Greek alphabet, plus two control messages
+(the start of text message and its acknowledgement).
+
+Encoding - each character, and each control message, is encoded into two
+numbers, both between 1 and 5.
+Since there are 26 distinct messages and only 5x5=25 distinct codes, some
+ambiguity is unavoidable.
+
+Procedure rules - minimal.  Apparently there was only a single handshake
+at the start of the transmission.  All other interactions (end of transmission,
+error recovery, flow control) were undefined and would have had to be
+improvised in the field.  There is also no resolution of a potential conflict
+at the start of transmission (assuming that both parties could decide to
+start sending at the same time).
+
+2.2
+The procedure rules can include a poll message once per
+complete page - interrogating the printer about it's status
+(confirming that it is online and confirming that it
+is not out of paper - both conditions that can change from
+one page to the next).  Note that the procedure rules must
+also guarantee that no more than one user can use the printer
+at a time.
+
+2.3
+Service - establishing a voice connection between two subscribers
+of a phone system. (Let's conveniently ignore multi-party connections,
+or faxes and modems.)
+
+Assumptions about environment - the phone system is infinitely
+available and error-free (sic).
+
+Vocabulary - off-hook, on-hook, dial 0 ... dial 9 (ignore star and sharp).
+Dial-tone, busy-tone, ring-tone.  All messages listed here are control
+messages - the `data' of the protocol is encoded in the voice message.
+(For completeness then we could list `voice' as a separate message in the
+vocabulary, without attempting to formalize it's `encoding.')
+
+Encoding - lifting the receiver, lowering the receiver,
+pushing one of 10 labeled buttons.
+
+Informal procedure rules -  Go off-hook, if no dial-tone is returned
+go on-hook and repeat a random amount of time later.
+If there is a dial-tone, push the sequence of buttons that identify the
+required destination to the phone system.
+If a busy-tone is returned in this interval, go on-hook, wait a random
+amount of time, and repeat from the start.
+If a ring-tone is returned - the call has been established - wait a
+random amount of time, go on-hook.
+
+Note that the random wait period after a busy signal makes it less likely
+that a `Lovers' Paradox' can be created (cf. Exercise 1.7).
+To be complete, the phone systems behavior should also be listed.
+Be warned that the latter is not a trivial exercise....
+
+2.4
+The revised version is the famous alternating bit protocol, see Chapter 4.
+
+2.5
+The receiver can then determine where a message (should) end by
+counting the number of bytes it receives, following the header.
+It does not have to scan for a pre-defined message terminator.
+
+2.6
+For isntance, a character stuffed protocol always transmits an integral
+number of bytes.  A bit stuffed protocol carries slightly less overhead.
+
+2.7
+See Bertsekas and Gallager, [1987, p. 78-79].
+
+2.8
+More detailed sample assignments for software projects such as
+this one are available from the author (email to gerard@research.att.com).
+
+3.1
+The code rate is 0.2.  Protection against bursts is limited
+to errors affecting maximally 2 out of the 5 bytes.
+At 56 Kbits/sec that means bursts smaller than 0.28 msec.
+
+3.3
+Does the crc need to be protected by a crc?
+
+3.4
+In many cases English sentences are redundant enough that
+forward error correction is possible.  Any real conversation,
+though, contains many examples of feedback error correction
+to resolve ambiguities.
+To stick with the example - if the sentence ``the dog run'' is
+received, the original version (i.e., one or more dogs) cannot be
+determined without feedback error control.
+
+3.5
+(a) - the checksum is 6 bits wide.
+(b) - the original data is equal to the first n-6 bits of the code word
+(6 bits in this case).
+(c) - there were no transmission errors other than possible multiples
+of the generator polynomial itself.
+
+3.6
+The standard example is that of the voyager space craft near
+the planet Jupiter receiving a course adjustment from earth.
+A retransmission of the message would mean hours delay and invalidate
+the original commands.
+If the return channel has a high probability of error (e.g., a low
+power transmitter on board the spacecraft, sending out a very weak
+signal back to earth), the chances that a retransmission request would
+reach the earth intact may also be unacceptably low.
+
+3.8
+It is impossible to reduce a non-zero error rate to zero.
+The probability of error can be brought arbitrarily close to zero,
+at the expense of transmission speed, but it cannot reach zero.
+The scheme suggested would violate this principle and therefore
+should be placed in the same category as perpetuum mobiles and time-travel.
+
+3.9
+Fletcher's algorithm can be classified as a systematic block code.
+
+4.2
+The alternating bit protocol does not protect against
+duplication errors or reordering errors.
+Duplication errors persist (duplicate messages do not dissapear
+but generate duplicate acks etc, for the duration of the session.)
+Reordering can cause erroneous data to be accepted.
+
+4.5
+Too short a timeout creates duplicate messages.
+The duplicates lower the throughput for the remainder of the session.
+Too long a timeout increases idle-time and lowers the
+throughput.
+
+4.6
+Ignore duplicate acks.
+
+4.8
+See Bertsekas and Gallager [1987, pp. 28-29].
+
+4.9
+In at least one case (when the receiver is one full window of
+messages behind the sender) there is a confusion case where
+the receiver cannot tell if an incoming message is a repeat
+from W messages back, or a new message.
+
+4.10
+Store the data in buffer[n%W] where W is window size.
+
+4.11
+Use time-stamps and restrict the maximum life time of
+a message.  Note however that time-stamps are just another
+flavor of sequence numbers and they would have to be selected
+from a sufficiently large window.
+For 32 bit sequence numbers one message transmission
+per micro-second would recycle the number in 71 minutes.
+For 64 bit sequence numbers, the number recycles
+at the same transmission speed in 500,000 years.
+
+4.12
+Alpha controls the rate of adaption to changes in
+network performance.
+Beta controls the allowed variance in response time.
+(It estimates the load variance of the remote host.)
+
+4.13
+Most importantly, all assumptions about the environment,
+specifically of the tranmission channel used, are missing completely.
+
+4.14
+The message could be received again and cause a duplicate acceptance.
+
+5.1
+An assignment is always executable.  The variable b would be set
+to the value 0.
+
+5.2
+If the receive is executable on the first attempt to execute
+the statement, the message would be received, and the condition
+would be false (since the `executability' value of the receive is
+non-zero).  The statement would block, and would be repeated.
+If the receive is (finally) non-executable, the receive fails,
+but the condition becomes true and executable.
+For all clarity: this is not valid Promela syntax.  In Promela
+the rule is that the evaluation of a condition must always be
+completely side-effect free.
+
+5.3
+
+/***** Factorial - without channels *****/
+
+int par[16];
+int done[16];
+int depth;
+
+proctype fact()
+{	int r, n, m;
+
+	m = depth;
+	n = par[m];
+	if
+	:: (n <= 1) -> r = 1
+	:: (n >= 2) ->
+		depth = m + 1;
+			par[m+1] = n-1;
+			run fact();
+			done[m+1];
+			r = par[m+1];
+		depth = m;
+		r = r*n
+	fi;
+	par[m] = r;
+	printf("Value: %d\n", par[m]);
+	done[m] = 1
+}
+
+init
+{	depth = 0;
+	par[0] = 12;
+	run fact();
+	done[0];
+	printf("value: %d\n", par[0])
+	/* factorial of 12: 12*11*10....*2*1 = 479001600 */
+}
+
+/***** Ackermann's function *****/
+
+short  ans[100];
+short done[100];	/* synchronization */
+
+proctype ack(short a, b, c)
+{
+	if
+	:: (a == 0) ->
+		ans[c] = b+1
+	:: (a != 0) ->
+		done[c+1] = 0;
+		if
+		:: (b == 0) ->
+			run ack(a-1, 1, c+1)
+		:: (b != 0) ->
+			run ack(a, b-1, c+1);
+			done[c+1];	/* wait */
+			done[c+1] = 0;
+			run ack(a-1, ans[c+1], c+1)
+		fi;
+		done[c+1];	/* wait */
+		ans[c] = ans[c+1]
+	fi;
+	done[c] = 1
+}
+init
+{
+	run ack(3, 3, 0);
+	done[0];	/* wait */
+	printf("ack(3,3) = %d\n", ans[0])
+}
+
+5.10
+
+Here, as an inspiration, is another sort program, performing
+a tree-sort.
+
+/**** Tree sorter ****/
+
+mtype = { data, eof };
+
+proctype seed(chan in)
+{	byte num, nr;
+
+	do
+	:: (num < 250) -> num = num + 5
+	:: (num >   3) -> num = num - 3
+	:: in!data,num
+	:: (num > 200) -> in!eof,0 -> break
+	od
+}
+
+init {
+	chan in[1] of { byte, byte };
+	chan rgt [1] of { byte, byte };
+	byte n;
+
+	run seed(in);
+	in?data,n;
+	run node(n, rgt, in);
+	do
+	:: rgt?eof,0 -> printf("\n"); break
+	:: rgt?data,n -> printf("%d, ", n)
+	od
+	
+}
+
+proctype node(byte hold; chan up, down)
+{	chan lft [1] of { byte, byte };
+	chan rgt [1] of { byte, byte };
+	chan ret [1] of { byte, byte };
+	byte n; bit havergt, havelft;
+
+	do
+	:: down?data,n ->
+		if
+		:: (n >  hold) ->
+			if
+			:: ( havelft) -> lft!data,n
+			:: (!havelft) -> havelft=1;
+				run node(n, ret, lft)
+			fi
+		:: (n <= hold) ->
+			if
+			:: ( havergt) -> rgt!data,n
+			:: (!havergt) -> havergt=1;
+				run node(n, ret, rgt)
+			fi
+		fi
+	:: down?eof,0 -> break
+	od;
+	if
+	:: (!havergt) -> skip
+	:: ( havergt) -> rgt!eof,0;
+		do
+		:: ret?data,n -> up!data,n
+		:: ret?eof,0 -> break
+		od
+	fi;
+	up!data,hold;
+	if
+	:: (!havelft) -> skip
+	:: ( havelft) -> lft!eof,0;
+		do
+		:: ret?data,n -> up!data,n
+		:: ret?eof,0 -> break
+		od
+	fi;
+	up!eof,0
+}
+
+5.13
+Promela is a validation modeling language, not an implementation language.
+Why does a civil engineer not use steel beams in wooden bridge models?
+
+6.1
+The assertion can be placed inside the critical section.
+The simplest way is as follows (rewritten with some features
+from the more recent versions of Spin):
+
+	mtype = { p, v }
+	
+	chan sema[0] of { mtype };
+	byte cnt;
+	
+	active proctype dijkstra()	/* 1 semaphore process */
+	{       do
+	        :: sema!p -> sema?v
+	        od
+	}
+	active [3] proctype user()	/* 3 user processes */
+	{
+		sema?p;
+		cnt++;
+		assert (cnt == 0 || cnt == 1);  /* critical section */
+		cnt--;
+		sem!v
+		skip   /* non-critical section */
+	}
+
+6.2
+To check the truth of the invariant
+for every reachable state, one can write simply:
+
+	never { do :: assert(invariant) od }
+
+Or to match an invalid behavior by reaching the
+end of the never claim, without assertions:
+
+	never
+	{	do
+		::  (invariant)	/* things are fine, the invariant holds */
+		:: !(invariant) -> break	/* invariant fails - match */
+		od
+	}
+
+Note that semi-colons (or arrows) in never claims match system transitions,
+(i.e., each transition in the system must be matched by a move in the
+never claim;  the claim does not move independently).
+
+6.5
+Using accept labels, for instance:
+
+	proctype A()
+	{	do
+		:: x = true;
+			t = Bturn;
+			(y == false || t == Aturn);
+			ain = true;
+	CS:		skip;	/* the critical section */
+			ain = false;
+			x = false
+		od
+	}
+	... and simularly for proctype B()
+
+	never {
+		do
+		:: skip		/* allow arbitrary initial execution */
+		:: !A[1]@CS -> goto accept1
+		:: !B[2]@CS -> goto accept2
+		od;
+	accept1:
+		do :: !A[1]@CS od	/* process 1 denied access forever */
+	accept2:
+		do :: !B[2]@CS od	/* process 2 denied access forever */
+	}
+
+
+6.6.a
+	never {
+		do
+		:: skip	/* after an arbitrary number of steps */
+		:: p -> break
+		od;
+	accept:
+		do
+		:: p	/* can only match if p remains true forever */
+		od
+	}
+
+6.6.b
+For instance:
+	never {
+		do
+		:: assert(q || p)	/* "!q implies p" */
+		od
+	}
+
+6.6.c
+	never {    /* <> (p U q) */
+	        do
+	        :: skip	/* after an arbitrary number of steps */
+	        :: p -> break	/* eventually */
+	        od;
+	        do
+	        :: p		/* p remains true */
+	        :: q -> break	/* at least until q becomes true */
+	        od
+		/* invalid behavior is matched if we get here */
+	}
+
+The translation has been automated, and is standard in Spin version 2.7
+and later (Spin option -f).
+
+6.7
+A research problem -- there are no easy answers.
+
+6.8
+	assert(0)
+is an immediate violation in both finite or infinite execution sequences,
+and is a safety property.
+
+	accept: do :: skip od
+
+is only a violation for an infinite execution sequence, and is a liveness
+property (i.e., requires a nested depth-first search for acceptance
+cycles). The safety property can be proven more effieciently.
+Other than this, the two properties are equivalent;
+
+7.1
+Layers 3 to 5 and layer 7.
+
+7.2
+At the sender: first checksumming, then byte stuffing and framing.
+At the receiver: first unstuffing and de-framing, then checksum
+verification.
+
+7.3
+Rate control is placed at the layer that handles the units it
+refers too (for bit rates, it is the physical layer - for packets
+it would be the layer that produces packets, etc.).
+Dynamic flow control belongs in the flow control module.
+
+7.13
+The one-bit solution will no longer work.
+
+8.1
+The dash is used as a don't care symbol - any valid symbol
+could replace it without changing the validity of the specification.
+The epsilon is a null-element, i.e. it represents the absence
+of a symbol (the empty set).
+
+8.7
+No, the run and chan operators are defined to be unexecutable
+when an (implementation dependent) bound is reached.
+
+9.2
+No.
+
+9.5
+More states, up to a predefined bound only.  Fewer states, yes.
+
+9.6
+No, the IUT could be arbitrarily large.
+
+9.8
+It can no longer detect transfer errors.
+
+10.2
+The computational complexity will make an interactive
+solution impossible for all but the simplest
+applications.
+
+11.3
+Missing from the program text is that variable j is
+initialized to 1 minus the value of i.
+
+12.1
+Note that the number of states to be searched by a validator on
+such a protocol would multiply by the range of the time count...
+
+13.1
+If done right, the changes will be minimal (say 10 to 20 lines
+of source).
+The memory requirements will very quickly make validations
+effectively impossible.

@@ -1,0 +1,360 @@
+.ds Z S\s-2PIN\s0
+.ds P P\s-2ROMELA\s0
+.\"
+.\" On CYGWIN move this page to c:/cygwin/usr/man/man1/spin.1
+.\"
+.TH SPIN 1
+.CT 1 comm_mach protocol
+.SH NAME
+.br
+ Spin \(mi verification of multithreaded systems
+.SH SYNOPSIS
+.B spin
+.BI -V
+.br
+.B spin
+[
+options
+]
+.I file
+.SH DESCRIPTION
+\*Z
+is a tool for analyzing the logical consistency of
+asynchronous systems, specifically distributed software,
+multi-threaded systems, and communication protocols.
+A model of the system is specified
+in a guarded command language called Promela (process meta language).
+This modeling language supports dynamic creation of
+processes, nondeterministic case selection, loops, gotos,
+local and global variables.
+It also allows for a concise specification of logical
+correctness requirements, including, but not restricted
+to requirements expressed in linear temporal logic.
+.PP
+Given a Promela model stored in
+.I file ,
+\*Z can perform interactive, guided, or random simulations
+of the system's execution.
+It can also generate a C program that performs an exhaustive
+verification of the correctness requirements for the system.
+The main options supported are as follows. (You can always get
+a full list of current options with the command "spin --".
+.\"----------------------a----------------
+.TP
+.B -a
+Generate a verifier (a model checker) for the specification.
+The output is written into a set of C files named
+.BR pan. [ cbhmt ],
+that can be compiled
+.RB ( "cc -o pan pan.c" )
+to produce an executable verifier.
+The online \*Z manuals contain
+the details on compilation and use of the verifiers.
+.\"--------------------------b------------
+.TP
+.B -b
+Do not execute printf statements in a simulation run.
+.\"--------------------------c------------
+.TP
+.B -c
+Produce an ASCII approximation of a message sequence
+chart for a random or guided (when combined with \f3-t\f1)
+simulation run. See also option \f3-M\f1.
+.\"--------------------------D------------
+.TP
+.BI -Dxxx
+Pass \f2-Dxxx\f1 to the preprocessor (see also \f2-E\f1 and \f2-I\f1).
+.\"--------------------------d------------
+.TP
+.BI -d
+Produce symbol table information for the model specified in
+.I file.
+For each Promela object this information includes the type, name and
+number of elements (if declared as an array), the initial
+value (if a data object) or size (if a message channel), the
+scope (global or local), and whether the object is declared as
+a variable or as a parameter.  For message channels, the data types
+of the message fields are listed.
+For structure variables, the 3rd field defines the
+name of the structure declaration that contains the variable.
+.\"--------------------------E------------
+.TP
+.BI -Exxx
+Pass \f2xxx\f1 to the preprocessor (see also \f2-D\f1 and \f2-I\f1).
+.\"--------------------------e------------
+.TP
+.BI -e
+If the specification contains multiple never claims, or ltl properties,
+compute the synchronous product of all claims and write the result
+to the standard output.
+.\"--------------------------f------------
+.TP
+.BI "-f \f2LTL\f1"
+Translate the LTL formula \f2LTL\f1 into a never claim.
+.br
+This option reads a formula in LTL syntax from the second argument
+and translates it into Promela syntax (a never claim, qhich is Promela's
+equivalent of a B\(u"chi Automaton).
+The LTL operators are written: [] (always), <> (eventually),
+and U (strong until).  There is no X (next) operator, to secure
+compatibility with the partial order reduction rules that are
+applied during the verification process.
+If the formula contains spaces, it should be quoted to form a
+single argument to the \*Z command.
+.br
+This option has largely been replaced with the support
+for inline specification of ltl formula, in Spin version 6.0.
+.\"--------------------------F------------
+.TP
+.BI "-F \f2file\f1"
+Translate the LTL formula stored in
+.I file
+into a never claim.
+.br
+This behaves identical to option
+.B -f
+but will read the formula from the
+.I file
+instead of from the command line.
+The file should contain the formula as the first line.  Any text
+that follows this first line is ignored, so it can be used to
+store comments or annotation on the formula.
+(On some systems the quoting conventions of the shell complicate
+the use of option
+.B -f .
+Option
+.B -F
+is meant to solve those problems.)
+.\"--------------------------g------------
+.TP
+.BI -g
+In combination with option
+.BR -p ,
+print all global variable updates in a simulation run.
+.\"--------------------------h------------
+.TP
+.BI -h
+At the end of a simulation run, print the value of the seed
+that was used for the random number generator.
+By specifying the same seed with the \f3-n\f1 option, the exact
+run can be repeated later.
+.\"--------------------------I------------
+.TP
+.BI -I
+Show the result of inlining and preprocessing.
+.\"--------------------------i------------
+.TP
+.BI -i
+Perform an interactive simulation, prompting the user at
+every execution step that requires a nondeterministic choice
+to be made.  The simulation proceeds without user intervention
+when execution is deterministic.
+.\"--------------------------j------------
+.TP
+.BI -j\f2N
+Skip printing for the first \f2N\f1 steps in a simulation run.
+.\"--------------------------J------------
+.TP
+.BI -J
+Reverse the evaluation order for nested unless statements,
+e.g., to match the way in which Java handles exceptions.
+.\"--------------------------k------------
+.TP
+.BI "-k \f2file\f1"
+Use the file name \f2file\f1 as the trail-file, see also \f3-t\f1.
+.\"--------------------------l------------
+.TP
+.BI -l
+In combination with option
+.BR -p ,
+include all local variable updates in the output of a simulation run.
+.\"--------------------------M------------
+.TP
+.BI -M
+Produce a message sequence chart in tcl/tk form for a
+random simulation or a guided simulation
+(when combined with \f(BI-t\f1), for the model in
+.I file ,
+and display the result with wish.
+See also option \f3-c\f1.
+.\"--------------------------m------------
+.TP
+.BI -m
+Changes the semantics of send events.
+Ordinarily, a send action will be (blocked) if the
+target message buffer is full.
+With this option a message sent to a full buffer is lost.
+.\"--------------------------n------------
+.TP
+.BI "-n\f2N"
+Set the seed for a random simulation to the integer value
+.I N .
+There is no space between the \f(BI-n\f1 and the integer \f2N\f1.
+.\"--------------------------N------------
+,TP
+.BI "-N \f2file\f1"
+Use the never claim stored in \f2file\f1 to generate the verified (see \f3-a\f1).
+.\"--------------------------O------------
+.TP
+.BI -O
+Use the original scope rules from pre-Spin version 6.
+.\"--------------------------o------------
+.TP
+.BI -o\f2[123]\f1
+Turn off data-flow optimization (\f2-o1\f1).
+Do not hide write-only variables (\f2-o2\f1) during verification.
+Turn off statement merging (\f2-o3\f1) during verification.
+Turn on rendezvous optimization (\f2-o4\f1) during verification.
+Turn on case caching (\f2-o5\f1) to reduce the size of pan.m,
+but losing accuracy in reachability reports.
+.\"--------------------------O------------
+.TP
+.BI -O
+Use the scope rules pre-version 6.0. In this case there are only two
+possible levels of scope for all data declarations: global, or proctype local.
+In version 6.0 and later there is a third level of scope: inlines or blocks.
+.\"--------------------------P------------
+.TP
+.BI -P\f2xxx\f1
+Use the command \f2xxx\f1 for preprocessing instead of the standard C preprocessor.
+.\"--------------------------p------------
+.TP
+.BI -p
+Include all statement executions in the output of simulation runs.
+.\"--------------------------q------------
+.TP
+.BI "-q\f2N\f1"
+Suppress the output generated for channel \f2N\f1 during simulation runs.
+.\"--------------------------r------------
+.TP
+.BI -r
+Show all message-receive events, giving
+the name and number of the receiving process
+and the corresponding the source line number.
+For each message parameter, show
+the message type and the message channel number and name.
+.TP
+.BR -replay
+Replay an error trace found in an earlier verification (see -search).
+As with -search, arguments meant for Spin itself (e.g., -p) can be given
+\f2before\f1 the -replay argument. If the replay can only be done
+with the ./pan executable, then arguments for the replay with
+the ./pan executable can be given \f2after\f1 the -replay argument.
+.TP
+.BR -search
+Compile and run directly. Verificaiton compile-time and runtime flags
+can be added \f2after\f1 this parameter. Any Spin parse-time
+parameters must come \f2before\f1 the -search parameter.
+The actual command line executed is printed if -v is specified
+(before the -search argument).
+.\"--------------------------s------------
+.TP
+.BI -s
+Include all send operations in the output of simulation runs.
+.\"--------------------------T------------
+.TP
+.BI -T
+Do not automatically indent the printf output of process \f2i\f1 with \f2i\f1 tabs.
+.\"--------------------------t------------
+.TP
+.BI -t[\f2N\f1]
+Perform a guided simulation, following the [\f2N\f1th] error trail that
+was produces by an earlier verification run, see the online manuals
+for the details on verification. By default the error trail is looked for
+in a file with the same basename as the model, and with extension .trail.
+See also \f3-k\f1.
+.\"--------------------------v------------
+.TP
+.BI -v
+Verbose mode, add some more detail, and generate more
+hints and warnings about the model.
+.\"--------------------------V------------
+.TP
+.BI -V
+Print the \*Z version number and exit.
+.\"--------------------------x------------
+.TP
+.BI -x
+Generate transition tables from model and exit
+(generates, compiles, and runs pan.c).
+.\"--------------------------.------------
+.PP
+With only a filename as an argument and no option flags,
+\*Z performs a random simulation of the model specified in
+the file.
+This normally does not generate output, except what is generated
+explicitly by the user within the model with \f2printf\f1
+statements, and some details about the final state that is
+reached after the simulation completes.
+The group of options
+.B -bgilmprstv
+is used to set the desired level of information that the user wants
+about a random, guided, or interactive simulation run.
+Every line of output normally contains a reference to the source
+line in the specification that generated it.
+If option
+.B -i
+is included, the simulation is \f2interactive\f1, or if option
+.B -t
+or
+.B -k \f2file\f1
+is added, the simulation is \f2guided\f1.
+.\"--------------------------bglprsv------------
+.TP
+.BI -b
+Suppress the execution of \f(CWprintf\f1 statements within the model.
+.TP
+.BI -g
+Show at each time step the current value of global variables.
+.TP
+.BI -l
+In combination with option
+.BR -p ,
+show the current value of local variables of the process.
+.TP
+.BI -p
+Show at each simulation step which process changed state,
+and what source statement was executed.
+.TP
+.BI -r
+Show all message-receive events, giving
+the name and number of the receiving process
+and the corresponding the source line number.
+For each message parameter, show
+the message type and the message channel number and name.
+.TP
+.BI -s
+Show all message-send events.
+.TP
+.BI -v
+Verbose mode, add some more detail, and generat more
+hints and warnings about the model.
+.SH SEE ALSO
+Online manuals at spinroot.com:
+.br
+.in +4
+http://spinroot.com/spin/Man/3_SpinGUI.html
+.br
+http://spinroot.com/spin/Man/4_SpinVerification.html
+.br
+http://spinroot.com/spin/Man/1_Exercises.html
+.in -4
+More background information on the system and the verification process,
+can be found in, for instance:
+.br
+.in +4
+.br
+G.J. Holzmann, \f2The Spin Model Checker \(um Primer and Reference Manual\f1,
+Addison-Wesley, Reading, Mass., 2004.
+.br
+--, `The model checker \*Z,'
+\f2IEEE Trans. on SE\f1, Vol, 23, No. 5, May 1997.
+.br
+--, `Design and validation of protocols: a tutorial,'
+\f2Computer Networks and ISDN Systems\f1,
+Vol. 25, No. 9, 1993, pp. 981-1017.
+.br
+--, \f2Design and Validation of Computer Protocols\f1,
+Prentice Hall, Englewood Cliffs, NJ, 1991.
+.in -4
+.br 
