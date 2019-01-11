@@ -289,8 +289,7 @@ alldone(int estatus)
 	{	extern QH *qh;
 		QH *j;
 		int i;
-		char *tmp = (char *) emalloc(strlen("spin -t") +
-				strlen(pan_runtime) + strlen(Fname->name) + 8);
+
 		pan_runtime = (char *) emalloc(2048);	/* more than enough */
 		sprintf(pan_runtime, "-n%d ", SeedUsed);
 		if (jumpsteps)
@@ -331,6 +330,10 @@ alldone(int estatus)
 		if (verbose&32)      strcat(pan_runtime, "-v ");
 		if (verbose&64)      strcat(pan_runtime, "-w ");
 		if (m_loss)          strcat(pan_runtime, "-m ");
+
+		char *tmp = (char *) emalloc(strlen("spin -t") +
+				strlen(pan_runtime) + strlen(Fname->name) + 8);
+
 		sprintf(tmp, "spin -t %s %s", pan_runtime, Fname->name);
 		estatus = e_system(1, tmp);	/* replay */
 		exit(estatus);	/* replay without c_code */
