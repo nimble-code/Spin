@@ -30,6 +30,8 @@ extern void	qhide(int);
 extern char	CurScope[MAXSCOPESZ];
 extern short	has_provided, has_code, has_ltl, has_accept;
 extern int	realread, buzzed;
+extern void	ana_src(int, int);
+extern void	putprelude(void);
 
 static void	add_comptime(char *);
 static void	add_runtime(char *);
@@ -867,7 +869,6 @@ main(int argc, char *argv[])
 {	Symbol *s;
 	int T = (int) time((time_t *)0);
 	int usedopts = 0;
-	extern void ana_src(int, int);
 
 	yyin  = stdin;
 	yyout = stdout;
@@ -1115,8 +1116,7 @@ samecase:			if (buzzed != 0)
 		alldone(1);
 	}
 	if (columns == 2)
-	{	extern void putprelude(void);
-		if (xspin || (verbose & (1|4|8|16|32)))
+	{	if (xspin || (verbose & (1|4|8|16|32)))
 		{	printf("spin: -c precludes all flags except -t\n");
 			alldone(1);
 		}

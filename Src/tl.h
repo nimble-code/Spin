@@ -9,6 +9,9 @@
  * presented at the PSTV Conference, held in 1995, Warsaw, Poland 1995.
  */
 
+#ifndef TLH
+#define TLH
+
 #include <stdio.h>
 #include <string.h>
 
@@ -129,3 +132,5 @@ typedef Node	*Nodeptr;
 
 #define Assert(x, y)	{ if (!(x)) { tl_explain(y); \
 			  Fatal(": assertion failed\n",(char *)0); } }
+
+#endif

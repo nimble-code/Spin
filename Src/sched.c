@@ -21,6 +21,7 @@ extern int	limited_vis, product, nclaims, old_priority_rules;
 extern int	old_scope_rules, scope_seq[128], scope_level, has_stdin;
 
 extern int	pc_highest(Lextok *n);
+extern void	putpostlude(void);
 
 RunList		*X   = (RunList  *) 0;
 RunList		*run = (RunList  *) 0;
@@ -108,17 +109,17 @@ ready(Symbol *n, Lextok *p, Sequence *s, int det, Lextok *prov, enum btypes b)
 
 void
 check_mtypes(Lextok *pnm, Lextok *args)	/* proctype name, actual params */
-{	ProcList *p;
+{	ProcList *p = NULL;
 	Lextok *fp, *fpt, *at;
 	char *s, *t;
 
 	if (pnm && pnm->sym)
-	for (p = rdy; p; p = p->nxt)
-	{	if (strcmp(pnm->sym->name, p->n->name) == 0)
-		{	/* found */
-			break;
-		}
-	}
+	{	for (p = rdy; p; p = p->nxt)
+		{	if (strcmp(pnm->sym->name, p->n->name) == 0)
+			{	/* found */
+				break;
+	}	}	}
+
 	if (!p)
 	{	fatal("cannot find proctype '%s'",
 		(pnm && pnm->sym)?pnm->sym->name:"?");
@@ -341,8 +342,7 @@ wrapup(int fini)
 {
 	limited_vis = 0;
 	if (columns)
-	{	extern void putpostlude(void);
-		if (columns == 2) putpostlude();
+	{	if (columns == 2) putpostlude();
 		if (!no_wrapup)
 		printf("-------------\nfinal state:\n-------------\n");
 	}

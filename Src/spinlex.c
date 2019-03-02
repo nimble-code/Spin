@@ -1473,7 +1473,7 @@ lex(void)
 {	int c;
 again:
 	c = Getchar();
-more:
+// more:
 	yytext[0] = (char) c;
 	yytext[1] = '\0';
 	switch (c) {

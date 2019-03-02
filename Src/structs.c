@@ -25,6 +25,7 @@ static UType *Pnames = 0;
 
 static Lextok	*cpnn(Lextok *, int, int, int);
 extern void	sr_mesg(FILE *, int, int, const char *);
+extern void	Done_case(char *, Symbol *);
 
 void
 setuname(Lextok *n)
@@ -314,7 +315,7 @@ ini_struct(Symbol *s)
 
 static Lextok *
 cpnn(Lextok *s, int L, int R, int S)
-{	Lextok *d; extern int Nid;
+{	Lextok *d; extern int Nid_nr;
 
 	if (!s) return ZN;
 
@@ -332,7 +333,7 @@ cpnn(Lextok *s, int L, int R, int S)
 	{	d->sym = (Symbol *) emalloc(sizeof(Symbol));
 		memcpy(d->sym, s->sym, sizeof(Symbol));
 		if (d->sym->type == CHAN)
-			d->sym->Nid = ++Nid;
+			d->sym->Nid = ++Nid_nr;
 	}
 	if (s->sq || s->sl)
 		fatal("cannot happen cpnn", (char *) 0);
@@ -407,7 +408,6 @@ walk2_struct(char *s, Symbol *z)
 {	Lextok *fp, *tl;
 	char eprefix[128];
 	int ix;
-	extern void Done_case(char *, Symbol *);
 
 	ini_struct(z);
 	if (z->nel == 1 && z->isarray == 0)

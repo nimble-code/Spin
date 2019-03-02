@@ -1,11 +1,11 @@
-# SPIN - Verification Software - Version 6.4 - December 2017
+# SPIN - Verification Software - Version 6.4 - December 2018
 #
 # This file is part of the public release of Spin. It is subject to the
 # terms in the LICENSE file that is included in this source directory.
 # Tool documentation is available at http://spinroot.com
 
 CC?=gcc
-CFLAGS?=-O2 -DNXT
+CFLAGS?=-O2 -DNXT -Wall -pedantic
 	# on some systems add: -I/usr/include
 	# on a PC:    make CFLAGS=-O2 -DNXT -DPC
 	# on Solaris: make CFLAGS=-O2 -DNXT -DSOLARIS

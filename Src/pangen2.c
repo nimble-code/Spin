@@ -81,8 +81,12 @@ static short	withprocname=0;	/* prefix local varnames with procname */
 static short	_isok=0;	/* checks usage of predefined variable _ */
 static short	evalindex=0;	/* evaluate index of var names */
 
-int	has_global(Lextok *);
+extern int	has_global(Lextok *);
 extern void	check_mtypes(Lextok *, Lextok *);
+extern void	walk2_struct(char *, Symbol *);
+extern int	find_min(Sequence *);
+extern int	find_max(Sequence *);
+
 static int	getweight(Lextok *);
 static int	scan_seq(Sequence *);
 static void	genconditionals(void);
@@ -935,7 +939,6 @@ genconditionals(void)
 		} else if (s->type == STRUCT)
 		{	/* struct may contain a chan */
 			char pregat[128];
-			extern void walk2_struct(char *, Symbol *);
 			strcpy(pregat, "");
 			if (!(s->hidden&1))
 			{	if (s->context)
@@ -953,9 +956,6 @@ genconditionals(void)
 	fprintf(tc, "	return 1;\n");
 	fprintf(tc, "}\n");
 }
-
-extern int find_min(Sequence *);
-extern int find_max(Sequence *);
 
 static void
 putproc(ProcList *p)

@@ -926,8 +926,8 @@ match_struct(Symbol *s, Symbol *t)
 	}
 	/* we already know that s is a STRUCT */
 	if (0)
-	{	printf("index type %s %p ==\n", s->Snm->name, s->Snm);
-		printf("chan type  %s %p --\n\n", t->ini->rgt->sym->name, t->ini->rgt->sym);
+	{	printf("index type %s %p ==\n", s->Snm->name, (void *) s->Snm);
+		printf("chan type  %s %p --\n\n", t->ini->rgt->sym->name, (void *) t->ini->rgt->sym);
 	}
 
 	return (s->Snm == t->ini->rgt->sym);

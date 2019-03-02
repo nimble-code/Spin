@@ -13,6 +13,7 @@
 
 extern int tl_verbose, tl_clutter, Total, Max_Red;
 extern char *claim_name;
+extern void  put_uform(void);
 
 FILE	*tl_out;	/* if standalone: = stdout; */
 
@@ -639,7 +640,6 @@ clr_reach(void)
 void
 fsm_print(void)
 {	State *b; int cnt1, cnt2=0;
-	extern void put_uform(void);
 
 	if (tl_clutter) clutter();
 

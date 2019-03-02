@@ -33,6 +33,9 @@ int	Npars=0, u_sync=0, u_async=0, hastrack = 1;
 short	has_io = 0;
 short	has_state=0;	/* code contains c_state */
 
+extern void	c_add_stack(FILE *);
+extern void	c_stack_size(FILE *);
+
 static Symbol	*LstSet=ZS;
 static int	acceptors=0, progressors=0, nBits=0;
 static int	Types[] = { UNSIGNED, BIT, BYTE, CHAN, MTYPE, SHORT, INT, STRUCT };
@@ -191,9 +194,7 @@ here:
 	ntimes(th, 0, 1, Head0);
 
 	if (separate != 2)
-	{	extern void c_add_stack(FILE *);
-		extern void c_stack_size(FILE *);
-
+	{
 		ntimes(th, 0, 1, Header);
 		fprintf(th, "#define StackSize	(");
 			c_stack_size(th);
