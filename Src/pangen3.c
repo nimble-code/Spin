@@ -10,7 +10,7 @@
 #include "y.tab.h"
 #include <assert.h>
 
-extern FILE	*th, *tc;
+extern FILE	*fd_th, *fd_tc;
 extern int	eventmapnr, old_priority_rules, in_settr;
 
 typedef struct SRC {
@@ -35,10 +35,10 @@ static void
 putnr(int n)
 {
 	if (col++ == 8)
-	{	fprintf(tc, "\n\t");	/* was th */
+	{	fprintf(fd_tc, "\n\t");	/* was th */
 		col = 1;
 	}
-	fprintf(tc, "%3d, ", n);	/* was th */
+	fprintf(fd_tc, "%3d, ", n);	/* was th */
 }
 
 static void
@@ -48,7 +48,7 @@ putfnm(int j, Symbol *s)
 		return;
 
 	if (lastfnm)
-		fprintf(tc, "{ \"%s\", %d, %d },\n\t",	/* was th */
+		fprintf(fd_tc, "{ \"%s\", %d, %d },\n\t",	/* was th */
 			lastfnm->name,
 			lastfrom,
 			j-1);
@@ -60,7 +60,7 @@ static void
 putfnm_flush(int j)
 {
 	if (lastfnm)
-		fprintf(tc, "{ \"%s\", %d, %d }\n",	/* was th */
+		fprintf(fd_tc, "{ \"%s\", %d, %d }\n",	/* was th */
 			lastfnm->name,
 			lastfrom, j);
 }
@@ -162,7 +162,7 @@ putsrc(Element *e)	/* match states to source lines */
 static void
 dumpskip(int n, int m)
 {	SRC *tmp, *lst;
-	FILE *tz = tc;	/* was th */
+	FILE *tz = fd_tc;	/* was fd_th */
 	int j;
 
 	fprintf(tz, "uchar reached%d [] = {\n\t", m);
@@ -191,7 +191,7 @@ dumpskip(int n, int m)
 	fprintf(tz, "uchar *loopstate%d;\n", m);
 
 	if (m == eventmapnr)
-		fprintf(th, "#define reached_event	reached%d\n", m);
+		fprintf(fd_th, "#define reached_event	reached%d\n", m);
 
 	skip = (SRC *) 0;
 }
@@ -201,7 +201,7 @@ dumpsrc(int n, int m)
 {	SRC *tmp, *lst;
 	int j;
 	static int did_claim = 0;
-	FILE *tz = tc;	/* was th */
+	FILE *tz = fd_tc;	/* was fd_th */
 
 	fprintf(tz, "\nshort src_ln%d [] = {\n\t", m);
 	tmp = frst;
@@ -250,7 +250,7 @@ dumpsrc(int n, int m)
 		did_claim++;
 	}
 	if (m == eventmapnr)
-		fprintf(th, "#define src_event	src_ln%d\n", m);
+		fprintf(fd_th, "#define src_event	src_ln%d\n", m);
 
 	frst = (SRC *) 0;
 	dumpskip(n, m);

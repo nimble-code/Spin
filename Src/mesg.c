@@ -25,7 +25,7 @@ QH	*qh;
 Queue	*qtab = (Queue *) 0;	/* linked list of queues */
 Queue	*ltab[MAXQ];		/* linear list of queues */
 int	nqs = 0, firstrow = 1, has_stdin = 0;
-char	Buf[4096];
+char	GBuf[4096];
 
 static Lextok	*n_rem = (Lextok *) 0;
 static Queue	*q_rem = (Queue  *) 0;
@@ -506,27 +506,27 @@ channm(Lextok *n)
 {	char lbuf[512];
 
 	if (n->sym->type == CHAN)
-		strcat(Buf, n->sym->name);
+		strcat(GBuf, n->sym->name);
 	else if (n->sym->type == NAME)
-		strcat(Buf, lookup(n->sym->name)->name);
+		strcat(GBuf, lookup(n->sym->name)->name);
 	else if (n->sym->type == STRUCT)
 	{	Symbol *r = n->sym;
 		if (r->context)
 		{	r = findloc(r);
 			if (!r)
-			{	strcat(Buf, "*?*");
+			{	strcat(GBuf, "*?*");
 				return;
 		}	}
 		ini_struct(r);
 		printf("%s", r->name);
 		strcpy(lbuf, "");
 		struct_name(n->lft, r, 1, lbuf);
-		strcat(Buf, lbuf);
+		strcat(GBuf, lbuf);
 	} else
-		strcat(Buf, "-");
+		strcat(GBuf, "-");
 	if (n->lft->lft)
 	{	sprintf(lbuf, "[%d]", eval(n->lft->lft));
-		strcat(Buf, lbuf);
+		strcat(GBuf, lbuf);
 	}
 }
 
@@ -535,12 +535,12 @@ difcolumns(Lextok *n, char *tr, int v, int j, Queue *q)
 {	extern int pno;
 
 	if (j == 0)
-	{	Buf[0] = '\0';
+	{	GBuf[0] = '\0';
 		channm(n);
-		strcat(Buf, (strncmp(tr, "Sen", 3))?"?":"!");
+		strcat(GBuf, (strncmp(tr, "Sen", 3))?"?":"!");
 	} else
-		strcat(Buf, ",");
-	if (tr[0] == '[') strcat(Buf, "[");
+		strcat(GBuf, ",");
+	if (tr[0] == '[') strcat(GBuf, "[");
 	sr_buf(v, q->fld_width[j] == MTYPE, q->mtp[j]);
 	if (j == q->nflds - 1)
 	{	int cnr;
@@ -549,8 +549,8 @@ difcolumns(Lextok *n, char *tr, int v, int j, Queue *q)
 		} else
 		{	cnr = X?X->pid - Have_claim:0;
 		}
-		if (tr[0] == '[') strcat(Buf, "]");
-		pstext(cnr, Buf);
+		if (tr[0] == '[') strcat(GBuf, "]");
+		pstext(cnr, GBuf);
 	}
 }
 
@@ -571,9 +571,9 @@ docolumns(Lextok *n, char *tr, int v, int j, Queue *q)
 		for (i = 0; i < X->pid - Have_claim; i++)
 			printf("   .");
 		printf("   ");
-		Buf[0] = '\0';
+		GBuf[0] = '\0';
 		channm(n);
-		printf("%s%c", Buf, (strncmp(tr, "Sen", 3))?'?':'!');
+		printf("%s%c", GBuf, (strncmp(tr, "Sen", 3))?'?':'!');
 	} else
 		printf(",");
 	if (tr[0] == '[') printf("[");
@@ -655,9 +655,9 @@ sr_talk(Lextok *n, int v, char *tr, char *a, int j, Queue *q)
 			return;
 		}
 		printf("\t%s queue %d (", a, eval(n->lft));
-		Buf[0] = '\0';
+		GBuf[0] = '\0';
 		channm(n);
-		printf("%s)\n", Buf);
+		printf("%s)\n", GBuf);
 	}
 	fflush(stdout);
 }
@@ -678,19 +678,19 @@ sr_buf(int v, int j, const char *s)
 				break;
 			}
 			sprintf(lbuf, "%s", n->lft->sym->name);
-			strcat(Buf, lbuf);
+			strcat(GBuf, lbuf);
 			return;
 	}	}
 	sprintf(lbuf, "%d", v);
-	strcat(Buf, lbuf);
+	strcat(GBuf, lbuf);
 }
 
 void
 sr_mesg(FILE *fd, int v, int j, const char *s)
-{	Buf[0] ='\0';
+{	GBuf[0] ='\0';
 
 	sr_buf(v, j, s);
-	fprintf(fd, Buf, (char *) 0); /* prevent compiler warning */
+	fprintf(fd, GBuf, (char *) 0); /* prevent compiler warning */
 }
 
 void

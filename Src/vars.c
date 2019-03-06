@@ -12,7 +12,7 @@
 extern Ordered	*all_names;
 extern RunList	*X, *LastX;
 extern Symbol	*Fname;
-extern char	Buf[];
+extern char	GBuf[];
 extern int	lineno, depth, verbose, xspin, limited_vis;
 extern int	analyze, jumpsteps, nproc, nstop, columns, old_priority_rules;
 extern short	no_arrays, Have_claim;
@@ -294,12 +294,12 @@ dumpglobals(void)
 			printf("\n");
 			if (limited_vis && (sp->hidden&2))
 			{	int colpos;
-				Buf[0] = '\0';
+				GBuf[0] = '\0';
 				if (!xspin)
 				{	if (columns == 2)
-						sprintf(Buf, "~G%s = ", sp->name);
+						sprintf(GBuf, "~G%s = ", sp->name);
 					else
-						sprintf(Buf, "%s = ", sp->name);
+						sprintf(GBuf, "%s = ", sp->name);
 				}
 				sr_buf(prefetch, sp->type == MTYPE, s);
 				if (sp->colnr == 0)
@@ -308,20 +308,20 @@ dumpglobals(void)
 				}
 				colpos = nproc+sp->colnr-1;
 				if (columns == 2)
-				{	pstext(colpos, Buf);
+				{	pstext(colpos, GBuf);
 					continue;
 				}
 				if (!xspin)
-				{	printf("\t\t%s\n", Buf);
+				{	printf("\t\t%s\n", GBuf);
 					continue;
 				}
-				printf("MSC: ~G %s %s\n", sp->name, Buf);
+				printf("MSC: ~G %s %s\n", sp->name, GBuf);
 				printf("%3d:\tproc %3d (TRACK) line   1 \"var\" ",
 					depth, colpos);
 				printf("(state 0)\t[printf('MSC: globvar\\\\n')]\n");
 				printf("\t\t%s", sp->name);
 				if (sp->nel > 1 || sp->isarray) printf("[%d]", j);
-				printf(" = %s\n", Buf);
+				printf(" = %s\n", GBuf);
 	}	}	}
 }
 
@@ -374,13 +374,13 @@ dumplocal(RunList *r, int final)
 			printf("\n");
 			if (limited_vis && (z->hidden&2))
 			{	int colpos;
-				Buf[0] = '\0';
+				GBuf[0] = '\0';
 				if (!xspin)
 				{	if (columns == 2)
-					sprintf(Buf, "~G%s(%d):%s = ",
+					sprintf(GBuf, "~G%s(%d):%s = ",
 					r->n->name, r->pid, z->name);
 					else
-					sprintf(Buf, "%s(%d):%s = ",
+					sprintf(GBuf, "%s(%d):%s = ",
 					r->n->name, r->pid, z->name);
 				}
 				sr_buf(getval(dummy), z->type==MTYPE, t);
@@ -390,15 +390,15 @@ dumplocal(RunList *r, int final)
 				}
 				colpos = nproc+z->colnr-1;
 				if (columns == 2)
-				{	pstext(colpos, Buf);
+				{	pstext(colpos, GBuf);
 					continue;
 				}
 				if (!xspin)
-				{	printf("\t\t%s\n", Buf);
+				{	printf("\t\t%s\n", GBuf);
 					continue;
 				}
 				printf("MSC: ~G %s(%d):%s %s\n",
-					r->n->name, r->pid, z->name, Buf);
+					r->n->name, r->pid, z->name, GBuf);
 
 				printf("%3d:\tproc %3d (TRACK) line   1 \"var\" ",
 					depth, colpos);
@@ -406,6 +406,6 @@ dumplocal(RunList *r, int final)
 				printf("\t\t%s(%d):%s",
 					r->n->name, r->pid, z->name);
 				if (z->nel > 1 || z->isarray) printf("[%d]", i);
-				printf(" = %s\n", Buf);
+				printf(" = %s\n", GBuf);
 	}	}	}
 }

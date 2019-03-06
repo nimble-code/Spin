@@ -11,7 +11,7 @@
 #include "y.tab.h"
 
 extern int	verbose, s_trail, analyze, no_wrapup;
-extern char	*claimproc, *eventmap, Buf[];
+extern char	*claimproc, *eventmap, GBuf[];
 extern Ordered	*all_names;
 extern Symbol	*Fname, *context;
 extern int	lineno, nr_errs, dumptab, xspin, jumpsteps, columns;
@@ -189,13 +189,13 @@ void
 announce(char *w)
 {
 	if (columns)
-	{	extern char Buf[];
+	{	extern char GBuf[];
 		extern int firstrow;
 		firstrow = 1;
 		if (columns == 2)
-		{	sprintf(Buf, "%d:%s",
+		{	sprintf(GBuf, "%d:%s",
 			run->pid - Have_claim, run->n->name);
-			pstext(run->pid - Have_claim, Buf);
+			pstext(run->pid - Have_claim, GBuf);
 		} else
 		{	printf("proc %d = %s\n",
 				run->pid - Have_claim, run->n->name);
@@ -296,14 +296,14 @@ start_claim(int n)
 found:
 	/* move claim to far end of runlist, and reassign it pid 0 */
 	if (columns == 2)
-	{	extern char Buf[];
+	{	extern char GBuf[];
 		depth = 0;
-		sprintf(Buf, "%d:%s", 0, p->n->name);
-		pstext(0, Buf);
+		sprintf(GBuf, "%d:%s", 0, p->n->name);
+		pstext(0, GBuf);
 		for (r = run; r; r = r->nxt)
 		{	if (r->b != N_CLAIM)
-			{	sprintf(Buf, "%d:%s", r->pid+1, r->n->name);
-				pstext(r->pid+1, Buf);
+			{	sprintf(GBuf, "%d:%s", r->pid+1, r->n->name);
+				pstext(r->pid+1, GBuf);
 	}	}	}
 
 	if (run->pid == 0) return; /* it is the first process started */

@@ -263,10 +263,10 @@ putcode(FILE *fd, Sequence *s, Element *nxt, int justguards, int ln, int seqno)
 		fprintf(fd, "if (boq != -1 || (");
 		if (separate != 2) fprintf(fd, "trpt->");
 		fprintf(fd, "o_pm&1))\n\t\t\tcontinue;");
-		{	extern FILE *th;
-			fprintf(th, "#ifndef ELSE_IN_GUARD\n");
-			fprintf(th, "	#define ELSE_IN_GUARD\n");
-			fprintf(th, "#endif\n");
+		{	extern FILE *fd_th;
+			fprintf(fd_th, "#ifndef ELSE_IN_GUARD\n");
+			fprintf(fd_th, "	#define ELSE_IN_GUARD\n");
+			fprintf(fd_th, "#endif\n");
 		}
 		break;
 	case ASGN:	/* new 3.0.8 */

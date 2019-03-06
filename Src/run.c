@@ -464,11 +464,11 @@ eval(Lextok *now)
 
 int
 printm(FILE *fd, Lextok *n)
-{	extern char Buf[];
+{	extern char GBuf[];
 	char *s = 0;
 	int j;
 
-	Buf[0] = '\0';
+	GBuf[0] = '\0';
 	if (!no_print)
 	if (!s_trail || depth >= jumpsteps)
 	{
@@ -483,7 +483,7 @@ printm(FILE *fd, Lextok *n)
 		{	j = eval(n->lft);
 		}
 		sr_buf(j, 1, s);
-		dotag(fd, Buf);
+		dotag(fd, GBuf);
 	}
 	return 1;
 }
@@ -493,10 +493,10 @@ interprint(FILE *fd, Lextok *n)
 {	Lextok *tmp = n->lft;
 	char c, *s = n->sym->name, *t = 0;
 	int i, j; char lbuf[512]; /* matches value in sr_buf() */
-	extern char Buf[];	/* global, size 4096 */
-	char tBuf[4096];	/* match size of global Buf[] */
+	extern char GBuf[];	/* global, size 4096 */
+	char tBuf[4096];	/* match size of global GBuf[] */
 
-	Buf[0] = '\0';
+	GBuf[0] = '\0';
 	if (!no_print)
 	if (!s_trail || depth >= jumpsteps) {
 	for (i = 0; i < (int) strlen(s); i++)
@@ -504,14 +504,14 @@ interprint(FILE *fd, Lextok *n)
 		case '\"': break; /* ignore */
 		case '\\':
 			 switch(s[++i]) {
-			 case 't': strcat(Buf, "\t"); break;
-			 case 'n': strcat(Buf, "\n"); break;
+			 case 't': strcat(GBuf, "\t"); break;
+			 case 'n': strcat(GBuf, "\n"); break;
 			 default:  goto onechar;
 			 }
 			 break;
 		case  '%':
 			 if ((c = s[++i]) == '%')
-			 {	strcat(Buf, "%"); /* literal */
+			 {	strcat(GBuf, "%"); /* literal */
 				break;
 			 }
 			 if (!tmp)
@@ -532,13 +532,13 @@ interprint(FILE *fd, Lextok *n)
 			 case 'c': sprintf(lbuf, "%c", j); break;
 			 case 'd': sprintf(lbuf, "%d", j); break;
 
-			 case 'e': strcpy(tBuf, Buf);	/* event name */
-				   Buf[0] = '\0';
+			 case 'e': strcpy(tBuf, GBuf);	/* event name */
+				   GBuf[0] = '\0';
 
 				   sr_buf(j, 1, t);
 
-				   strcpy(lbuf, Buf);
-				   strcpy(Buf, tBuf);
+				   strcpy(lbuf, GBuf);
+				   strcpy(GBuf, tBuf);
 				   break;
 
 			 case 'o': sprintf(lbuf, "%o", j); break;
@@ -550,12 +550,12 @@ interprint(FILE *fd, Lextok *n)
 			 goto append;
 		default:
 onechar:		 lbuf[0] = s[i]; lbuf[1] = '\0';
-append:			 strcat(Buf, lbuf);
+append:			 strcat(GBuf, lbuf);
 			 break;
 		}
-		dotag(fd, Buf);
+		dotag(fd, GBuf);
 	}
-	if (strlen(Buf) >= 4096) fatal("printf string too long", 0);
+	if (strlen(GBuf) >= 4096) fatal("printf string too long", 0);
 	return 1;
 }
 

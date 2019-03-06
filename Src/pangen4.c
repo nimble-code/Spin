@@ -9,7 +9,7 @@
 #include "spin.h"
 #include "y.tab.h"
 
-extern FILE	*tc, *tb;
+extern FILE	*fd_tc, *fd_tb;
 extern Queue	*qtab;
 extern Symbol	*Fname;
 extern int	lineno, m_loss, Pid, eventmapnr, multi_oval;
@@ -24,7 +24,7 @@ undostmnt(Lextok *now, int m)
 	int i, j;
 
 	if (!now)
-	{	fprintf(tb, "0");
+	{	fprintf(fd_tb, "0");
 		return;
 	}
 	lineno = now->ln;
@@ -43,19 +43,19 @@ undostmnt(Lextok *now, int m)
 	case '?':	case PC_VAL:	case '^':
 	case C_EXPR:	case GET_P:
 	case NONPROGRESS:
-		putstmnt(tb, now, m);
+		putstmnt(fd_tb, now, m);
 		break;
 
 	case RUN:
-		fprintf(tb, "delproc(0, now._nr_pr-1)");
+		fprintf(fd_tb, "delproc(0, now._nr_pr-1)");
 		break;
 
 	case 's':
 		if (Pid == eventmapnr) break;
 
 		if (m_loss)
-			fprintf(tb, "if (_m == 2) ");
-		putname(tb, "_m = unsend(", now->lft, m, ")");
+			fprintf(fd_tb, "if (_m == 2) ");
+		putname(fd_tb, "_m = unsend(", now->lft, m, ")");
 		break;
 
 	case 'r':
@@ -77,14 +77,14 @@ undostmnt(Lextok *now, int m)
 			if (now->val == 1)
 			{	ii++;
 				jj = multi_oval - ii - 1;
-				fprintf(tb, "XX = trpt->bup.oval");
+				fprintf(fd_tb, "XX = trpt->bup.oval");
 				if (multi_oval > 0)
-				{	fprintf(tb, "s[%d]", jj);
+				{	fprintf(fd_tb, "s[%d]", jj);
 					jj++;
 				}
-				fprintf(tb, ";\n\t\t");
+				fprintf(fd_tb, ";\n\t\t");
 			} else
-			{	fprintf(tb, "XX = 1;\n\t\t");
+			{	fprintf(fd_tb, "XX = 1;\n\t\t");
 				jj = multi_oval - ii - 1;
 			}
 
@@ -93,28 +93,28 @@ undostmnt(Lextok *now, int m)
 			{	switch(v->lft->ntyp) {
 				case CONST:
 				case EVAL:
-					fprintf(tb, "unrecv");
-					putname(tb, "(", now->lft, m, ", XX-1, ");
-					fprintf(tb, "%d, ", i);
+					fprintf(fd_tb, "unrecv");
+					putname(fd_tb, "(", now->lft, m, ", XX-1, ");
+					fprintf(fd_tb, "%d, ", i);
 					if (v->lft->ntyp == EVAL)
 						undostmnt(v->lft->lft, m);
 					else
 						undostmnt(v->lft, m);
-					fprintf(tb, ", %d);\n\t\t", (i==0)?1:0);
+					fprintf(fd_tb, ", %d);\n\t\t", (i==0)?1:0);
 					break;
 				default:
-					fprintf(tb, "unrecv");
-					putname(tb, "(", now->lft, m, ", XX-1, ");
-					fprintf(tb, "%d, ", i);
+					fprintf(fd_tb, "unrecv");
+					putname(fd_tb, "(", now->lft, m, ", XX-1, ");
+					fprintf(fd_tb, "%d, ", i);
 					if (v->lft->sym
 					&& !strcmp(v->lft->sym->name, "_"))
-					{	fprintf(tb, "trpt->bup.oval");
+					{	fprintf(fd_tb, "trpt->bup.oval");
 						if (multi_oval > 0)
-							fprintf(tb, "s[%d]", jj);
+							fprintf(fd_tb, "s[%d]", jj);
 					} else
-						putstmnt(tb, v->lft, m);
+						putstmnt(fd_tb, v->lft, m);
 
-					fprintf(tb, ", %d);\n\t\t", (i==0)?1:0);
+					fprintf(fd_tb, ", %d);\n\t\t", (i==0)?1:0);
 					if (multi_oval > 0)
 						jj++;
 					break;
@@ -132,11 +132,11 @@ undostmnt(Lextok *now, int m)
 				default:
 					if (!v->lft->sym
 					||  strcmp(v->lft->sym->name, "_") != 0)
-					{	nocast=1; putstmnt(tb,v->lft,m);
-						nocast=0; fprintf(tb, " = trpt->bup.oval");
+					{	nocast=1; putstmnt(fd_tb, v->lft, m);
+						nocast=0; fprintf(fd_tb, " = trpt->bup.oval");
 						if (multi_oval > 0)
-							fprintf(tb, "s[%d]", jj);
-						fprintf(tb, ";\n\t\t");
+							fprintf(fd_tb, "s[%d]", jj);
+						fprintf(fd_tb, ";\n\t\t");
 					}
 					if (multi_oval > 0)
 						jj++;
@@ -147,22 +147,22 @@ undostmnt(Lextok *now, int m)
 		break;
 
 	case '@':
-		fprintf(tb, "p_restor(II);\n\t\t");
+		fprintf(fd_tb, "p_restor(II);\n\t\t");
 		break;
 
 	case SET_P:
-		fprintf(tb, "((P0 *)pptr((trpt->o_priority >> 8)))");
-		fprintf(tb, "->_priority = trpt->o_priority & 255");
+		fprintf(fd_tb, "((P0 *)pptr((trpt->o_priority >> 8)))");
+		fprintf(fd_tb, "->_priority = trpt->o_priority & 255");
 		break;
 
 	case ASGN:
 		if (check_track(now) == STRUCT) { break; }
 
-		nocast=1; putstmnt(tb,now->lft,m);
-		nocast=0; fprintf(tb, " = trpt->bup.oval");
+		nocast=1; putstmnt(fd_tb, now->lft, m);
+		nocast=0; fprintf(fd_tb, " = trpt->bup.oval");
 		if (multi_oval > 0)
 		{	multi_oval--;
-			fprintf(tb, "s[%d]", multi_oval-1);
+			fprintf(fd_tb, "s[%d]", multi_oval-1);
 		}
 		check_proc(now->rgt, m);
 		break;
@@ -178,7 +178,7 @@ undostmnt(Lextok *now, int m)
 		break;
 
 	case C_CODE:
-		fprintf(tb, "sv_restor();\n");
+		fprintf(fd_tb, "sv_restor();\n");
 		break;
 
 	case ASSERT:
@@ -227,7 +227,7 @@ check_proc(Lextok *now, int m)
 	if (!now)
 		return;
 	if (now->ntyp == '@' || now->ntyp == RUN)
-	{	fprintf(tb, ";\n\t\t");
+	{	fprintf(fd_tb, ";\n\t\t");
 		undostmnt(now, m);
 	}
 	check_proc(now->lft, m);
@@ -239,76 +239,76 @@ genunio(void)
 {	char buf1[256];
 	Queue *q; int i;
 
-	ntimes(tc, 0, 1, R13);
+	ntimes(fd_tc, 0, 1, R13);
 	for (q = qtab; q; q = q->nxt)
-	{	fprintf(tc, "\tcase %d:\n", q->qid);
+	{	fprintf(fd_tc, "\tcase %d:\n", q->qid);
 
 		if (has_sorted)
 		{	sprintf(buf1, "((Q%d *)z)->contents", q->qid);
-			fprintf(tc, "#ifdef HAS_SORTED\n");
-			fprintf(tc, "\t\tj = trpt->ipt;\n");	/* ipt was bup.oval */
-			fprintf(tc, "#endif\n");
-			fprintf(tc, "\t\tfor (k = j; k < ((Q%d *)z)->Qlen; k++)\n",
+			fprintf(fd_tc, "#ifdef HAS_SORTED\n");
+			fprintf(fd_tc, "\t\tj = trpt->ipt;\n");	/* ipt was bup.oval */
+			fprintf(fd_tc, "#endif\n");
+			fprintf(fd_tc, "\t\tfor (k = j; k < ((Q%d *)z)->Qlen; k++)\n",
 				q->qid);
-			fprintf(tc, "\t\t{\n");
+			fprintf(fd_tc, "\t\t{\n");
 			for (i = 0; i < q->nflds; i++)
-			fprintf(tc, "\t\t\t%s[k].fld%d = %s[k+1].fld%d;\n",
+			fprintf(fd_tc, "\t\t\t%s[k].fld%d = %s[k+1].fld%d;\n",
 				buf1, i, buf1, i);
-			fprintf(tc, "\t\t}\n");
-			fprintf(tc, "\t\tj = ((Q0 *)z)->Qlen;\n");
+			fprintf(fd_tc, "\t\t}\n");
+			fprintf(fd_tc, "\t\tj = ((Q0 *)z)->Qlen;\n");
 		}
 
 		sprintf(buf1, "((Q%d *)z)->contents[j].fld", q->qid);
 		for (i = 0; i < q->nflds; i++)
-			fprintf(tc, "\t\t%s%d = 0;\n", buf1, i);
+			fprintf(fd_tc, "\t\t%s%d = 0;\n", buf1, i);
 		if (q->nslots==0)
 		{	/* check if rendezvous succeeded, 1 level down */
-			fprintf(tc, "\t\t_m = (trpt+1)->o_m;\n");
-			fprintf(tc, "\t\tif (_m) (trpt-1)->o_pm |= 1;\n");
-			fprintf(tc, "\t\tUnBlock;\n");
+			fprintf(fd_tc, "\t\t_m = (trpt+1)->o_m;\n");
+			fprintf(fd_tc, "\t\tif (_m) (trpt-1)->o_pm |= 1;\n");
+			fprintf(fd_tc, "\t\tUnBlock;\n");
 		} else
-			fprintf(tc, "\t\t_m = trpt->o_m;\n");
+			fprintf(fd_tc, "\t\t_m = trpt->o_m;\n");
 
-		fprintf(tc, "\t\tbreak;\n");
+		fprintf(fd_tc, "\t\tbreak;\n");
 	}
-	ntimes(tc, 0, 1, R14);
+	ntimes(fd_tc, 0, 1, R14);
 	for (q = qtab; q; q = q->nxt)
 	{	sprintf(buf1, "((Q%d *)z)->contents", q->qid);
-		fprintf(tc, "	case %d:\n", q->qid);
+		fprintf(fd_tc, "	case %d:\n", q->qid);
 		if (q->nslots == 0)
-			fprintf(tc, "\t\tif (strt) boq = from+1;\n");
+			fprintf(fd_tc, "\t\tif (strt) boq = from+1;\n");
 		else if (q->nslots > 1)	/* shift */
-		{	fprintf(tc, "\t\tif (strt && slot<%d)\n",
+		{	fprintf(fd_tc, "\t\tif (strt && slot<%d)\n",
 							q->nslots-1);
-			fprintf(tc, "\t\t{\tfor (j--; j>=slot; j--)\n");
-			fprintf(tc, "\t\t\t{");
+			fprintf(fd_tc, "\t\t{\tfor (j--; j>=slot; j--)\n");
+			fprintf(fd_tc, "\t\t\t{");
 			for (i = 0; i < q->nflds; i++)
-			{	fprintf(tc, "\t%s[j+1].fld%d =\n\t\t\t",
+			{	fprintf(fd_tc, "\t%s[j+1].fld%d =\n\t\t\t",
 							buf1, i);
-				fprintf(tc, "\t%s[j].fld%d;\n\t\t\t",
+				fprintf(fd_tc, "\t%s[j].fld%d;\n\t\t\t",
 							buf1, i);
 			}
-			fprintf(tc, "}\n\t\t}\n");
+			fprintf(fd_tc, "}\n\t\t}\n");
 		}
 		strcat(buf1, "[slot].fld");
-		fprintf(tc, "\t\tif (strt) {\n");
+		fprintf(fd_tc, "\t\tif (strt) {\n");
 		for (i = 0; i < q->nflds; i++)
-			fprintf(tc, "\t\t\t%s%d = 0;\n", buf1, i);
-		fprintf(tc, "\t\t}\n");
+			fprintf(fd_tc, "\t\t\t%s%d = 0;\n", buf1, i);
+		fprintf(fd_tc, "\t\t}\n");
 		if (q->nflds == 1)	/* set */
-			fprintf(tc, "\t\tif (fld == 0) %s0 = fldvar;\n",
+			fprintf(fd_tc, "\t\tif (fld == 0) %s0 = fldvar;\n",
 							buf1);
 		else
-		{	fprintf(tc, "\t\tswitch (fld) {\n");
+		{	fprintf(fd_tc, "\t\tswitch (fld) {\n");
 			for (i = 0; i < q->nflds; i++)
-			{	fprintf(tc, "\t\tcase %d:\t%s", i, buf1);
-				fprintf(tc, "%d = fldvar; break;\n", i);
+			{	fprintf(fd_tc, "\t\tcase %d:\t%s", i, buf1);
+				fprintf(fd_tc, "%d = fldvar; break;\n", i);
 			}
-			fprintf(tc, "\t\t}\n");
+			fprintf(fd_tc, "\t\t}\n");
 		}
-		fprintf(tc, "\t\tbreak;\n");
+		fprintf(fd_tc, "\t\tbreak;\n");
 	}
-	ntimes(tc, 0, 1, R15);
+	ntimes(fd_tc, 0, 1, R15);
 }
 
 extern void explain(int);
