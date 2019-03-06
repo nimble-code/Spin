@@ -1,0 +1,415 @@
+<html>
+<head>
+<title>SPIN Verifier's Roadmap: Spin</title>
+<style type="text/css">
+	body {
+		font-family: Arial, Helvetica, sens-serif ;
+	}
+	.boxed {
+		margin-left:   24px ;
+		margin-right:  24px ;
+		margin-top:    12px ;
+		margin-bottom: 12px ;
+		padding-top:   12px ;
+		padding-left:  12px ;
+		padding-right: 12px ;
+		border: 1px solid blue ;
+	}
+</style>
+</head>
+<p>
+<table width=100%><tr><td width=10%> </td><td>
+<h1><tt>SPIN VERIFIER's ROADMAP:
+<br>
+<font color="#FF0000">BUILDING AND VERIFYING <i>Spin</i> MODELS</font>
+</tt></h1>
+The following description provides a basic overview of the
+verification options that can be used with the <i>Spin</i> model checker.
+This description assumes that <i>Spin</i> has been installed and that you
+have a standard C compiler (such as gcc) as well.
+It also assumes that you are familiar with standard shell command use
+on a Unix-like system (e.g., Ubuntu Linux, MAC-OS-X, or Cygwin on a Windows-PC).
+
+<hr>
+<h2><tt><font color=blue>-0-</font></tt></h2>
+Verification begins with the specification of a prototype of the system
+to be studied in the specification language supported by <i>Spin</i>.
+This language is called ProMeLa (short for Process Meta Language),
+and the model is called a <i>verification model</i>, or a <i>Spin model</i>.
+	<div class="boxed">
+	By convention, ProMeLa specification files have
+	a <tt>.pml</tt> file extension.<p>
+	</div>
+Next you must consider how you can express the critical correctness requirements
+for your model.
+You can use assertions, end-state labels, progress-state labels,
+acceptance-state labels, or LTL properties.
+But don't worry, in most cases of practical interest you will
+only need assertions, and less frequently simple LTL properties.
+<hr>
+<h2><tt><font color=blue>-1-</font></tt></h2>
+For a quick checkout of the model you have just defined:
+do a simulation run to catch the simpler mistakes.
+<br>
+If no flags are provided, <i>Spin</i> performs a random simulation
+of the model.
+<pre>
+	$ spin spec.pml		# no options: only print statements produce output
+</pre>
+It is often very helpful, especially at this stage in debugging the
+basic verification model, to add printf statements to the specification
+to make things more clear.
+<p>
+You can add more options to see useful things happening.
+Without additional flags, only print statements that you use in
+the model will produce output. If there are none, you may want
+to use some additional flags.
+<pre>
+	$ spin -p spec.pml	# simulation run, show all execution steps
+	$ spin -c spec.pml	# columnated output for message i/o
+</pre>
+You can use the command:
+<pre>
+	$ spin --
+</pre>
+to see what other options are available for including additional information in
+the simulation runs.
+<br>
+An important one, in case your model can execute forever, is the ability to
+set an upper-limit on the number of execution steps performed in a simulation.
+For instance, to limit the simulation to the first 200 steps:
+<pre>
+	$ spin -u200 -p -l -g -v spec.pml
+</pre>
+Check in the output of spin -- what the additional flags that are used here do.
+<p>
+When done debugging, you can perform a more thorough check
+of your model with this command:
+<pre>
+	$ spin -a spec.pml		# thorough check
+</pre>
+This step can report
+syntax errors and impurities that the simulation commands don't catch.
+For feedback on possible redundancies in your specification, try also:
+<pre>
+	$ spin -A spec.pml		# check for redundancies
+</pre>
+And, if you really want to get carried away, you can look at the
+automata descriptions that <i>Spin</i> generates for you for the
+verifier's use, by executing:
+<pre>
+	$ spin -search -dump spec.pml
+or just
+	$ spin -search -d spec.pml
+</pre>
+If, on the other hand you just want
+to get a quick basic verification run going, use this command,
+which will compile and run your verification immediately:
+<pre>
+	$ spin -search spec.pml
+</pre>
+And the rest, as they say, is just detail. We will indulge in
+some of that detail in the next few points.
+
+<hr>
+
+<h2><tt><font color=blue>-2-</font></tt></h2>
+The biggest decision to make is if the model you created is simple
+enough to perform a fully exhaustive verification on the machine that
+you are using. The limits, as always, are CPU-time and RAM memory.
+The good news is that even if you do not have enough time or memory,
+<i>Spin</i> can be configured to give you the best possible result
+within the constraints that you do have. We will first consider
+how you can setup a standard exhaustive verification run.
+<div class="boxed">
+<b><font color=blue>Exhaustive</font></b>
+<br>For an exhaustive verification, you can compile the generated
+verification code as follows.
+<pre>
+	$ spin -search -O2 spec.pml            # use optimized compilation
+</pre>
+It is always smart to use the <tt>-O2</tt> flag to optimize
+the code: it can often reduce the runtime needed by about 50%.
+<p>
+If you know how much <i>physical</i> (not virtual) RAM memory your system has,
+you can use this to restrict the maximum amount that a verification
+can take to avoid unpleasant paging behavior, for instance,
+if you have 256 Megabyte available compile as follows.
+<pre>
+	$ spin -search -O2 -DMEMLIM=256 spec.pml   # set memory bound at 256MB
+</pre>
+If the amount of memory you have is not sufficient to complete a verification,
+consider using one of the compression options that <i>Spin</i> supports.
+For instance:
+<pre>
+	$ spin -search -O2 -DMEMLIM=256 -collapse spec.pml # use compression
+</pre>
+or, for a still more aggressive option, try:
+<pre>
+	$ spin -search -O2 -DMEMLIM=256 -hc spec.pml # use hash-compact compression
+</pre>
+If also this is insufficient, and your verification still exceeds the memory bounds,
+switch to <i>Bitstate</i> verification run (also known
+as a <i>Supertrace</i> verification).
+<p>
+<b><font color=blue>Bitstate</font></b>
+<br>For a Bitstate verification run, compile as follows.
+<pre>
+	$ spin -search -O2 -bitstate spec.pml    # use bitstate search
+</pre>
+This is often used as a method of last resort when a full
+verication is infeasible because of memory limitations or problem size.
+It can also be used as a fast prescan of a problem, to get an
+early and quick indication of the presence or absence of errors.<p>
+</div>
+
+<hr>
+<h2><tt><font color=blue>-3-</font></tt></h2>
+Up to this point we have ignored what type of property you are
+trying to verify, or what impact problem size may have on your
+chances of performing a successful verification.
+We will address these points now.
+
+<p>
+There are four more decisions you have to make to perform verifications optimally.
+These four decisions are:
+<ol>
+<li> Selecting the type of property to be verified (safety or liveness)
+<li> Selecting the maximum search depth,
+<li> If you use a Bitstate search: selecting the size of the hash-table
+<li> Selecting the parameters for a replay of an error, if one is found.
+</ol>
+We'll now explore each of these decisions in more detail.
+<ol>
+<p>
+<li>
+The first decision is to decide if you want to check the model
+for <i><font color=blue>Safety</font></i> properties or for
+<i><font color=blue>Liveness</font></i> properties.
+
+	<div class="boxed">
+	<b><font color=blue>Safety</font></b>
+	<br>
+	Examples of safety properties are assertion violations, deadlocks
+	(invalid end-states), etc.
+	<p>
+	To check safety properties only (the most frequently used search mode),
+	you can obtain a fast verifier by adding a <tt>-safety</tt> argument:
+	<pre>
+		$ spin -search <b>-safety</b> spec.pml</pre>
+	plus of course any of the other arguments we discussed earlier, for instance:
+	<pre>
+		$ spin -search -O2 -bitstate -safety spec.pml</pre>
+	
+	In this case you can also use <i>Spin</i>'s breadth-first search mode, which
+	works only for safety properties but has the advantage of finding
+	the shortest possible error traces:
+	<pre>
+		$ spin -search <b>-bfs</b> spec.pml</pre>
+	again combined with any other options you need.
+	
+	<p>
+	<b><font color=blue>Liveness</font></b>
+	<br>
+	Examples of liveness properties are non-progress or acceptance cycles.
+	LTL properties can express both safety and liveness properties.
+	In case of doubt: assume you have a liveness property.
+	<p>
+	To perform a search for violations of general liveness properties
+	you use the runtime parameter <tt>-a</tt> following the <tt>-search</tt> argument
+	to Spin. For instance:
+	<pre>
+		$ spin -search <b>-a</b> spec.pml</pre>
+	plus any other runtime arguments you selected.
+	
+	<p>
+	<b><font color=blue>Non-Progress</font></b>
+	<br>
+	A non-progress cycle is an infinite execution that never passes
+	through any state in the specification that is marked with a labelname
+	that starts with the prefix <i>"progress"</i>.
+	<p>
+	To search for non-progress cycles you add
+	run-time option <tt>-l</tt>, for instance as in:
+	<pre>
+		$ spin -search <b>-l</b> spec.pml</pre>
+	plus any other runtime arguments you selected.<p>
+	</div>
+
+<p>
+<li>
+By default the <i>Spin</i> verifiers enforce a search depth restrictionof 10,000 steps.
+In most cases this will suffice, but when it doesn't the search depth
+will artificially be truncated to 9,999 steps and become incomplete.
+You can define a different search-depth by adding a runtime parameter <tt>-m</tt>.
+For instance:
+<pre>
+	$ spin -search <b>-m100000</b> spec.pml
+</pre>
+(again, combined with any other options you select).
+<p>
+You can also try to set a lower search depth to try to find a shorter variant
+of an error sequence. For instance
+<pre>
+	$ spin -search -m40 spec.pml
+</pre>
+But in thise case there is no guarantee that if a shorter error sequence
+exists it will also be found. To get that guarantee you also have to instruct
+Spin to modify the search algorithm itself, with a
+runtime parameter <tt>-i</tt> to force a search for a short error.
+For instance, to search for errors shorter than 100 steps:
+<pre>
+	$ spin -search O2 <b>-i -m100</b> spec.pml	# iterative search for short errors
+</pre>
+
+<li>
+If you perform a <tt>Bitstate</tt>
+verification (i.e., you used the search argument <tt>-bitstate</tt>), the
+size of the memory arena that is used to store states very compactly is
+determined by your choice of a <tt>-w</tt> parameter. By default,
+this parameter is set to <tt>-w27</tt>, which defines a
+memory arena of 2<sup>27</sup> bits, corresponding to a modest 16 MB of RAM.
+	<div class="boxed">
+	For maximum coverage you want to set the hash-array size to the maximum
+	size of memory you can grab without making the system page
+	(i.e., below the amount of real physical RAM memory that you can access).
+	<p>
+	More specifically, for maximum coverage,
+	the value you set with the <tt>-w</tt> parameter should at least be larger
+	than the nearest power of 2 of the number of reachable system
+	states that you expect, without exceeding your physical memory size.
+	(And for obvious reasons, you cannot allocate more than about 2 GB of memory
+	on a 32-bit system. For larger memory arenas you will have to use a 64-bit system.)
+	<p>
+	For instance, use <tt>-w23</tt> if you expect less than 8 million reachable states
+	and can use 8 million bits of memory (i.e., 2<sup>23</sup> bits equals
+	8 million bits, which equals 2<sup>20</sup> bytes or 1 MB of RAM).<p>
+	<p>
+	A <tt>-w</tt> value lower than required for full coverage will give you a faster
+	run, but less coverage.  A value higher than needed, will give you
+	a slower run, but it will also cover a larger fraction of the statespace.
+	</div>
+
+<p>
+<li>
+If the verifier finds an error, any error, it will write an error-trail into a
+file named <tt>spec.pml.trail</tt>, if <tt>spec.pml</tt> is the name of
+your <i>Spin</i> model.
+To inspect the trail, and examine the cause of the error,
+you can use <i>Spin</i>'s guided simulation option <b>-replay</b>.
+<br>
+For instance:
+<pre>
+	$ spin -p -replay spec.pml
+or
+	$ spin -c -replay spec.pml
+</pre>
+
+	<div class="boxed">
+	Note that options to spin like <tt>-p</tt> and <tt>-c</tt>
+	go <i>before</i> the <tt>-replay</tt> argument.
+	<br>
+	If, however, a replay must be done with the executable verifier
+	<tt>./pan</tt>, which automatically happens for
+	all models that contain embedded C code fragments in <tt>c_expr</tt>
+	or <tt>c_code</tt> statements, then replay options to the executable
+	verifier are placed <i>after</i> the <tt>-replay</tt> argument,
+	for instance as in: <tt>spin -replay -P2 spec.pml</tt>.
+	The executable verifier accepts different options for replay
+	then spin itself, so it is good to keep these separate.
+	<br>
+	Options placed <i>after</i> the <tt>-replay</tt> argument
+	for a pure Promela model, and
+	options placed <i>before</i> the <tt>-replay</tt> argument
+	for a model with embedded C code, are politely ignored.
+	<p></div>
+
+Add as many extra or different options as you need to pin down the error.
+(Remember, you can check <i>Spin</i>'s available options 
+by executing: <tt>spin --</tt>, and options of the executable verifier
+with <tt>./pan --</tt>.)
+One option is to convert the trail into a Tcl/Tk represetation of
+a message sequence chart of send and receive actions, which will then be displayed
+with the <tt>wish</tt> command (assuming <tt>wish</tt> is installed on your system):
+<pre>
+	$ spin -M -replay spec.pml
+</pre>
+For more detailed tracebacks you can use, for instance:
+<pre>
+	$ spin -r -s -l -g -replay spec.pml
+</pre>
+Make sure the file <tt>spec.pml</tt> didn't change since you generated the verifier.
+<i>Spin</i> will warn if you did.
+<p>
+If you're not interested in the <i>first</i> error that is reported, add
+runtime option <tt>-c</tt> to select others:
+<pre>
+	$ spin -search ... <b>-c3</b> spec.html
+</pre>
+generates a counter-example trail for the third error found in the search.
+If you just want to count all errors and not see them, use
+<pre>
+	$ spin -search ... <b>-c0</b> spec.html
+</pre>
+By default, the argument to -c is 1.
+<p>
+If you want to obtain a trail for each and every error found (usually not
+recommended, because there may be an overwhelming number of these), use:
+<pre>
+	$ spin -search ... <b>-c0 -e</b> spec.html
+</pre>
+This creates a series of error trails in files numbers
+<tt>spec2.pml.trail</tt>, <tt>spec3.pml.trail</tt>, ...etc.
+To trace back a specific one of these trails, you can specify the
+specific trail file you want to see with a -k option:
+<pre>
+	$ spin -k trailfilename -p -replay spec.pml
+</pre>
+</ol>
+<p>
+
+<hr>
+<h2><tt><font color=blue>Finally</font></tt></h2>
+Internally <i>Spin</i> and pan deal with a formalization of
+the model in terms of automata.
+<i>Spin</i> assigns numbers to all statements in the input.
+These state numbers are listed in all output so that you
+can, if you want, use that information to track down what happens.
+To see the state assignments use the runtime option -d for the
+executable verifier pan:
+<pre>
+	$ spin -o3 -search -d spec.pml	# show optimized state machines
+</pre>
+to print the optimized state machine assignments, as it is used during
+verification. (The <tt>-o3</tt> argument turns off a default statement
+merging option that can sometimes make it harder to interpret the
+output.)
+<br>
+The unoptimized machine (used during random or guided simulations with
+spin -replay for instance) can also be printed, but you need the executable
+verifier for that. (It will exist if you've executed the above command
+first):
+<pre>
+	$ spin -o3 -search -d -d spec.pml	# show full, unoptimized state machines
+</pre>
+These two options should also make it easier to understand and
+verify the working of <i>Spin</i> and <tt>pan</tt> in terms of
+the underlying automata theoretic foundation.
+<p>
+In very rare cases, when you need to debug the working of the
+verifier itself, you can also consider compiling the verifier with
+an additional compiler directive <tt>-DCHECK</tt> or <tt>-DVERBOSE</tt>.
+
+<p><p><p><hr>
+<table cols=3 width=100%>
+<tr>
+<td valign=top>
+<a href="http://spinroot.com/spin/whatispin.html">Spin HomePage</a>
+</td>
+<td valign=top align=center></td>
+<td valign=top align=right>
+<font size="3"><b><tt>(Page Updated: 8 June 2014)</tt></font></b></td></tr>
+</table>
+
+</td><td width=15%> </td></tr></table>
+</html>

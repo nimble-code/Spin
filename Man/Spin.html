@@ -1,0 +1,332 @@
+<html>
+<body bgcolor=#ffffff>
+<head>
+<title>Spin Run-Time Options</title>
+</head>
+<p>
+<table cols=3 width=100%>
+<tr>
+<td valign=top align=left><h3><a href="index.html">Spin</a></h3></td>
+<td valign=top align=center><h3>Run-Time Options</h3></td>
+<td valign=top align=right><h3>Overview</h3>
+</td></tr>
+</table>
+<p><b><tt>NAME</tt> </b>
+<br>
+spin
+- verification tool for models of distributed systems
+<p><b><tt>SYNTAX</tt> </b>
+<br>
+<b>spin [options]</b> <i>file</i>
+<br>
+<b>spin -V</b>
+<p><b><tt>DESCRIPTION</tt> </b>
+<br>
+<i>Spin</i> is a tool for analyzing the logical consistency of
+asynchronous systems, specifically distributed software
+and communication protocols.
+A verification model of the system is first specified
+in a guarded command language called <i>Promela</i>.
+This specification language, described in the reference,
+allows for the modeling of dynamic creation of
+asynchronous processes,
+nondeterministic case selection, loops, gotos, local and
+global variables.
+It also allows for a concise specification of logical
+correctness requirements, including, but not restricted
+to requirements expressed in linear temporal logic.
+<p>
+Given a <i>Promela</i> model stored in
+<i>file , </i>
+<i>Spin</i> can perform interactive, guided, or random simulations
+of the system's execution.
+It can also generate a C program that performs an exhaustive
+or approximate verification of the correctness requirements
+for the system.
+
+<h3><tt>Simulation Options</tt></h3>
+<p>
+With only a filename as an argument and no option flags,
+<i>Spin</i> performs a random simulation of the model specified in
+the file (standard input is the default if the filename is omitted).
+This normally does not generate output, except what is generated
+explicitly by the user within the model with </i>printf</i>
+statements, and some details about the final state that is
+reached after the simulation completes.
+A first group of option flags can be used
+to set the desired level of information that the user wants
+to see in a random, guided, or interactive simulation run.
+Every line of output normally contains a reference to the source
+line in the specification that generated it.
+If option
+<b>-i </b>
+is added, the simulation is <i>interactive</i>, or if option
+<b>-t </b>
+is added, the simulation is <i>guided</i>.
+<ul>
+<li>
+<b>-B </b> Suppresses the verbose printout at the end of a simulation
+run (giving process states etc.).
+<li>
+<b>-b</b> Suppresses the execution of <i>printf</i> statements within the model
+(see also <b>-T</b>).
+<li>
+<b>-c </b>
+Produce an ASCII approximation of a message sequence
+chart for a random or guided (when combined with <b>-t</b>)
+simulation run. See also option <b>-M</b>.
+<li>
+<b>-g</b> Shows at each time step the current value of global variables (see also <b>-w</b>).
+<li>
+<b>-i</b> Perform an interactive simulation, prompting the user at
+every execution step that requires a nondeterministic choice
+to be made.  The simulation proceeds without user intervention
+when execution is deterministic.
+<li>
+<b>-jN</b> Skip the first N steps of a random or guided simulation.
+(See also option -uN.)
+<li>
+<b>-l</b> In combination with option -p, shows the current value of local variables of the process
+(see also <b>-w</b>).
+<li>
+<b>-M</b> Produce a message sequence chart in Postscript form for a
+random simulation or a guided simulation
+(when combined with <b>-t</b>), for the model in
+<i>file , </i>
+and write the result into
+<i>file.ps . </i>
+See also option <b>-c</b>.
+<li>
+<b>-n</b><i>N </i>
+Set the seed for a random simulation to the integer value
+<i>N.</i>
+There is no space between the <b>-n</b> and the integer <i>N</i>.
+<b>-p</b>, shows the current value of local variables of the process.
+<li>
+<b>-p</b> Shows at each simulation step which process changed state,
+and what source statement was executed.
+<li>
+<b>-q</b><i>N </i>
+In columnated output (option <b>-c</b>) and elsewhere, suppress the
+printing of output for send or receive operations on the channel
+numbered <i>N</i>.
+<li>
+<b>-r</b> Shows all message-receive events, giving
+the name and number of the receiving process
+and the corresponding the source line number.
+For each message parameter, show
+the message type and the message channel number and name.
+
+<li>
+<b>-s</b> Shows all message-send events.
+<li>
+<b>-T</b> Suppress the default indentation of output from
+print statements. By default the output from process i is
+indented by i spaces. See also option <b>-b</b>.
+<li>
+<b>-t</b>[<i>N</i>]  Perform a guided simulation,
+following the error trail that
+was produces by an earlier verification run, see the online manuals
+for the details on verification.
+If an optional number is attached (no space between the number and
+the <b>-t</b>) the error trail with that sequence number is opened,
+instead of the default trail, without sequence number.
+<li>
+<b>-uN</b> Stop a random or guided simulation after the first N steps.
+(See also option -jN.)
+<li>
+<b>-v</b> Verbose mode, adds some more detail, and generates more
+hints and warnings about the model.
+<li>
+<b>-w</b> Even more verbose output with options <b>-l</b> and <b>-g</b>
+(e.g., prints all variable values, not just those that change).
+</ul>
+
+<h3><tt>Generate, Compile, and Run</tt></h3>
+<ul>
+<li>
+<b>-search</b>
+Generate the verifier source code in pan.c (like <b>-a</b> does)
+and immediately compile and execute the verifier.
+Options that follow the <b>-search</b> argument are passed through
+to the compiler (options starting with <b>-[ODUE]</b> or to the
+verifier as runtime flags (all other options).
+<br>
+Options to Spin itself, for parsing the Promela specification
+(e.g., macro definitions), should precede the <b>-search</b> argument.
+<br>
+Options that can follow the <b>-search</b> argument include:
+<pre>	-bfs, -bfspar, -bcs, -ltl name, -safety, -noclaim, -bitstate, -hc, -collapse, -i, -l, -a</pre>
+</ul>
+
+<h3><tt>Verifier Generation Related</tt></h3>
+<ul>
+<li>
+<b>-a </b>
+Generate a verifier (model checker) for the specification.
+The output is written into a set of C files, named
+<r>
+pan.[ cbhmt ]
+</i>
+that can be compiled, (e.g.,
+<r>cc pan.c ) </r>
+to produce an executable verifier.
+The online <i>Spin</i> manuals (see below) contain
+the details on compilation and use of the verifiers.
+<li>
+<b>-A </b>
+Perform property-based slicing, warning the user of all
+statements and data objects that are likely to be redundant
+for the stated properties (i.e., in assertions and never
+claims).
+<li>
+<b>-d</b> Produce symbol table information for the model specified in
+<i>file . </i>
+For each <i>Promela</i> object this information includes the type, name and
+number of elements (if declared as an array), the initial
+value (if a data object) or size (if a message channel), the
+scope (global or local), and whether the object is declared as
+a variable or as a parameter.  For message channels, the data types
+of the message fields are listed.
+For structure variables, the 3rd field defines the
+name of the structure declaration that contains the variable.
+<li>
+<b>-F</b> <i>file </i>
+This behaves identical to option <b>-f</b> but will read the formula
+from the <i>file</i> instead of from the command line.
+The file should contain the formula as the first line.  Any text
+that follows this first line is ignored, so it can be used to
+store comments or annotation on the formula.
+(On some systems the quoting conventions of the shell complicate
+the use of option <b>-f</b>.  Option <b>-F</b> is meant to solve
+those problems.)
+<li>
+<b>-f</b> <i>LTL </i>
+Translate the LTL formula <i>LTL</i> into a never claim.
+<br>
+This option reads a formula in LTL syntax from the second argument
+and translates it into <i>Promela</i> syntax (a never claim, qhich is <i>Promela</i>'s
+equivalent of a Buchi Automaton).
+The LTL operators are written: [] (always), <> (eventually),
+and U (strong until).  There is no X (next) operator, to secure
+compatibility with the partial order reduction rules that are
+applied during the verification process.
+If the formula contains spaces, it should be quoted to form a
+single argument to the <i>Spin</i> command.
+As the name suggests, a <i>Spin</i> never claim is used to specify behavior
+than is required to be impossible, i.e., behavior that would violate a
+user-specified property.
+This means that to check for compliance with an LTL formula, the
+formula must be negated explicitly before it is converted into a never claim.
+Negating an LTL formula is easy: just place the formula "f" in parentheses
+and negate it: "!(f)".
+<li>
+<b>-J</b> Reverse the evaluation order of nested 'unless' statements
+(so that it conforms to the evaluation order of nested 'catch'
+statements in Java).
+<li>
+<b>-m</b> Changes the semantics of send events.
+Ordinarily, a send action will be (blocked) if the
+target message buffer is full.
+With this option a message sent to a full buffer is lost.
+<li>
+<b>-N</b> <i>filename</i> add the never claim stored in <i>filename</i>.
+<li>
+<b>-S1</b> and <b>-S2</b> separate pan source for claim and model (see book for details).
+<li>
+<b>-V</b> Prints the <i>Spin</i> version number and exits.
+</ul>
+
+<h3><tt>Optimization</tt></h3>
+The following group of options controls which optimizations
+are enabled or disabled for verifier generation. By default most of
+the important optimizations are enabled.
+<ul>
+<li>
+<b>-o1</b>
+disable dataflow-optimizations in verifier.
+this marks variables as temporarily dead when they cannot
+be read before written. their value is then reset to zero,
+in an attempt to avoid redundant values in the state-vector.
+in rare cases, this option can increase complexity (by adding
+the zero value where it did not appear before).
+<li>
+<b>-o2</b>
+disable dead variables elimination in verifier (should never
+be necessary, other than to confirm its effect on the length
+of the state vector and reduction of memory requirements).
+<li>
+<b>-o3</b>
+disable statement merging in verifier. this option can
+make it harder to read the pan -d output (of the internal
+state machines used in the verifier). disabling it restores
+the old, more explicit, format, but loses the advantage of
+statement merging during model checking.
+<li>
+<b>-o4</b>
+enable rendez-vous optimizations (experimental).
+this attempts to precompute the feasibility of a rendez-vous
+operation, rather than letting the model checker determine
+this at run-time. we have been unable to see a positive effect
+on runtime when this option is enabled, so it is likely to
+disappear again.
+<li>
+<b>-o5</b>
+disable case caching (having this option enabled
+makes smarter use of the case-statements in the
+pan.m and pan.b files, and allows for faster
+compilation times; disable only when bugs are
+encountered).
+<li>
+<b>-o6</b>
+revert to the old rules for interpreting priority tags (pre version 6.2)
+<li>
+<b>-o7</b>
+revert to the old rules for semi-colon usage (pre version 6.3)
+</ul>
+
+<p>
+<p><b><tt>SEE ALSO</tt> </b>
+<br>
+<ul><li><b>
+</b>
+<a href="Pan.html">Pan.html</a>,
+<a href="Quick.html">Quick.html</a>,
+<a href="GettingStarted.html">GettingStarted.html</a>,
+<a href="Roadmap.html">Roadmap.html</a>,
+<a href="Manual.html">Manual.html</a>,
+<a href="WhatsNew.html">WhatsNew.html</a>,
+<a href="Exercises.html">Exercises.html</a>
+</ul>
+<p>
+More background information on the system and the verification process,
+can be found in:
+<ul>
+<li>
+G.J. Holzmann, <a href="http://spinroot.com/spin/Doc/Book_extras/index.html">
+<i>The Spin Model Checker: Primer and Reference Manual</i></a>,
+Addison-Wesley, 2003.
+<li>
+--, <i>Design and Validation of Computer Protocols</i>,
+Prentice Hall, 1991.
+<li>
+--, `The model checker <i>Spin</i>,'
+<i>IEEE Trans. on SE</i>, Vol, 23, No. 5, May 1997.
+</ul>
+<p>
+<p><p><p>
+<hr>
+<table cols=3 width=100%>
+<tr>
+<tr>
+<td valign=top align=left>
+<a href="index.html">Spin Online References</a><br>
+<a href="promela.html">Promela Manual Index</a><br>
+<a href="http://spinroot.com/spin/">Spin HomePage</a>
+</td>
+<td valign=top align=center></td>
+<td valign=top align=right>
+<font size="3"><b><tt>(Page Updated: 11 May 2014)</tt></font></b></td></tr>
+</table>
+</body>
+</html>
