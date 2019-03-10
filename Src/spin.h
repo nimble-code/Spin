@@ -281,7 +281,7 @@ Lextok	*rem_var(Symbol *, Lextok *, Symbol *, Lextok *);
 Lextok	*tail_add(Lextok *, Lextok *);
 Lextok	*return_statement(Lextok *);
 
-ProcList *ready(Symbol *, Lextok *, Sequence *, int, Lextok *, enum btypes);
+ProcList *mk_rdy(Symbol *, Lextok *, Sequence *, int, Lextok *, enum btypes);
 
 SeqList	*seqlist(Sequence *, SeqList *);
 Sequence *close_seq(int);

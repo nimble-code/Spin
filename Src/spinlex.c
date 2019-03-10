@@ -41,7 +41,7 @@ typedef struct C_Added {
 } C_Added;
 
 extern RunList	*X;
-extern ProcList	*rdy;
+extern ProcList	*ready;
 extern Symbol	*Fname, *oFname;
 extern Symbol	*context, *owner;
 extern YYSTYPE	yylval;
@@ -896,7 +896,7 @@ check_inline(IType *tmp)
 
 	if (!X) return;
 
-	for (p = rdy; p; p = p->nxt)
+	for (p = ready; p; p = p->nxt)
 	{	if (strcmp(p->n->name, X->n->name) == 0)
 			continue;
 		sprintf(buf, "P%s->", p->n->name);

@@ -143,14 +143,14 @@ proc	: inst		/* optional instantiator */
 	  body		{ ProcList *rl;
 			  if ($1 != ZN && $1->val > 0)
 			  {	int j;
-				rl = ready($3->sym, $6, $11->sq, $2->val, $10, A_PROC);
+				rl = mk_rdy($3->sym, $6, $11->sq, $2->val, $10, A_PROC);
 			  	for (j = 0; j < $1->val; j++)
 				{	runnable(rl, $9?$9->val:1, 1);
 					announce(":root:");
 				}
 				if (dumptab) $3->sym->ini = $1;
 			  } else
-			  {	rl = ready($3->sym, $6, $11->sq, $2->val, $10, P_PROC);
+			  {	rl = mk_rdy($3->sym, $6, $11->sq, $2->val, $10, P_PROC);
 			  }
 			  if (rl && has_ini == 1) /* global initializations, unsafe */
 			  {	/* printf("proctype %s has initialized data\n",
@@ -190,7 +190,7 @@ inst	: /* empty */	{ $$ = ZN; }
 init	: INIT		{ context = $1->sym; }
 	  Opt_priority
 	  body		{ ProcList *rl;
-			  rl = ready(context, ZN, $4->sq, 0, ZN, I_PROC);
+			  rl = mk_rdy(context, ZN, $4->sq, 0, ZN, I_PROC);
 			  runnable(rl, $3?$3->val:1, 1);
 			  announce(":root:");
 			  context = ZS;
@@ -217,7 +217,7 @@ claim	: CLAIM	optname	{ if ($2 != ZN)
 			  }
 			  claimproc = $1->sym->name;
 			}
-	  body		{ (void) ready($1->sym, ZN, $4->sq, 0, ZN, N_CLAIM);
+	  body		{ (void) mk_rdy($1->sym, ZN, $4->sq, 0, ZN, N_CLAIM);
         		  context = ZS;
         		}
 	;
@@ -248,9 +248,9 @@ events : TRACE		{ context = $1->sym;
 			}
 	  body		{
 			  if (strcmp($1->sym->name, ":trace:") == 0)
-			  {	(void) ready($1->sym, ZN, $3->sq, 0, ZN, E_TRACE);
+			  {	(void) mk_rdy($1->sym, ZN, $3->sq, 0, ZN, E_TRACE);
 			  } else
-			  {	(void) ready($1->sym, ZN, $3->sq, 0, ZN, N_TRACE);
+			  {	(void) mk_rdy($1->sym, ZN, $3->sq, 0, ZN, N_TRACE);
 			  }
         		  context = ZS;
 			  inEventMap--;

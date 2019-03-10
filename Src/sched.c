@@ -26,7 +26,7 @@ extern void	putpostlude(void);
 RunList		*X   = (RunList  *) 0;
 RunList		*run = (RunList  *) 0;
 RunList		*LastX  = (RunList  *) 0; /* previous executing proc */
-ProcList	*rdy = (ProcList *) 0;
+ProcList	*ready = (ProcList *) 0;
 Element		*LastStep = ZE;
 int		nproc=0, nstop=0, Tval=0, Priority_Sum = 0;
 int		Rvous=0, depth=0, nrRdy=0, MadeChoice;
@@ -78,7 +78,7 @@ runnable(ProcList *p, int weight, int noparams)
 }
 
 ProcList *
-ready(Symbol *n, Lextok *p, Sequence *s, int det, Lextok *prov, enum btypes b)
+mk_rdy(Symbol *n, Lextok *p, Sequence *s, int det, Lextok *prov, enum btypes b)
 	/* n=name, p=formals, s=body det=deterministic prov=provided */
 {	ProcList *r = (ProcList *) emalloc(sizeof(ProcList));
 	Lextok *fp, *fpt; int j; extern int Npars;
@@ -95,8 +95,8 @@ ready(Symbol *n, Lextok *p, Sequence *s, int det, Lextok *prov, enum btypes b)
 	{	fprintf(stderr, "spin: bad value for det (cannot happen)\n");
 	}
 	r->det = (unsigned char) det;
-	r->nxt = rdy;
-	rdy = r;
+	r->nxt = ready;
+	ready = r;
 
 	for (fp  = p, j = 0;  fp;  fp = fp->rgt)
 	for (fpt = fp->lft;  fpt; fpt = fpt->rgt)
@@ -104,7 +104,7 @@ ready(Symbol *n, Lextok *p, Sequence *s, int det, Lextok *prov, enum btypes b)
 	}
 	Npars = max(Npars, j);
 
-	return rdy;
+	return ready;
 }
 
 void
@@ -114,7 +114,7 @@ check_mtypes(Lextok *pnm, Lextok *args)	/* proctype name, actual params */
 	char *s, *t;
 
 	if (pnm && pnm->sym)
-	{	for (p = rdy; p; p = p->nxt)
+	{	for (p = ready; p; p = p->nxt)
 		{	if (strcmp(pnm->sym->name, p->n->name) == 0)
 			{	/* found */
 				break;
@@ -158,7 +158,7 @@ int
 find_maxel(Symbol *s)
 {	ProcList *p;
 
-	for (p = rdy; p; p = p->nxt)
+	for (p = ready; p; p = p->nxt)
 	{	if (p->n == s)
 		{	return p->s->maxel++;
 	}	}
@@ -172,7 +172,7 @@ formdump(void)
 	Lextok *f, *t;
 	int cnt;
 
-	for (p = rdy; p; p = p->nxt)
+	for (p = ready; p; p = p->nxt)
 	{	if (!p->p) continue;
 		cnt = -1;
 		for (f = p->p; f; f = f->rgt)	/* types */
@@ -235,7 +235,7 @@ enable(Lextok *m)
 	if (m->val < 1)
 	{	m->val = 1;	/* minimum priority */
 	}
-	for (p = rdy; p; p = p->nxt)
+	for (p = ready; p; p = p->nxt)
 	{	if (strcmp(s->name, p->n->name) == 0)
 		{	if (nproc-nstop >= MAXP)
 			{	printf("spin: too many processes (%d max)\n", MAXP);
@@ -258,7 +258,7 @@ check_param_count(int i, Lextok *m)
 	Lextok *f, *t;		/* formal pars */
 	int cnt = 0;
 
-	for (p = rdy; p; p = p->nxt)
+	for (p = ready; p; p = p->nxt)
 	{	if (strcmp(s->name, p->n->name) == 0)
 		{	if (m->lft)	/* actual param list */
 			{	lineno = m->lft->ln;
@@ -281,14 +281,14 @@ start_claim(int n)
 {	ProcList *p;
 	RunList  *r, *q = (RunList *) 0;
 
-	for (p = rdy; p; p = p->nxt)
+	for (p = ready; p; p = p->nxt)
 		if (p->tn == n && p->b == N_CLAIM)
 		{	runnable(p, 1, 1);
 			goto found;
 		}
 	printf("spin: couldn't find claim %d (ignored)\n", n);
 	if (verbose&32)
-	for (p = rdy; p; p = p->nxt)
+	for (p = ready; p; p = p->nxt)
 		printf("\t%d = %s\n", p->tn, p->n->name);
 
 	Skip_claim = 1;
@@ -604,7 +604,7 @@ multi_claims(void)
 
 	if (nclaims > 1)
 	{	printf("  the model contains %d never claims:", nclaims);
-		for (p = rdy; p; p = p->nxt)
+		for (p = ready; p; p = p->nxt)
 		{	if (p->b == N_CLAIM)
 			{	printf("%s%s", q?", ":" ", p->n->name);
 				q = p;

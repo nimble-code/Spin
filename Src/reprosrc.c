@@ -14,7 +14,7 @@
 static int indent = 1;
 
 extern YYSTYPE yylval;
-extern ProcList	*rdy;
+extern ProcList	*ready;
 static void repro_seq(Sequence *);
 
 void
@@ -131,7 +131,7 @@ repro_proc(ProcList *p)
 void
 repro_src(void)
 {
-	repro_proc(rdy);
+	repro_proc(ready);
 }
 
 static int in_decl;

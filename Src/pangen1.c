@@ -21,7 +21,7 @@
 extern FILE	*fd_tc, *fd_th, *fd_tt;
 extern Label	*labtab;
 extern Ordered	*all_names;
-extern ProcList	*rdy;
+extern ProcList	*ready;
 extern Queue	*qtab;
 extern Symbol	*Fname;
 extern int	lineno, verbose, Pid, separate, old_scope_rules, nclaims;
@@ -98,8 +98,8 @@ genheader(void)
 	putunames(fd_th);
 
 	fprintf(fd_tc, "\nshort Air[] = { ");
-	for (p = rdy, i=0; p; p = p->nxt, i++)
-		fprintf(fd_tc, "%s (short) Air%d", (p!=rdy)?",":"", i);
+	for (p = ready, i=0; p; p = p->nxt, i++)
+		fprintf(fd_tc, "%s (short) Air%d", (p!=ready)?",":"", i);
 	fprintf(fd_tc, ", (short) Air%d", i);	/* np_ */
 	if (nclaims > 1)
 	{	fprintf(fd_tc, "\n#ifndef NOCLAIM\n");
@@ -109,7 +109,7 @@ genheader(void)
 	fprintf(fd_tc, " };\n");
 
 	fprintf(fd_tc, "char *procname[] = {\n");
-		reverse_names(rdy);
+		reverse_names(ready);
 	fprintf(fd_tc, "   \":np_:\",\n");
 	fprintf(fd_tc, "	0\n");
 	fprintf(fd_tc, "};\n\n");
@@ -120,12 +120,12 @@ genheader(void)
 		P_PROC, E_TRACE, N_TRACE);
 
 	fprintf(fd_tc, "int Btypes[] = {\n");
-		reverse_types(rdy);
+		reverse_types(ready);
 	fprintf(fd_tc, "   0	/* :np_: */\n");
 	fprintf(fd_tc, "};\n\n");
 
 here:
-	for (p = rdy; p; p = p->nxt)
+	for (p = ready; p; p = p->nxt)
 		put_ptype(p->n->name, p->tn, mstp, nrRdy+1, p->b);
 		/* +1 for np_ */
 	put_ptype("np_", nrRdy, mstp, nrRdy+1, 0);
@@ -296,7 +296,7 @@ shortcut:
 	{	multi_init();
 	}
 	tc_predef_np();
-	for (p = rdy; p; p = p->nxt)
+	for (p = ready; p; p = p->nxt)
 	{	Pid = p->tn;
 		put_pinit(p);
 	}
@@ -328,7 +328,7 @@ do_locinits(FILE *fd)
 	fprintf(fd, "#endif\n");
 	fprintf(fd, "	*proc_offset, *q_offset;\n");
 
-	for (p = rdy; p; p = p->nxt)
+	for (p = ready; p; p = p->nxt)
 	{	c_add_locinit(fd, p->tn, p->n->name);
 	}
 }
@@ -340,7 +340,7 @@ genother(void)
 	switch (separate) {
 	case 2:
 		if (nclaims > 0)
-		{	for (p = rdy; p; p = p->nxt)
+		{	for (p = ready; p; p = p->nxt)
 			{	if (p->b == N_CLAIM)
 				{	ntimes(fd_tc, p->tn, p->tn+1, R0); /* claims only */
 					fprintf(fd_tc, "#ifdef HAS_CODE\n");
@@ -350,7 +350,7 @@ genother(void)
 		break;
 	case 1:
 		ntimes(fd_tc,     0,    1, Code0);
-		for (p = rdy; p; p = p->nxt)
+		for (p = ready; p; p = p->nxt)
 		{	if (p->b != N_CLAIM)
 			{	ntimes(fd_tc, p->tn, p->tn+1, R0); /* all except claims */
 				fprintf(fd_tc, "#ifdef HAS_CODE\n");
@@ -376,19 +376,19 @@ genother(void)
 		fprintf(fd_tc, "\t	Maxbody += WS - (Maxbody %% WS);\n\n");
 	}
 
-	for (p = rdy; p; p = p->nxt)
+	for (p = ready; p; p = p->nxt)
 		end_labs(p->n, p->tn);
 
 	switch (separate) {
 	case 2:
 		if (nclaims > 0)
-		{	for (p = rdy; p; p = p->nxt)
+		{	for (p = ready; p; p = p->nxt)
 			{	if (p->b == N_CLAIM)
 				{	ntimes(fd_tc, p->tn, p->tn+1, R0a); /* claims only */
 		}	}	}
 		return;
 	case 1:
-		for (p = rdy; p; p = p->nxt)
+		for (p = ready; p; p = p->nxt)
 		{	if (p->b != N_CLAIM)
 			{	ntimes(fd_tc, p->tn, p->tn+1, R0a); /* all except claims */
 		}	}
@@ -518,7 +518,7 @@ checktype(Symbol *sp, char *s)
 	if (sp->hidden&16)	/* formal parameter */
 	{	ProcList *p; Lextok *f, *t;
 		int posnr = 0;
-		for (p = rdy; p; p = p->nxt)
+		for (p = ready; p; p = p->nxt)
 			if (p->n->name
 			&&  strcmp(s, p->n->name) == 0)
 				break;
@@ -797,7 +797,7 @@ c_wrapper(FILE *fd)	/* allow pan.c to print out global sv entries */
 
 	fprintf(fd, "void\nc_locals(int pid, int tp)\n{\t/* int i; */\n");
 	fprintf(fd, "	switch(tp) {\n");
-	for (p = rdy; p; p = p->nxt)
+	for (p = ready; p; p = p->nxt)
 	{	fprintf(fd, "	case %d:\n", p->tn);
 		if (c_splurge_any(p))
 		{	fprintf(fd, "	\tprintf(\"local vars proc %%d (%s):\\n\", pid);\n",
@@ -1082,7 +1082,7 @@ multi_init(void)
 
 	fprintf(fd_tc, "#ifndef NOCLAIM\n");
 	fprintf(fd_tc, "\tcase %d:	/* claim select */\n", i);
-	for (p = rdy, j = 0; p; p = p->nxt, j++)
+	for (p = ready, j = 0; p; p = p->nxt, j++)
 	{	if (p->b == N_CLAIM)
 		{	e = p->s->frst;
 			ini = huntele(e, e->status, -1)->seqno;

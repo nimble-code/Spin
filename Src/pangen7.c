@@ -15,7 +15,7 @@
 #include <unistd.h>
 #endif
 
-extern ProcList	*rdy;
+extern ProcList	*ready;
 extern Element *Al_El;
 extern int nclaims, verbose, Strict;
 extern short has_accept;
@@ -284,7 +284,7 @@ locate_claim(int n)
 {	ProcList *p;
 	int i;
 
-	for (p = rdy, i = 0; p; p = p->nxt, i++) /* find claim name */
+	for (p = ready, i = 0; p; p = p->nxt, i++) /* find claim name */
 	{	if (i == n)
 		{	break;
 	}	}
@@ -349,7 +349,7 @@ mk_accepting(int n, Element *e)
 	l->c = (Symbol *) emalloc(sizeof(Symbol));
 	l->uiid = 0;	/* this is not in an inline */
 
-	for (p = rdy, i = 0; p; p = p->nxt, i++) /* find claim name */
+	for (p = ready, i = 0; p; p = p->nxt, i++) /* find claim name */
 	{	if (i == n)
 		{	l->c->name = p->n->name;
 			break;
@@ -377,7 +377,7 @@ check_special(int *nrs)
 	is_accept = 0;
 	for (j = 0; spl[j].n; j++) /* 2 special label prefixes */
 	{	nmatches = 0;
-		for (p = rdy, i = 0; p; p = p->nxt, i++) /* check each claim */
+		for (p = ready, i = 0; p; p = p->nxt, i++) /* check each claim */
 		{	if (p->b != N_CLAIM)
 			{	continue;
 			}
@@ -595,7 +595,7 @@ sync_product(void)
 	Selfs   = (Element **) emalloc(sizeof(Element *) * nclaims);
 	matrix  = (Element ****) emalloc(sizeof(Element ***) * nclaims); /* claims */
 
-	for (p = rdy, i = 0; p; p = p->nxt, i++)
+	for (p = ready, i = 0; p; p = p->nxt, i++)
 	{	if (p->b == N_CLAIM)
 		{	nst = max(p->s->maxel, nst);
 			Nacc[i] = claim_has_accept(p);
@@ -612,7 +612,7 @@ sync_product(void)
 	{	e->status &= ~DONE;
 	}
 
-	for (p = rdy, n=0; p; p = p->nxt, n++)
+	for (p = ready, n=0; p; p = p->nxt, n++)
 	{	if (p->b == N_CLAIM)
 		{	/* fill in matrix[n] */
 			e = p->s->frst;

@@ -21,7 +21,7 @@
 #define tr_map(m, e)	{ if (!merger) fprintf(fd_tt, "\t\ttr_2_src(%d, \"%s\", %d);\n", \
 				m, e->n->fn->name, e->n->ln); }
 
-extern ProcList	*rdy;
+extern ProcList	*ready;
 extern RunList	*run;
 extern Lextok	*runstmnts;
 extern Symbol	*Fname, *oFname, *context;
@@ -124,7 +124,7 @@ static int
 fproc(char *s)
 {	ProcList *p;
 
-	for (p = rdy; p; p = p->nxt)
+	for (p = ready; p; p = p->nxt)
 		if (strcmp(p->n->name, s) == 0)
 			return p->tn;
 
@@ -136,7 +136,7 @@ int
 pid_is_claim(int p)	/* Pid (p->tn) to type (p->b) */
 {	ProcList *r;
 
-	for (r = rdy; r; r = r->nxt)
+	for (r = ready; r; r = r->nxt)
 	{	if (r->tn == p) return (r->b == N_CLAIM);
 	}
 	printf("spin: error, cannot find pid %d\n", p);
@@ -320,7 +320,7 @@ gensrc(void)
 		Sequence *s = (Sequence *) emalloc(sizeof(Sequence));
 		s->minel = -1;
 		claimproc = n->name = "_:never_template:_";
-		ready(n, ZN, s, 0, ZN, N_CLAIM);
+		mk_rdy(n, ZN, s, 0, ZN, N_CLAIM);
 	}
 	if (separate == 2)
 	{	if (has_remote)
@@ -505,7 +505,7 @@ doless:
 
 	c_preview();	/* sets hastrack */
 
-	for (p = rdy; p; p = p->nxt)
+	for (p = ready; p; p = p->nxt)
 		mstp = max(p->s->maxel, mstp);
 
 	if (separate != 2)
@@ -593,15 +593,15 @@ doless:
 	fprintf(fd_tb, "	default: Uerror(\"bad return move\");\n");
 	fprintf(fd_tb, "	case  0: goto R999; /* nothing to undo */\n");
 
-	for (p = rdy; p; p = p->nxt)
+	for (p = ready; p; p = p->nxt)
 	{	putproc(p);
 	}
 
 	if (separate != 2)
 	{	fprintf(fd_th, "\n");
-		for (p = rdy; p; p = p->nxt)
+		for (p = ready; p; p = p->nxt)
 			fprintf(fd_th, "extern short src_ln%d[];\n", p->tn);
-		for (p = rdy; p; p = p->nxt)
+		for (p = ready; p; p = p->nxt)
 			fprintf(fd_th, "extern S_F_MAP src_file%d[];\n", p->tn);
 		fprintf(fd_th, "\n");
 
@@ -611,14 +611,14 @@ doless:
 		fprintf(fd_tc, "struct {\n");
 		fprintf(fd_tc, "	int tp; short *src;\n");
 		fprintf(fd_tc, "} src_all[] = {\n");
-		for (p = rdy; p; p = p->nxt)
+		for (p = ready; p; p = p->nxt)
 			fprintf(fd_tc, "	{ %d, &src_ln%d[0] },\n",
 				p->tn, p->tn);
 		fprintf(fd_tc, "	{ 0, (short *) 0 }\n");
 		fprintf(fd_tc, "};\n");
 
 		fprintf(fd_tc, "S_F_MAP *flref[] = {\n");	/* 5.3.0 */
-		for (p = rdy; p; p = p->nxt)
+		for (p = ready; p; p = p->nxt)
 		{	fprintf(fd_tc, "	src_file%d%c\n", p->tn, p->nxt?',':' ');
 		}
 		fprintf(fd_tc, "};\n\n");
@@ -769,7 +769,7 @@ find_id(Symbol *s)
 {	ProcList *p;
 
 	if (s)
-	for (p = rdy; p; p = p->nxt)
+	for (p = ready; p; p = p->nxt)
 		if (s == p->n)
 			return p->tn;
 	return 0;
@@ -2247,7 +2247,7 @@ proc_is_safe(const Lextok *n)
 	/* not safe unless no local var inits are used */
 	/* note that a local variable init could refer to a global */
 
-	for (p = rdy; p; p = p->nxt)
+	for (p = ready; p; p = p->nxt)
 	{	if (strcmp(n->sym->name, p->n->name) == 0)
 		{	/* printf("proc %s safety: %d\n", p->n->name, p->unsafe); */
 			return (p->unsafe != 0);

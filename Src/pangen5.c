@@ -14,7 +14,7 @@ typedef struct BuildStack {
 	struct BuildStack *nxt;
 } BuildStack;
 
-extern ProcList	*rdy;
+extern ProcList	*ready;
 extern int verbose, eventmapnr, claimnr, rvopt, export_ast, u_sync;
 extern Element *Al_El;
 
@@ -712,7 +712,7 @@ ana_src(int dataflow, int merger)	/* called from main.c and guided.c */
 #if 0
 	int counter = 1;
 #endif
-	for (p = rdy; p; p = p->nxt)
+	for (p = ready; p; p = p->nxt)
 	{
 		ana_seq(p->s);
 		fsm_table();
