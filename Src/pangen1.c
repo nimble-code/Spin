@@ -24,8 +24,8 @@ extern Ordered	*all_names;
 extern ProcList	*ready;
 extern Queue	*qtab;
 extern Symbol	*Fname;
-extern int	lineno, verbose, Pid, separate, old_scope_rules, nclaims;
-extern int	nrRdy, nqs, mstp, Mpars, claimnr, eventmapnr;
+extern int	lineno, verbose, Pid_nr, separate, old_scope_rules, nclaims;
+extern int	nrRdy, nrqs, mstp, Mpars, claimnr, eventmapnr;
 extern short	has_sorted, has_random, has_provided, has_priority;
 extern Queue	*ltab[];
 
@@ -297,12 +297,12 @@ shortcut:
 	}
 	tc_predef_np();
 	for (p = ready; p; p = p->nxt)
-	{	Pid = p->tn;
+	{	Pid_nr = p->tn;
 		put_pinit(p);
 	}
 	if (separate == 2) return;
 
-	Pid = 0;
+	Pid_nr = 0;
 	if (has_provided)
 	{	fprintf(fd_tt, "\tdefault: return 1; /* e.g., a claim */\n");
 		fprintf(fd_tt, "\t}\n\treturn 0;\n}\n");
@@ -370,7 +370,7 @@ genother(void)
 	fprintf(fd_tc, "\n");
 
 	if (separate != 2)
-	{	ntimes(fd_tc, 1, u_sync+u_async+1, R3); /* nqs is still 0 */
+	{	ntimes(fd_tc, 1, u_sync+u_async+1, R3); /* nrqs is still 0 */
 		fprintf(fd_tc, "\tMaxbody = max(Maxbody, sizeof(State)-VECTORSZ);\n");
 		fprintf(fd_tc, "\tif ((Maxbody %% WS) != 0)\n");
 		fprintf(fd_tc, "\t	Maxbody += WS - (Maxbody %% WS);\n\n");
@@ -1370,10 +1370,10 @@ genaddqueue(void)
 
 	ntimes(fd_tc, 0, 1, Addq0);
 
-	if (has_io && !nqs)
-		fprintf(fd_th, "#define NQS	1 /* nqs=%d, but has_io */\n", nqs);
+	if (has_io && !nrqs)
+		fprintf(fd_th, "#define NQS	1 /* nrqs=%d, but has_io */\n", nrqs);
 	else
-		fprintf(fd_th, "#define NQS	%d\n", nqs);
+		fprintf(fd_th, "#define NQS	%d\n", nrqs);
 
 	for (q = qtab; q; q = q->nxt)
 		if (q->nslots > qmax)
@@ -1434,7 +1434,7 @@ genaddqueue(void)
 
 	fprintf(fd_tc, "int\nwhat_q_size(int t)\n{\tint j;\n");
 	fprintf(fd_tc, "	switch (t) {\n");
-	for (j = 0; j < nqs+1; j++)
+	for (j = 0; j < nrqs+1; j++)
 	{	fprintf(fd_tc, "	case %d: j = sizeof(Q%d); break;\n", j, j);
 	}
 	fprintf(fd_tc, "	default: Uerror(\"bad qtype\");\n");

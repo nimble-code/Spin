@@ -19,7 +19,7 @@ static int	Tj=0, Jt=0, LastGoto=0;
 static int	Tojump[MAXDSTEP], Jumpto[MAXDSTEP], Special[MAXDSTEP];
 static void	putCode(FILE *, Element *, Element *, Element *, int);
 
-extern int	Pid, separate, OkBreak;
+extern int	Pid_nr, separate, OkBreak;
 
 static void
 Sourced(int n, int special)
@@ -163,7 +163,7 @@ CollectGuards(FILE *fd, Element *e, int inh)
 			break;
 		case ELSE:
 			if (inh++ > 0) fprintf(fd, " || ");
-/* 4.2.5 */		if (!pid_is_claim(Pid))
+/* 4.2.5 */		if (!pid_is_claim(Pid_nr))
 				fprintf(fd, "(boq == -1 /* else */)");
 			else
 				fprintf(fd, "(1 /* else */)");
@@ -183,17 +183,17 @@ CollectGuards(FILE *fd, Element *e, int inh)
 		case 's':
 			if (inh++ > 0) fprintf(fd, " || ");
 			fprintf(fd, "("); TestOnly=1;
-/* 4.2.1 */		if (!pid_is_claim(Pid)) fprintf(fd, "(boq == -1) && ");
+/* 4.2.1 */		if (!pid_is_claim(Pid_nr)) fprintf(fd, "(boq == -1) && ");
 			putstmnt(fd, ee->n, ee->seqno);
 			fprintf(fd, ")"); TestOnly=0;
 			break;
 		case 'c':
 			if (inh++ > 0) fprintf(fd, " || ");
 			fprintf(fd, "("); TestOnly=1;
-			if (!pid_is_claim(Pid))
+			if (!pid_is_claim(Pid_nr))
 				fprintf(fd, "(boq == -1 && ");
 			putstmnt(fd, ee->n->lft, e->seqno);
-			if (!pid_is_claim(Pid))
+			if (!pid_is_claim(Pid_nr))
 				fprintf(fd, ")");
 			fprintf(fd, ")"); TestOnly=0;
 			break;
@@ -246,7 +246,7 @@ putcode(FILE *fd, Sequence *s, Element *nxt, int justguards, int ln, int seqno)
 	case 's':
 		fprintf(fd, "if (");
 #if 1
-/* 4.2.1 */	if (!pid_is_claim(Pid)) fprintf(fd, "(boq != -1) || ");
+/* 4.2.1 */	if (!pid_is_claim(Pid_nr)) fprintf(fd, "(boq != -1) || ");
 #endif
 		fprintf(fd, "!("); TestOnly=1;
 		putstmnt(fd, s->frst->n, s->frst->seqno);
@@ -254,7 +254,7 @@ putcode(FILE *fd, Sequence *s, Element *nxt, int justguards, int ln, int seqno)
 		break;
 	case 'c':
 		fprintf(fd, "if (!(");
-		if (!pid_is_claim(Pid)) fprintf(fd, "boq == -1 && ");
+		if (!pid_is_claim(Pid_nr)) fprintf(fd, "boq == -1 && ");
 		TestOnly=1;
 		putstmnt(fd, s->frst->n->lft, s->frst->seqno);
 		fprintf(fd, "))\n\t\t\tcontinue;"); TestOnly=0;
@@ -277,9 +277,9 @@ putcode(FILE *fd, Sequence *s, Element *nxt, int justguards, int ln, int seqno)
 	}
 
 	/* 6.2.5 : before TstOnly */
-	fprintf(fd, "\n\n\t\treached[%d][%d] = 1;\n\t\t", Pid, seqno);
-	fprintf(fd, "reached[%d][t->st] = 1;\n\t\t", Pid); /* next state */
-	fprintf(fd, "reached[%d][tt] = 1;\n", Pid);	/* current state */
+	fprintf(fd, "\n\n\t\treached[%d][%d] = 1;\n\t\t", Pid_nr, seqno);
+	fprintf(fd, "reached[%d][t->st] = 1;\n\t\t", Pid_nr); /* next state */
+	fprintf(fd, "reached[%d][tt] = 1;\n", Pid_nr);	/* current state */
 
 	/* 6.2.5 : before sv_save() */
 	if (s->frst->n->ntyp != NON_ATOMIC)

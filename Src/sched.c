@@ -23,9 +23,9 @@ extern int	old_scope_rules, scope_seq[128], scope_level, has_stdin;
 extern int	pc_highest(Lextok *n);
 extern void	putpostlude(void);
 
-RunList		*X   = (RunList  *) 0;
-RunList		*run = (RunList  *) 0;
-RunList		*LastX  = (RunList  *) 0; /* previous executing proc */
+RunList		*X = (RunList  *) 0;
+RunList		*run_lst = (RunList  *) 0;
+RunList		*LastX = (RunList  *) 0; /* previous executing proc */
 ProcList	*ready = (ProcList *) 0;
 Element		*LastStep = ZE;
 int		nproc=0, nstop=0, Tval=0, Priority_Sum = 0;
@@ -65,7 +65,7 @@ runnable(ProcList *p, int weight, int noparams)
 	if (p->s->last)
 		p->s->last->status |= ENDSTATE; /* normal end state */
 
-	r->nxt = run;
+	r->nxt = run_lst;
 	r->prov = p->prov;
 	if (weight < 1 || weight > 255)
 	{	fatal("bad process priority, valid range: 1..255", (char *) 0);
@@ -74,7 +74,7 @@ runnable(ProcList *p, int weight, int noparams)
 	if (noparams) setlocals(r);
 	Priority_Sum += weight;
 
-	run = r;
+	run_lst = r;
 }
 
 ProcList *
@@ -194,11 +194,11 @@ announce(char *w)
 		firstrow = 1;
 		if (columns == 2)
 		{	sprintf(GBuf, "%d:%s",
-			run->pid - Have_claim, run->n->name);
-			pstext(run->pid - Have_claim, GBuf);
+			run_lst->pid - Have_claim, run_lst->n->name);
+			pstext(run_lst->pid - Have_claim, GBuf);
 		} else
 		{	printf("proc %d = %s\n",
-				run->pid - Have_claim, run->n->name);
+				run_lst->pid - Have_claim, run_lst->n->name);
 		}
 		return;
 	}
@@ -215,10 +215,10 @@ announce(char *w)
 	else
 		whoruns(1);
 	printf("creates proc %2d (%s)",
-		run->pid - Have_claim,
-		run->n->name);
-	if (run->priority > 1)
-		printf(" priority %d", run->priority);
+		run_lst->pid - Have_claim,
+		run_lst->n->name);
+	if (run_lst->priority > 1)
+		printf(" priority %d", run_lst->priority);
 	printf("\n");
 }
 
@@ -243,10 +243,10 @@ enable(Lextok *m)
 			}
 			runnable(p, m->val, 0);
 			announce((char *) 0);
-			setparams(run, p, n);
-			setlocals(run); /* after setparams */
+			setparams(run_lst, p, n);
+			setlocals(run_lst); /* after setparams */
 			check_mtypes(m, m->lft);
-			return run->pid - Have_claim + Skip_claim; /* effective simu pid */
+			return run_lst->pid - Have_claim + Skip_claim; /* effective simu pid */
 	}	}
 	return 0; /* process not found */
 }
@@ -300,19 +300,19 @@ found:
 		depth = 0;
 		sprintf(GBuf, "%d:%s", 0, p->n->name);
 		pstext(0, GBuf);
-		for (r = run; r; r = r->nxt)
+		for (r = run_lst; r; r = r->nxt)
 		{	if (r->b != N_CLAIM)
 			{	sprintf(GBuf, "%d:%s", r->pid+1, r->n->name);
 				pstext(r->pid+1, GBuf);
 	}	}	}
 
-	if (run->pid == 0) return; /* it is the first process started */
+	if (run_lst->pid == 0) return; /* it is the first process started */
 
-	q = run; run = run->nxt;
+	q = run_lst; run_lst = run_lst->nxt;
 	q->pid = 0; q->nxt = (RunList *) 0;	/* remove */
 done:
 	Have_claim = 1;
-	for (r = run; r; r = r->nxt)
+	for (r = run_lst; r; r = r->nxt)
 	{	r->pid = r->pid+Have_claim;	/* adjust */
 		if (!r->nxt)
 		{	r->nxt = q;
@@ -325,7 +325,7 @@ f_pid(char *n)
 {	RunList *r;
 	int rval = -1;
 
-	for (r = run; r; r = r->nxt)
+	for (r = run_lst; r; r = r->nxt)
 		if (strcmp(n, r->n->name) == 0)
 		{	if (rval >= 0)
 			{	printf("spin: remote ref to proctype %s, ", n);
@@ -356,7 +356,7 @@ wrapup(int fini)
 		verbose = ov;
 		verbose &= ~1;	/* no more globals */
 		verbose |= 32;	/* add process states */
-		for (X = run; X; X = X->nxt)
+		for (X = run_lst; X; X = X->nxt)
 			talk(X);
 		verbose = ov;	/* restore */
 	}
@@ -433,13 +433,13 @@ pickproc(RunList *Y)
 	int j, k, nr_else = 0;
 
 	if (nproc <= nstop+1)
-	{	X = run;
+	{	X = run_lst;
 		return NULL;
 	}
 	if (!interactive || depth < jumpsteps)
 	{	if (has_priority && !old_priority_rules)	/* new 6.3.2 */
 		{	j = Rand()%(nproc-nstop);
-			for (X = run; X; X = X->nxt)
+			for (X = run_lst; X; X = X->nxt)
 			{	if (j-- <= 0)
 					break;
 			}
@@ -452,7 +452,7 @@ pickproc(RunList *Y)
 				{	Y = X;
 					break;
 				}
-				X = (X->nxt)?X->nxt:run;
+				X = (X->nxt)?X->nxt:run_lst;
 			}
 			return Y;
 		}
@@ -464,7 +464,7 @@ pickproc(RunList *Y)
 		{	j -= X->priority;
 			Y = X;
 			X = X->nxt;
-			if (!X) { Y = NULL; X = run; }
+			if (!X) { Y = NULL; X = run_lst; }
 		}
 
 	} else
@@ -473,13 +473,13 @@ pickproc(RunList *Y)
 
 		Tval = 0;	/* new 4.2.6 */
 try_again:	printf("Select a statement\n");
-try_more:	for (X = run, k = 1; X; X = X->nxt)
+try_more:	for (X = run_lst, k = 1; X; X = X->nxt)
 		{	if (X->pid > 255) break;
 
 			Choices[X->pid] = (short) k;
 
 			if (!X->pc || !x_can_run())
-			{	if (X == run)
+			{	if (X == run_lst)
 					Choices[X->pid] = 0;
 				continue;
 			}
@@ -548,7 +548,7 @@ try_more:	for (X = run, k = 1; X; X = X->nxt)
 					printf(" unexecutable, [else]\n");
 			}	}
 		}	}
-		X = run;
+		X = run_lst;
 		if (k - no_choice < 2 && Tval == 0)
 		{	Tval = 1;
 			no_choice = 0; only_choice = -1;
@@ -586,7 +586,7 @@ try_more:	for (X = run, k = 1; X; X = X->nxt)
 		}	}
 		MadeChoice = 0;
 		Y = NULL;
-		for (X = run; X; Y = X, X = X->nxt)
+		for (X = run_lst; X; Y = X, X = X->nxt)
 		{	if (!X->nxt
 			||   X->nxt->pid > 255
 			||   j < Choices[X->nxt->pid])
@@ -665,7 +665,7 @@ sched(void)
 	if (eventmap)
 	printf("warning: trace assertion not used in random simulation\n");
 
-	X = run;
+	X = run_lst;
 	Y = pickproc(Y);
 
 	while (X)
@@ -745,10 +745,10 @@ sched(void)
 			&&  X->pc->n
 			&&  X->pc->n->ntyp == '@'
 			&&  X->pid == (nproc-nstop-1))
-			{	if (X != run && Y != NULL)
+			{	if (X != run_lst && Y != NULL)
 					Y->nxt = X->nxt;
 				else
-					run = X->nxt;
+					run_lst = X->nxt;
 				nstop++;
 				Priority_Sum -= X->priority;
 				if (verbose&4)
@@ -760,7 +760,7 @@ sched(void)
 				if (nproc == nstop) break;
 				memset(is_blocked, 0, 256);
 				/* proc X is no longer in runlist */
-				X = (X->nxt) ? X->nxt : run;
+				X = (X->nxt) ? X->nxt : run_lst;
 			} else
 			{	if (p_blocked(X->pid))
 				{	if (Tval && !has_stdin)
@@ -774,7 +774,7 @@ sched(void)
 						Tval = 1;
 		}	}	}	}
 
-		if (!run || !X) break;	/* new 5.0 */
+		if (!run_lst || !X) break;	/* new 5.0 */
 
 		Y = pickproc(X);
 		notbeyond = 0;
@@ -798,11 +798,11 @@ complete_rendez(void)
 	interactive = 0;
 
 	j = (int) Rand()%Priority_Sum;	/* randomize start point */
-	X = run;
+	X = run_lst;
 	while (j - X->priority >= 0)
 	{	j -= X->priority;
 		X = X->nxt;
-		if (!X) X = run;
+		if (!X) X = run_lst;
 	}
 	for (j = nproc - nstop; j > 0; j--)
 	{	if (X != orun
@@ -834,7 +834,7 @@ out:				interactive = ointer;
 		}
 
 		X = X->nxt;
-		if (!X) X = run;
+		if (!X) X = run_lst;
 	}
 	Rvous = 0;
 	X = orun;
@@ -1162,13 +1162,13 @@ remotevar(Lextok *n)
 	}
 #if 0
 	i = nproc - nstop;
-	for (Y = run; Y; Y = Y->nxt)
+	for (Y = run_lst; Y; Y = Y->nxt)
 	{	--i;
 		printf("	%s: i=%d, prno=%d, ->pid=%d\n", Y->n->name, i, prno, Y->pid);
 	}
 #endif
 	i = nproc - nstop + Skip_claim;	/* 6.0: added Skip_claim */
-	for (Y = run; Y; Y = Y->nxt)
+	for (Y = run_lst; Y; Y = Y->nxt)
 	if (--i == prno)
 	{	if (strcmp(Y->n->name, n->lft->sym->name) != 0)
 		{	printf("spin: remote reference error on '%s[%d]'\n",
@@ -1210,7 +1210,7 @@ remotevar(Lextok *n)
 	non_fatal("%s not found", n->sym->name);
 	printf("have only:\n");
 	i = nproc - nstop - 1;
-	for (Y = run; Y; Y = Y->nxt, i--)
+	for (Y = run_lst; Y; Y = Y->nxt, i--)
 		if (!strcmp(Y->n->name, n->lft->sym->name))
 		printf("\t%d\t%s\n", i, Y->n->name);
 

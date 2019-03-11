@@ -288,7 +288,7 @@ alldone(int estatus)
 	}	}
 
 	if (buzzed && replay && !has_code && !estatus)
-	{	extern QH *qh;
+	{	extern QH *qh_lst;
 		QH *j;
 		int i;
 
@@ -307,7 +307,7 @@ alldone(int estatus)
 		{	strcat(pan_runtime, PreArg[i]);
 			strcat(pan_runtime, " ");
 		}
-		for (j = qh; j; j = j->nxt)
+		for (j = qh_lst; j; j = j->nxt)
 		{	sprintf(&pan_runtime[strlen(pan_runtime)], "-q%d ", j->n);
 		}
 		if (strcmp(PreProc, CPP) != 0)

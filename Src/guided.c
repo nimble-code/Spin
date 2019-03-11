@@ -12,7 +12,7 @@
 #include <limits.h>
 #include "y.tab.h"
 
-extern RunList	*run, *X;
+extern RunList	*run_lst, *X;
 extern Element	*Al_El;
 extern Symbol	*Fname, *oFname;
 extern int	verbose, lineno, xspin, jumpsteps, depth, merger, cutoff;
@@ -31,7 +31,7 @@ static void
 whichproc(int p)
 {	RunList *oX;
 
-	for (oX = run; oX; oX = oX->nxt)
+	for (oX = run_lst; oX; oX = oX->nxt)
 		if (oX->pid == p)
 		{	printf("(%s) ", oX->n->name);
 			break;
@@ -249,7 +249,7 @@ okay:
 
 		if (dothis->n->ntyp == '@')
 		{	if (pno == i-1)
-			{	run = run->nxt;
+			{	run_lst = run_lst->nxt;
 				nstop++;
 				if (verbose&4)
 				{	if (columns == 2)
@@ -276,7 +276,7 @@ okay:
 		{	printf("step %d i=%d pno %d stmnt %d\n", depth, i, pno, nst);
 		}
 
-		for (X = run; X; X = X->nxt)
+		for (X = run_lst; X; X = X->nxt)
 		{	if (--i == pno)
 				break;
 		}
@@ -288,7 +288,7 @@ okay:
 					nproc - nstop + Skip_claim,
 					nproc, nstop, Skip_claim, Have_claim);
 				printf("active processes:\n");
-				for (X = run; X; X = X->nxt)
+				for (X = run_lst; X; X = X->nxt)
 				{	printf("\tpid %d\tproctype %s\n", X->pid, X->n->name);
 				}
 				printf("\n");
@@ -421,7 +421,7 @@ pc_value(Lextok *n)
 	int pid = eval(n);
 	RunList *Y;
 
-	for (Y = run; Y; Y = Y->nxt)
+	for (Y = run_lst; Y; Y = Y->nxt)
 	{	if (--i == pid)
 			return Y->pc->seqno;
 	}

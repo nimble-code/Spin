@@ -21,10 +21,10 @@ extern int	lineno, depth, xspin, m_loss, jumpsteps;
 extern int	nproc, nstop;
 extern short	Have_claim;
 
-QH	*qh;
+QH	*qh_lst;
 Queue	*qtab = (Queue *) 0;	/* linked list of queues */
 Queue	*ltab[MAXQ];		/* linear list of queues */
-int	nqs = 0, firstrow = 1, has_stdin = 0;
+int	nrqs = 0, firstrow = 1, has_stdin = 0;
 char	GBuf[4096];
 
 static Lextok	*n_rem = (Lextok *) 0;
@@ -60,12 +60,12 @@ qmake(Symbol *s)
 	if (!s->ini)
 		return 0;
 
-	if (nqs >= MAXQ)
+	if (nrqs >= MAXQ)
 	{	lineno = s->ini->ln;
 		Fname  = s->ini->fn;
 		fatal("too many queues (%s)", s->name);
 	}
-	if (analyze && nqs >= 255)
+	if (analyze && nrqs >= 255)
 	{	fatal("too many channel types", (char *)0);
 	}
 
@@ -73,7 +73,7 @@ qmake(Symbol *s)
 		return eval(s->ini);
 
 	q = (Queue *) emalloc(sizeof(Queue));
-	q->qid    = (short) ++nqs;
+	q->qid    = (short) ++nrqs;
 	q->nslots = s->ini->val;
 	q->nflds  = cnt_mpars(s->ini->rgt);
 	q->setat  = depth;
@@ -588,14 +588,14 @@ void
 qhide(int q)
 {	QH *p = (QH *) emalloc(sizeof(QH));
 	p->n = q;
-	p->nxt = qh;
-	qh = p;
+	p->nxt = qh_lst;
+	qh_lst = p;
 }
 
 int
 qishidden(int q)
 {	QH *p;
-	for (p = qh; p; p = p->nxt)
+	for (p = qh_lst; p; p = p->nxt)
 		if (p->n == q)
 			return 1;
 	return 0;

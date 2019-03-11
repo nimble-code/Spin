@@ -12,7 +12,7 @@
 extern FILE	*fd_tc, *fd_tb;
 extern Queue	*qtab;
 extern Symbol	*Fname;
-extern int	lineno, m_loss, Pid, eventmapnr, multi_oval;
+extern int	lineno, m_loss, Pid_nr, eventmapnr, multi_oval;
 extern short	nocast, has_provided, has_sorted;
 extern const char *R13[], *R14[], *R15[];
 
@@ -51,7 +51,7 @@ undostmnt(Lextok *now, int m)
 		break;
 
 	case 's':
-		if (Pid == eventmapnr) break;
+		if (Pid_nr == eventmapnr) break;
 
 		if (m_loss)
 			fprintf(fd_tb, "if (_m == 2) ");
@@ -59,7 +59,7 @@ undostmnt(Lextok *now, int m)
 		break;
 
 	case 'r':
-		if (Pid == eventmapnr) break;
+		if (Pid_nr == eventmapnr) break;
 
 		for (v = now->rgt, i=j=0; v; v = v->rgt, i++)
 			if (v->lft->ntyp != CONST

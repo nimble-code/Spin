@@ -10,7 +10,7 @@
 #include "spin.h"
 #include "y.tab.h"
 
-extern RunList	*X, *run;
+extern RunList	*X, *run_lst;
 extern Symbol	*Fname;
 extern Element	*LastStep;
 extern int	Rvous, lineno, Tval, interactive, MadeChoice, Priority_Sum;
@@ -349,7 +349,7 @@ static int
 nonprogress(void)	/* np_ */
 {	RunList	*r;
 
-	for (r = run; r; r = r->nxt)
+	for (r = run_lst; r; r = r->nxt)
 	{	if (has_lab(r->pc, 4))	/* 4=progress */
 			return 0;
 	}
@@ -658,7 +658,7 @@ pc_enabled(Lextok *n)
 	if (pid == X->pid)
 		fatal("used: enabled(pid=thisproc) [%s]", X->n->name);
 
-	for (Y = run; Y; Y = Y->nxt)
+	for (Y = run_lst; Y; Y = Y->nxt)
 		if (--i == pid)
 		{	oX = X; X = Y;
 			result = Enabled0(X->pc);
@@ -677,7 +677,7 @@ pc_highest(Lextok *n)
 
 	if (X->prov && !eval(X->prov)) return 0; /* can't be highest unless fully enabled */
 
-	for (Y = run; Y; Y = Y->nxt)
+	for (Y = run_lst; Y; Y = Y->nxt)
 	{	if (--i == pid)
 		{	target = Y->priority;
 			break;
@@ -686,7 +686,7 @@ if (0) printf("highest for pid %d @ priority = %d\n", pid, target);
 
 	oX = X;
 	i = nproc - nstop;
-	for (Y = run; Y; Y = Y->nxt)
+	for (Y = run_lst; Y; Y = Y->nxt)
 	{	i--;
 if (0) printf("	pid %d @ priority %d\t", Y->pid, Y->priority);
 		if (Y->priority > target)
@@ -715,7 +715,7 @@ get_priority(Lextok *n)
 	{	return 1;
 	}
 
-	for (Y = run; Y; Y = Y->nxt)
+	for (Y = run_lst; Y; Y = Y->nxt)
 	{	if (--i == pid)
 		{	return Y->priority;
 	}	}
@@ -731,7 +731,7 @@ set_priority(Lextok *n, Lextok *p)
 	if (old_priority_rules)
 	{	return;
 	}
-	for (Y = run; Y; Y = Y->nxt)
+	for (Y = run_lst; Y; Y = Y->nxt)
 	{	if (--i == pid)
 		{	Priority_Sum -= Y->priority;
 			Y->priority = eval(p);
@@ -742,7 +742,7 @@ set_priority(Lextok *n, Lextok *p)
 	}	}	}
 	if (verbose&32)
 	{	printf("\tPid\tName\tPriority\n");
-		for (Y = run; Y; Y = Y->nxt)
+		for (Y = run_lst; Y; Y = Y->nxt)
 		{	printf("\t%d\t%s\t%d\n",
 				Y->pid,
 				Y->n->name,

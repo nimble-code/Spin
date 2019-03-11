@@ -22,7 +22,7 @@
 				m, e->n->fn->name, e->n->ln); }
 
 extern ProcList	*ready;
-extern RunList	*run;
+extern RunList	*run_lst;
 extern Lextok	*runstmnts;
 extern Symbol	*Fname, *oFname, *context;
 extern char	*claimproc, *eventmap;
@@ -60,7 +60,7 @@ short	has_ltl=0;	/* has inline ltl formulae */
 int	mstp=0;		/* max nr of state/process */
 int	claimnr = -1;	/* claim process, if any */
 int	eventmapnr = -1; /* event trace, if any */
-int	Pid;		/* proc currently processed */
+int	Pid_nr;		/* proc currently processed */
 int	multi_oval;	/* set in merges, used also in pangen4.c */
 int	in_settr;	/* avoid quotes inside quotes */
 
@@ -133,7 +133,7 @@ fproc(char *s)
 }
 
 int
-pid_is_claim(int p)	/* Pid (p->tn) to type (p->b) */
+pid_is_claim(int p)	/* Pid_nr (p->tn) to type (p->b) */
 {	ProcList *r;
 
 	for (r = ready; r; r = r->nxt)
@@ -666,14 +666,14 @@ doless:
 		genunio();
 		genconditionals();
 		gensvmap();
-		if (!run) fatal("no runable process", (char *)0);
+		if (!run_lst) fatal("no runable process", (char *)0);
 		fprintf(fd_tc, "void\n");
 		fprintf(fd_tc, "active_procs(void)\n{\n");
 
 		fprintf(fd_tc, "	if (reversing == 0) {\n");
-			reverse_procs(run);
+			reverse_procs(run_lst);
 		fprintf(fd_tc, "	} else {\n");
-			forward_procs(run);
+			forward_procs(run_lst);
 		fprintf(fd_tc, "	}\n");
 
 		fprintf(fd_tc, "}\n");
@@ -959,46 +959,46 @@ genconditionals(void)
 
 static void
 putproc(ProcList *p)
-{	Pid = p->tn;
+{	Pid_nr = p->tn;
 	Det = p->det;
 
-	if (pid_is_claim(Pid)
+	if (pid_is_claim(Pid_nr)
 	&&  separate == 1)
-	{	fprintf(fd_th, "extern uchar reached%d[];\n", Pid);
+	{	fprintf(fd_th, "extern uchar reached%d[];\n", Pid_nr);
 #if 0
-		fprintf(fd_th, "extern short _nstates%d;\n", Pid);
+		fprintf(fd_th, "extern short _nstates%d;\n", Pid_nr);
 #else
 		fprintf(fd_th, "\n#define _nstates%d	%d\t/* %s */\n",
-			Pid, p->s->maxel, p->n->name);
+			Pid_nr, p->s->maxel, p->n->name);
 #endif
-		fprintf(fd_th, "extern short src_ln%d[];\n", Pid);
-		fprintf(fd_th, "extern uchar *loopstate%d;\n", Pid);
-		fprintf(fd_th, "extern S_F_MAP src_file%d[];\n", Pid);
+		fprintf(fd_th, "extern short src_ln%d[];\n", Pid_nr);
+		fprintf(fd_th, "extern uchar *loopstate%d;\n", Pid_nr);
+		fprintf(fd_th, "extern S_F_MAP src_file%d[];\n", Pid_nr);
 		fprintf(fd_th, "#define _endstate%d	%d\n",
-			Pid, p->s->last?p->s->last->seqno:0);
+			Pid_nr, p->s->last?p->s->last->seqno:0);
 		return;
 	}
-	if (!pid_is_claim(Pid)
+	if (!pid_is_claim(Pid_nr)
 	&&  separate == 2)
-	{	fprintf(fd_th, "extern short src_ln%d[];\n", Pid);
-		fprintf(fd_th, "extern uchar *loopstate%d;\n", Pid);
+	{	fprintf(fd_th, "extern short src_ln%d[];\n", Pid_nr);
+		fprintf(fd_th, "extern uchar *loopstate%d;\n", Pid_nr);
 		return;
 	}
 
 	AllGlobal = (p->prov)?1:0;	/* process has provided clause */
 
 	fprintf(fd_th, "\n#define _nstates%d	%d\t/* %s */\n",
-		Pid, p->s->maxel, p->n->name);
+		Pid_nr, p->s->maxel, p->n->name);
 /* new */
-	fprintf(fd_th, "#define minseq%d	%d\n", Pid, find_min(p->s));
-	fprintf(fd_th, "#define maxseq%d	%d\n", Pid, find_max(p->s));
+	fprintf(fd_th, "#define minseq%d	%d\n", Pid_nr, find_min(p->s));
+	fprintf(fd_th, "#define maxseq%d	%d\n", Pid_nr, find_max(p->s));
 
 /* end */
 
-	if (Pid == eventmapnr)
-	fprintf(fd_th, "#define nstates_event	_nstates%d\n", Pid);
+	if (Pid_nr == eventmapnr)
+	fprintf(fd_th, "#define nstates_event	_nstates%d\n", Pid_nr);
 
-	fprintf(fd_th, "#define _endstate%d	%d\n", Pid, p->s->last?p->s->last->seqno:0);
+	fprintf(fd_th, "#define _endstate%d	%d\n", Pid_nr, p->s->last?p->s->last->seqno:0);
 
 	if (p->b == N_CLAIM || p->b == E_TRACE || p->b == N_TRACE)
 	{	fprintf(fd_tm, "\n		 /* CLAIM %s */\n", p->n->name);
@@ -1008,20 +1008,20 @@ putproc(ProcList *p)
 	{	fprintf(fd_tm, "\n		 /* PROC %s */\n", p->n->name);
 		fprintf(fd_tb, "\n		 /* PROC %s */\n", p->n->name);
 	}
-	fprintf(fd_tt, "\n	/* proctype %d: %s */\n", Pid, p->n->name);
-	fprintf(fd_tt, "\n	trans[%d] = (Trans **)", Pid);
+	fprintf(fd_tt, "\n	/* proctype %d: %s */\n", Pid_nr, p->n->name);
+	fprintf(fd_tt, "\n	trans[%d] = (Trans **)", Pid_nr);
 	fprintf(fd_tt, " emalloc(%d*sizeof(Trans *));\n\n", p->s->maxel);
 
-	if (Pid == eventmapnr)
+	if (Pid_nr == eventmapnr)
 	{	fprintf(fd_th, "\n#define in_s_scope(x_y3_)	0");
 		fprintf(fd_tc, "\n#define in_r_scope(x_y3_)	0");
 	}
 	put_seq(p->s, 2, 0);
-	if (Pid == eventmapnr)
+	if (Pid_nr == eventmapnr)
 	{	fprintf(fd_th, "\n\n");
 		fprintf(fd_tc, "\n\n");
 	}
-	dumpsrc(p->s->maxel, Pid);
+	dumpsrc(p->s->maxel, Pid_nr);
 }
 
 static void
@@ -1164,9 +1164,9 @@ put_escp(Element *e)
 	{	for (x = e->esc, n = 0; x; x = x->nxt, n++)
 		{	int i = huntele(x->this->frst, e->status, -1)->seqno;
 			fprintf(fd_tt, "\ttrans[%d][%d]->escp[%d] = %d;\n",
-				Pid, e->seqno, n, i);
+				Pid_nr, e->seqno, n, i);
 			fprintf(fd_tt, "\treached%d[%d] = 1;\n",
-				Pid, i);
+				Pid_nr, i);
 		}
 		for (x = e->esc, n=0; x; x = x->nxt, n++)
 		{	fprintf(fd_tt, "	/* escape #%d: %d */\n", n,
@@ -1234,7 +1234,7 @@ put_sub(Element *e, int Tt0, int Tt1)
 			a = 0;
 		tr_map(uniq-1, e);
 		fprintf(fd_tt, "/*->*/\ttrans[%d][%d]\t= ",
-			Pid, e->seqno);
+			Pid_nr, e->seqno);
 		fprintf(fd_tt, "settr(%d,%d,%d,%d,%d,\"",
 			e->Seqno, D_ATOM|inherit, a, uniq-1, uniq-1);
 in_settr++;
@@ -1245,7 +1245,7 @@ in_settr--;
 		put_escp(e);
 	} else
 	{	/* ATOMIC or NON_ATOMIC */
-		fprintf(fd_tt, "\tT = trans[ %d][%d] = ", Pid, e->seqno);
+		fprintf(fd_tt, "\tT = trans[ %d][%d] = ", Pid_nr, e->seqno);
 		fprintf(fd_tt, "settr(%d,%d,0,0,0,\"",
 			e->Seqno, (e->n->ntyp == ATOMIC)?ATOM:0);
 in_settr++;
@@ -1685,14 +1685,14 @@ case_cache(Element *e, int a)
 	{	/* state nominally unreachable (part of merge chains) */
 		if (e->n->ntyp != '.'
 		&&  e->n->ntyp != GOTO)
-		{	fprintf(fd_tt, "\ttrans[%d][%d]\t= ", Pid, e->seqno);
+		{	fprintf(fd_tt, "\ttrans[%d][%d]\t= ", Pid_nr, e->seqno);
 			fprintf(fd_tt, "settr(0,0,0,0,0,\"");
 in_settr++;
 			comment(fd_tt, e->n, e->seqno);
 in_settr--;
 			fprintf(fd_tt, "\",0,0,0);\n");
 		} else
-		{	fprintf(fd_tt, "\ttrans[%d][%d]\t= ", Pid, e->seqno);
+		{	fprintf(fd_tt, "\ttrans[%d][%d]\t= ", Pid_nr, e->seqno);
 			casenr = 1; /* mhs example */
 			j = a;
 			goto haveit; /* pakula's example */
@@ -1701,12 +1701,12 @@ in_settr--;
 		return -1;
 	}
 
-	fprintf(fd_tt, "\ttrans[%d][%d]\t= ", Pid, e->seqno);
+	fprintf(fd_tt, "\ttrans[%d][%d]\t= ", Pid_nr, e->seqno);
 
 	if (ccache
-	&&  !pid_is_claim(Pid)
-	&&  Pid != eventmapnr
-	&& (Cached = prev_case(e, Pid)))
+	&&  !pid_is_claim(Pid_nr)
+	&&  Pid_nr != eventmapnr
+	&& (Cached = prev_case(e, Pid_nr)))
 	{	bupcase = Cached->b;
 		casenr  = Cached->m;
 		fromcache = 1;
@@ -1732,7 +1732,7 @@ in_settr--;
 	if (nrbups > MAXMERGE-1)
 		fatal("merge requires more than 256 bups", (char *)0);
 
-	if (e->n->ntyp != 'r' && !pid_is_claim(Pid) && Pid != eventmapnr)
+	if (e->n->ntyp != 'r' && !pid_is_claim(Pid_nr) && Pid_nr != eventmapnr)
 		fprintf(fd_tm, "IfNotBlocked\n\t\t");
 
 	if (multi_needed != 0 || multi_undo != 0)
@@ -1748,7 +1748,7 @@ in_settr--;
 	YZmax = YZcnt = 0;
 
 /* new 4.2.6, revised 6.0.0 */
-	if (pid_is_claim(Pid))
+	if (pid_is_claim(Pid_nr))
 	{	fprintf(fd_tm, "\n#if defined(VERI) && !defined(NP)\n");
 		fprintf(fd_tm, "#if NCLAIMS>1\n\t\t");
 		 fprintf(fd_tm, "{	static int reported%d = 0;\n\t\t", e->seqno);
@@ -1775,7 +1775,7 @@ in_settr--;
 /* end */
 
 	/* the src xrefs have the numbers in e->seqno builtin */
-	fprintf(fd_tm, "reached[%d][%d] = 1;\n\t\t", Pid, e->seqno);
+	fprintf(fd_tm, "reached[%d][%d] = 1;\n\t\t", Pid_nr, e->seqno);
 
 	doforward(fd_tm, e);
 
@@ -1806,7 +1806,7 @@ more:		if (f->n->ntyp == GOTO)
 			fprintf(fd_tm, "/* merge: ");
 			comment(fd_tm, f->n, 0);
 			fprintf(fd_tm,  "(%d, %d, %d) */\n\t\t", f->merge, f->seqno, ntarget);
-			fprintf(fd_tm, "reached[%d][%d] = 1;\n\t\t", Pid, f->seqno);
+			fprintf(fd_tm, "reached[%d][%d] = 1;\n\t\t", Pid_nr, f->seqno);
 			YZcnt++;
 			lab_transfer(e, f);
 			mark = f->status&(ATOM|L_ATOM); /* last step wins */
@@ -1852,7 +1852,7 @@ out:
 	}
 
 	if (!e->merge && !e->merge_start)
-		new_case(e, casenr, bupcase, Pid);
+		new_case(e, casenr, bupcase, Pid_nr);
 
 gotit:
 	j = a;
@@ -1903,7 +1903,7 @@ put_el(Element *e, int Tt0, int Tt1)
 	case BREAK:
 		putskip(e->seqno); 
 		casenr = 1; /* standard goto */
-generic_case:	fprintf(fd_tt, "\ttrans[%d][%d]\t= ", Pid, e->seqno);
+generic_case:	fprintf(fd_tt, "\ttrans[%d][%d]\t= ", Pid_nr, e->seqno);
 		fprintf(fd_tt, "settr(%d,%d,%d,%d,0,\"",
 			e->Seqno, e->status&ATOM, a, casenr);
 		break;
@@ -1945,7 +1945,7 @@ in_settr--;
 	{	fprintf(fd_tt, " /* m: %d -> %d,%d */\n",
 			a, e->merge_start, e->merge);
 		fprintf(fd_tt, "	reached%d[%d] = 1;",
-			Pid, a); /* Sheinman's example */
+			Pid_nr, a); /* Sheinman's example */
 	}
 	fprintf(fd_tt, "\n");
 
@@ -2013,7 +2013,7 @@ put_seq(Sequence *s, int Tt0, int Tt1)
 		{
 			if (0) printf("		has sub\n");
 			fprintf(fd_tt, "\tT = trans[%d][%d] = ",
-				Pid, e->seqno);
+				Pid_nr, e->seqno);
 			fprintf(fd_tt, "settr(%d,%d,0,0,0,\"",
 				e->Seqno, e->status&ATOM);
 in_settr++;
@@ -2542,7 +2542,7 @@ putstmnt(FILE *fd, Lextok *now, int m)
 		break;
 
 	case 's':
-		if (Pid == eventmapnr)
+		if (Pid_nr == eventmapnr)
 		{	fprintf(fd, "if ((II == -EVENT_TRACE && _tp != 's') ");
 			putname(fd, "|| _qid+1 != ", now->lft, m, "");
 			for (v = now->rgt, i=0; v; v = v->rgt, i++)
@@ -2646,7 +2646,7 @@ putstmnt(FILE *fd, Lextok *now, int m)
 		break;
 
 	case 'r':
-		if (Pid == eventmapnr)
+		if (Pid_nr == eventmapnr)
 		{	fprintf(fd, "if ((II == -EVENT_TRACE && _tp != 'r') ");
 			putname(fd, "|| _qid+1 != ", now->lft, m, "");
 			for (v = now->rgt, i=0; v; v = v->rgt, i++)
@@ -3195,13 +3195,13 @@ putstmnt(FILE *fd, Lextok *now, int m)
 	case '.':
 	case BREAK:
 	case GOTO:
-		if (Pid == eventmapnr)
+		if (Pid_nr == eventmapnr)
 			fprintf(fd, "Uerror(\"cannot get here\")");
 		putskip(m);
 		break;
 
 	case '@':
-		if (Pid == eventmapnr)
+		if (Pid_nr == eventmapnr)
 		{	fprintf(fd, "return 0");
 			break;
 		}
@@ -3275,7 +3275,7 @@ putname(FILE *fd, char *pre, Lextok *n, int m, char *suff) /* varref */
 			||  strcmp(s->name, "_p") == 0
 			||  strcmp(s->name, "_pid") == 0
 			||  strcmp(s->name, "_priority") == 0)
-			{	fprintf(fd, "((P%d *)_this)->", Pid);
+			{	fprintf(fd, "((P%d *)_this)->", Pid_nr);
 			} else
 			{	int x = strcmp(s->name, "_");
 				if (!(s->hidden&1) && x != 0)

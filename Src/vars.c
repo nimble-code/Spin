@@ -9,15 +9,17 @@
 #include "spin.h"
 #include "y.tab.h"
 
+extern char	GBuf[];
+extern int	analyze, jumpsteps, nproc, nstop, columns, old_priority_rules;
+extern int	lineno, depth, verbose, xspin, limited_vis, Pid_nr;
+extern Lextok	*Xu_List;
 extern Ordered	*all_names;
 extern RunList	*X, *LastX;
+extern short	no_arrays, Have_claim, terse;
 extern Symbol	*Fname;
-extern char	GBuf[];
-extern int	lineno, depth, verbose, xspin, limited_vis;
-extern int	analyze, jumpsteps, nproc, nstop, columns, old_priority_rules;
-extern short	no_arrays, Have_claim;
-extern void	sr_mesg(FILE *, int, int, const char *);
+
 extern void	sr_buf(int, int, const char *);
+extern void	sr_mesg(FILE *, int, int, const char *);
 
 static int	getglobal(Lextok *);
 static int	setglobal(Lextok *, int);
@@ -210,9 +212,7 @@ setglobal(Lextok *v, int m)
 
 void
 dumpclaims(FILE *fd, int pid, char *s)
-{	extern Lextok *Xu_List; extern int Pid;
-	extern short terse;
-	Lextok *m; int cnt = 0; int oPid = Pid;
+{	Lextok *m; int cnt = 0; int oPid = Pid_nr;
 
 	for (m = Xu_List; m; m = m->rgt)
 		if (strcmp(m->sym->name, s) == 0)
@@ -221,7 +221,7 @@ dumpclaims(FILE *fd, int pid, char *s)
 		}
 	if (cnt == 0) return;
 
-	Pid = pid;
+	Pid_nr = pid;
 	fprintf(fd, "#ifndef XUSAFE\n");
 	for (m = Xu_List; m; m = m->rgt)
 	{	if (strcmp(m->sym->name, s) != 0)
@@ -236,7 +236,7 @@ dumpclaims(FILE *fd, int pid, char *s)
 		fprintf(fd, "\"%s\");\n", s);
 	}
 	fprintf(fd, "#endif\n");
-	Pid = oPid;
+	Pid_nr = oPid;
 }
 
 void
