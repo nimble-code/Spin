@@ -24,8 +24,8 @@ PICKY=-std=c99 -Wstrict-prototypes -pedantic -fno-strength-reduce \
 
 YACC?=yacc		# on Solaris: /usr/ccs/bin/yacc
 YFLAGS=-v -d 		# creates y.output and y.tab.h
-DESTDIR?=/usr/local/bin
-INSTALL?=cp		# on linux: install -c
+DESTDIR?=/usr/local
+INSTALL?=cp		# on linux: install -D
 
 SPIN_OS= spinlex.o sym.o vars.o main.o msc_tcl.o \
 	mesg.o flow.o sched.o run.o pangen1.o pangen2.o \
@@ -35,22 +35,22 @@ SPIN_OS= spinlex.o sym.o vars.o main.o msc_tcl.o \
 TL_OS=	tl_parse.o tl_lex.o tl_main.o tl_trans.o tl_buchi.o \
 	tl_mem.o tl_rewrt.o tl_cache.o
 
-spin:	$(SPIN_OS) $(TL_OS) spin.o
-	$(CC) $(CFLAGS) -o spin spin.o $(SPIN_OS) $(TL_OS)
+spin:	makefile $(SPIN_OS) $(TL_OS) spin.o
+	$(CC) $(CFLAGS) -o spin spin.o $(SPIN_OS) $(TL_OS) $(LDFLAGS)
 
 install: spin
-	$(INSTALL) spin $(DESTDIR)
-	$(INSTALL) ../Man/spin.1 /usr/local/man/man1
+	$(INSTALL) spin $(DESTDIR)/bin/spin
+	$(INSTALL) ../Man/spin.1 $(DESTDIR)/share/man/man1/spin.1
 
-spin.o:	spin.y
+spin.o:	makefile spin.y
 	$(YACC) $(YFLAGS) spin.y
-	$(CC) $(CFLAGS) -c y?tab.c
+	$(CC) $(CFLAGS) $(CPPFLAGS) -c y?tab.c
 	rm -f y?tab.c
 	mv y?tab.o spin.o
 
-$(SPIN_OS): spin.h spin.o
+$(SPIN_OS): makefile spin.h spin.o
 
-$(TL_OS): tl.h spin.o
+$(TL_OS): makefile tl.h spin.o
 
 main.o pangen2.o msc_tcl.o: version.h
 pangen1.o: pangen1.h pangen3.h pangen6.h
@@ -59,3 +59,5 @@ pangen2.o: pangen2.h pangen4.h pangen5.h pangen7.h
 clean:
 	rm -f spin *.o y?tab.[ch] y.output y.debug
 	rm -f pan.[chmotb] a.out core *stackdump
+
+.PHONY: clean install
