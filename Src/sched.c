@@ -23,7 +23,7 @@ extern int	old_scope_rules, scope_seq[128], scope_level, has_stdin;
 extern int	pc_highest(Lextok *n);
 extern void	putpostlude(void);
 
-RunList		*X = (RunList  *) 0;
+RunList		*X_lst = (RunList  *) 0;
 RunList		*run_lst = (RunList  *) 0;
 RunList		*LastX = (RunList  *) 0; /* previous executing proc */
 ProcList	*ready = (ProcList *) 0;
@@ -356,8 +356,8 @@ wrapup(int fini)
 		verbose = ov;
 		verbose &= ~1;	/* no more globals */
 		verbose |= 32;	/* add process states */
-		for (X = run_lst; X; X = X->nxt)
-			talk(X);
+		for (X_lst = run_lst; X_lst; X_lst = X_lst->nxt)
+			talk(X_lst);
 		verbose = ov;	/* restore */
 	}
 	printf("%d process%s created\n",
@@ -409,20 +409,20 @@ silent_moves(Element *e)
 }
 
 static int
-x_can_run(void)	/* the currently selected process in X can run */
+x_can_run(void)	/* the currently selected process in X_lst can run */
 {
-	if (X->prov && !eval(X->prov))
+	if (X_lst->prov && !eval(X_lst->prov))
 	{
-if (0) printf("pid %d cannot run: not provided\n", X->pid);
+if (0) printf("pid %d cannot run: not provided\n", X_lst->pid);
 		return 0;
 	}
 	if (has_priority && !old_priority_rules)
 	{	Lextok *n = nn(ZN, CONST, ZN, ZN);
-		n->val = X->pid;
-if (0) printf("pid %d %s run (priority)\n", X->pid, pc_highest(n)?"can":"cannot");
+		n->val = X_lst->pid;
+if (0) printf("pid %d %s run (priority)\n", X_lst->pid, pc_highest(n)?"can":"cannot");
 		return pc_highest(n);
 	}
-if (0) printf("pid %d can run\n", X->pid);
+if (0) printf("pid %d can run\n", X_lst->pid);
 	return 1;
 }
 
@@ -433,26 +433,26 @@ pickproc(RunList *Y)
 	int j, k, nr_else = 0;
 
 	if (nproc <= nstop+1)
-	{	X = run_lst;
+	{	X_lst = run_lst;
 		return NULL;
 	}
 	if (!interactive || depth < jumpsteps)
 	{	if (has_priority && !old_priority_rules)	/* new 6.3.2 */
 		{	j = Rand()%(nproc-nstop);
-			for (X = run_lst; X; X = X->nxt)
+			for (X_lst = run_lst; X_lst; X_lst = X_lst->nxt)
 			{	if (j-- <= 0)
 					break;
 			}
-			if (X == NULL)
+			if (X_lst == NULL)
 			{	fatal("unexpected, pickproc", (char *)0);
 			}
 			j = nproc - nstop;
 			while (j-- > 0)
 			{	if (x_can_run())
-				{	Y = X;
+				{	Y = X_lst;
 					break;
 				}
-				X = (X->nxt)?X->nxt:run_lst;
+				X_lst = (X_lst->nxt)?X_lst->nxt:run_lst;
 			}
 			return Y;
 		}
@@ -460,11 +460,11 @@ pickproc(RunList *Y)
 			fatal("cannot happen - weights", (char *)0);
 		j = (int) Rand()%Priority_Sum;
 
-		while (j - X->priority >= 0)
-		{	j -= X->priority;
-			Y = X;
-			X = X->nxt;
-			if (!X) { Y = NULL; X = run_lst; }
+		while (j - X_lst->priority >= 0)
+		{	j -= X_lst->priority;
+			Y = X_lst;
+			X_lst = X_lst->nxt;
+			if (!X_lst) { Y = NULL; X_lst = run_lst; }
 		}
 
 	} else
@@ -473,20 +473,20 @@ pickproc(RunList *Y)
 
 		Tval = 0;	/* new 4.2.6 */
 try_again:	printf("Select a statement\n");
-try_more:	for (X = run_lst, k = 1; X; X = X->nxt)
-		{	if (X->pid > 255) break;
+try_more:	for (X_lst = run_lst, k = 1; X_lst; X_lst = X_lst->nxt)
+		{	if (X_lst->pid > 255) break;
 
-			Choices[X->pid] = (short) k;
+			Choices[X_lst->pid] = (short) k;
 
-			if (!X->pc || !x_can_run())
-			{	if (X == run_lst)
-					Choices[X->pid] = 0;
+			if (!X_lst->pc || !x_can_run())
+			{	if (X_lst == run_lst)
+					Choices[X_lst->pid] = 0;
 				continue;
 			}
-			X->pc = silent_moves(X->pc);
-			if (!X->pc->sub && X->pc->n)
+			X_lst->pc = silent_moves(X_lst->pc);
+			if (!X_lst->pc->sub && X_lst->pc->n)
 			{	int unex;
-				unex = !Enabled0(X->pc);
+				unex = !Enabled0(X_lst->pc);
 				if (unex)
 					no_choice++;
 				else
@@ -496,18 +496,18 @@ try_more:	for (X = run_lst, k = 1; X; X = X->nxt)
 					continue;
 				}
 				printf("\tchoice %d: ", k++);
-				p_talk(X->pc, 0);
+				p_talk(X_lst->pc, 0);
 				if (unex)
 					printf(" unexecutable,");
 				printf(" [");
-				comment(stdout, X->pc->n, 0);
-				if (X->pc->esc) printf(" + Escape");
+				comment(stdout, X_lst->pc->n, 0);
+				if (X_lst->pc->esc) printf(" + Escape");
 				printf("]\n");
 			} else {
 			has_else = ZE;
 			proc_no_ch = no_choice;
 			proc_k = k;
-			for (z = X->pc->sub, j=0; z; z = z->nxt)
+			for (z = X_lst->pc->sub, j=0; z; z = z->nxt)
 			{	Element *y = silent_moves(z->this->frst);
 				int unex;
 				if (!y) continue;
@@ -528,7 +528,7 @@ try_more:	for (X = run_lst, k = 1; X; X = X->nxt)
 					continue;
 				}
 				printf("\tchoice %d: ", k++);
-				p_talk(X->pc, 0);
+				p_talk(X_lst->pc, 0);
 				if (unex)
 					printf(" unexecutable,");
 				printf(" [");
@@ -539,16 +539,16 @@ try_more:	for (X = run_lst, k = 1; X; X = X->nxt)
 			{	if (no_choice-proc_no_ch >= (k-proc_k)-1)
 				{	only_choice = nr_else;
 					printf("\tchoice %d: ", nr_else);
-					p_talk(X->pc, 0);
+					p_talk(X_lst->pc, 0);
 					printf(" [else]\n");
 				} else
 				{	no_choice++;
 					printf("\tchoice %d: ", nr_else);
-					p_talk(X->pc, 0);
+					p_talk(X_lst->pc, 0);
 					printf(" unexecutable, [else]\n");
 			}	}
 		}	}
-		X = run_lst;
+		X_lst = run_lst;
 		if (k - no_choice < 2 && Tval == 0)
 		{	Tval = 1;
 			no_choice = 0; only_choice = -1;
@@ -586,12 +586,12 @@ try_more:	for (X = run_lst, k = 1; X; X = X->nxt)
 		}	}
 		MadeChoice = 0;
 		Y = NULL;
-		for (X = run_lst; X; Y = X, X = X->nxt)
-		{	if (!X->nxt
-			||   X->nxt->pid > 255
-			||   j < Choices[X->nxt->pid])
+		for (X_lst = run_lst; X_lst; Y = X_lst, X_lst = X_lst->nxt)
+		{	if (!X_lst->nxt
+			||   X_lst->nxt->pid > 255
+			||   j < Choices[X_lst->nxt->pid])
 			{
-				MadeChoice = 1+j-Choices[X->pid];
+				MadeChoice = 1+j-Choices[X_lst->pid];
 				break;
 		}	}
 	}
@@ -665,14 +665,14 @@ sched(void)
 	if (eventmap)
 	printf("warning: trace assertion not used in random simulation\n");
 
-	X = run_lst;
+	X_lst = run_lst;
 	Y = pickproc(Y);
 
-	while (X)
-	{	context = X->n;
-		if (X->pc && X->pc->n)
-		{	lineno = X->pc->n->ln;
-			Fname  = X->pc->n->fn;
+	while (X_lst)
+	{	context = X_lst->n;
+		if (X_lst->pc && X_lst->pc->n)
+		{	lineno = X_lst->pc->n->ln;
+			Fname  = X_lst->pc->n->fn;
 		}
 		if (cutoff > 0 && depth >= cutoff)
 		{	printf("-------------\n");
@@ -690,23 +690,23 @@ sched(void)
 		}
 #endif
 		depth++; LastStep = ZE;
-		oX = X;	/* a rendezvous could change it */
+		oX = X_lst;	/* a rendezvous could change it */
 		go = 1;
-		if (X->pc
-		&& !(X->pc->status & D_ATOM)
+		if (X_lst->pc
+		&& !(X_lst->pc->status & D_ATOM)
 		&& !x_can_run())
 		{	if (!xspin && ((verbose&32) || (verbose&4)))
-			{	p_talk(X->pc, 1);
+			{	p_talk(X_lst->pc, 1);
 				printf("\t<<Not Enabled>>\n");
 			}
 			go = 0;
 		}
-		if (go && (e = eval_sub(X->pc)))
+		if (go && (e = eval_sub(X_lst->pc)))
 		{	if (depth >= jumpsteps
 			&& ((verbose&32) || (verbose&4)))
-			{	if (X == oX)
+			{	if (X_lst == oX)
 				if (!(e->status & D_ATOM) || (verbose&32)) /* no talking in d_steps */
-				{	if (!LastStep) LastStep = X->pc;
+				{	if (!LastStep) LastStep = X_lst->pc;
 					/* A. Tanaka, changed order */
 					p_talk(LastStep, 1);
 					printf("	[");
@@ -714,25 +714,25 @@ sched(void)
 					printf("]\n");
 				}
 				if (verbose&1) dumpglobals();
-				if (verbose&2) dumplocal(X, 0);
+				if (verbose&2) dumplocal(X_lst, 0);
 
 				if (!(e->status & D_ATOM))
 				if (xspin)
 					printf("\n");
 			}
-			if (oX != X
-			||  (X->pc->status & (ATOM|D_ATOM)))		/* new 5.0 */
+			if (oX != X_lst
+			||  (X_lst->pc->status & (ATOM|D_ATOM)))		/* new 5.0 */
 			{	e = silent_moves(e);
 				notbeyond = 0;
 			}
-			oX->pc = e; LastX = X;
+			oX->pc = e; LastX = X_lst;
 
 			if (!interactive) Tval = 0;
 			memset(is_blocked, 0, 256);
 
-			if (X->pc && (X->pc->status & (ATOM|L_ATOM))
-			&&  (notbeyond == 0 || oX != X))
-			{	if ((X->pc->status & L_ATOM))
+			if (X_lst->pc && (X_lst->pc->status & (ATOM|L_ATOM))
+			&&  (notbeyond == 0 || oX != X_lst))
+			{	if ((X_lst->pc->status & L_ATOM))
 					notbeyond = 1;
 				continue; /* no process switch */
 			}
@@ -741,42 +741,42 @@ sched(void)
 			if (oX->pc && (oX->pc->status & D_ATOM))
 			{	non_fatal("stmnt in d_step blocks", (char *)0);
 			}
-			if (X->pc
-			&&  X->pc->n
-			&&  X->pc->n->ntyp == '@'
-			&&  X->pid == (nproc-nstop-1))
-			{	if (X != run_lst && Y != NULL)
-					Y->nxt = X->nxt;
+			if (X_lst->pc
+			&&  X_lst->pc->n
+			&&  X_lst->pc->n->ntyp == '@'
+			&&  X_lst->pid == (nproc-nstop-1))
+			{	if (X_lst != run_lst && Y != NULL)
+					Y->nxt = X_lst->nxt;
 				else
-					run_lst = X->nxt;
+					run_lst = X_lst->nxt;
 				nstop++;
-				Priority_Sum -= X->priority;
+				Priority_Sum -= X_lst->priority;
 				if (verbose&4)
 				{	whoruns(1);
 					dotag(stdout, "terminates\n");
 				}
-				LastX = X;
+				LastX = X_lst;
 				if (!interactive) Tval = 0;
 				if (nproc == nstop) break;
 				memset(is_blocked, 0, 256);
-				/* proc X is no longer in runlist */
-				X = (X->nxt) ? X->nxt : run_lst;
+				/* proc X_lst is no longer in runlist */
+				X_lst = (X_lst->nxt) ? X_lst->nxt : run_lst;
 			} else
-			{	if (p_blocked(X->pid))
+			{	if (p_blocked(X_lst->pid))
 				{	if (Tval && !has_stdin)
 					{	break;
 					}
 					if (!Tval && depth >= jumpsteps)
-					{	oX = X;
-						X = (RunList *) 0; /* to suppress indent */
+					{	oX = X_lst;
+						X_lst = (RunList *) 0; /* to suppress indent */
 						dotag(stdout, "timeout\n");
-						X = oX;
+						X_lst = oX;
 						Tval = 1;
 		}	}	}	}
 
-		if (!run_lst || !X) break;	/* new 5.0 */
+		if (!run_lst || !X_lst) break;	/* new 5.0 */
 
-		Y = pickproc(X);
+		Y = pickproc(X_lst);
 		notbeyond = 0;
 	}
 	context = ZS;
@@ -785,7 +785,7 @@ sched(void)
 
 int
 complete_rendez(void)
-{	RunList *orun = X, *tmp;
+{	RunList *orun = X_lst, *tmp;
 	Element  *s_was = LastStep;
 	Element *e;
 	int j, ointer = interactive;
@@ -798,46 +798,46 @@ complete_rendez(void)
 	interactive = 0;
 
 	j = (int) Rand()%Priority_Sum;	/* randomize start point */
-	X = run_lst;
-	while (j - X->priority >= 0)
-	{	j -= X->priority;
-		X = X->nxt;
-		if (!X) X = run_lst;
+	X_lst = run_lst;
+	while (j - X_lst->priority >= 0)
+	{	j -= X_lst->priority;
+		X_lst = X_lst->nxt;
+		if (!X_lst) X_lst = run_lst;
 	}
 	for (j = nproc - nstop; j > 0; j--)
-	{	if (X != orun
-		&& (!X->prov || eval(X->prov))
-		&& (e = eval_sub(X->pc)))
+	{	if (X_lst != orun
+		&& (!X_lst->prov || eval(X_lst->prov))
+		&& (e = eval_sub(X_lst->pc)))
 		{	if (TstOnly)
-			{	X = orun;
+			{	X_lst = orun;
 				Rvous = 0;
 				goto out;
 			}
 			if ((verbose&32) || (verbose&4))
-			{	tmp = orun; orun = X; X = tmp;
-				if (!s_was) s_was = X->pc;
+			{	tmp = orun; orun = X_lst; X_lst = tmp;
+				if (!s_was) s_was = X_lst->pc;
 				p_talk(s_was, 1);
 				printf("	[");
 				comment(stdout, s_was->n, 0);
 				printf("]\n");
-				tmp = orun; /* orun = X; */ X = tmp;
-				if (!LastStep) LastStep = X->pc;
+				tmp = orun; /* orun = X_lst; */ X_lst = tmp;
+				if (!LastStep) LastStep = X_lst->pc;
 				p_talk(LastStep, 1);
 				printf("	[");
 				comment(stdout, LastStep->n, 0);
 				printf("]\n");
 			}
 			Rvous = 0; /* before silent_moves */
-			X->pc = silent_moves(e);
+			X_lst->pc = silent_moves(e);
 out:				interactive = ointer;
 			return 1;
 		}
 
-		X = X->nxt;
-		if (!X) X = run_lst;
+		X_lst = X_lst->nxt;
+		if (!X_lst) X_lst = run_lst;
 	}
 	Rvous = 0;
-	X = orun;
+	X_lst = orun;
 	interactive = ointer;
 	return 0;
 }
@@ -893,9 +893,9 @@ static void
 setlocals(RunList *r)
 {	Ordered	*walk;
 	Symbol	*sp;
-	RunList	*oX = X;
+	RunList	*oX = X_lst;
 
-	X = r;
+	X_lst = r;
 	for (walk = all_names; walk; walk = walk->next)
 	{	sp = walk->entry;
 		if (sp
@@ -915,13 +915,13 @@ setlocals(RunList *r)
 				sp->name);
 		}
 	}
-	X = oX;
+	X_lst = oX;
 }
 
 static void
 oneparam(RunList *r, Lextok *t, Lextok *a, ProcList *p)
 {	int k; int at, ft;
-	RunList *oX = X;
+	RunList *oX = X_lst;
 
 	if (!a)
 		fatal("missing actual parameters: '%s'", p->n->name);
@@ -930,7 +930,7 @@ oneparam(RunList *r, Lextok *t, Lextok *a, ProcList *p)
 	k = eval(a->lft);
 
 	at = Sym_typ(a->lft);
-	X = r;	/* switch context */
+	X_lst = r;	/* switch context */
 	ft = Sym_typ(t);
 
 	if (at != ft && (at == CHAN || ft == CHAN))
@@ -945,7 +945,7 @@ oneparam(RunList *r, Lextok *t, Lextok *a, ProcList *p)
 	addsymbol(r, t->sym);
 	(void) setval(t, k);
 	
-	X = oX;
+	X_lst = oX;
 }
 
 static void
@@ -970,19 +970,19 @@ Symbol *
 findloc(Symbol *s)
 {	Symbol *r;
 
-	if (!X)
+	if (!X_lst)
 	{	/* fatal("error, cannot eval '%s' (no proc)", s->name); */
 		return ZS;
 	}
-	for (r = X->symtab; r; r = r->next)
+	for (r = X_lst->symtab; r; r = r->next)
 	{	if (strcmp(r->name, s->name) == 0
 		&& (old_scope_rules
 		 || strcmp((const char *)r->bscp, (const char *)s->bscp) == 0))
 		{	break;
 	}	}
 	if (!r)
-	{	addsymbol(X, s);
-		r = X->symtab;
+	{	addsymbol(X_lst, s);
+		r = X_lst->symtab;
 	}
 	return r;
 }
@@ -1039,18 +1039,18 @@ setlocal(Lextok *p, int m)
 
 void
 whoruns(int lnr)
-{	if (!X) return;
+{	if (!X_lst) return;
 
 	if (lnr) printf("%3d:	", depth);
 	printf("proc ");
-	if (Have_claim && X->pid == 0)
+	if (Have_claim && X_lst->pid == 0)
 		printf(" -");
 	else
-		printf("%2d", X->pid - Have_claim);
+		printf("%2d", X_lst->pid - Have_claim);
 	if (old_priority_rules)
-	{	printf(" (%s) ", X->n->name);
+	{	printf(" (%s) ", X_lst->n->name);
 	} else
-	{	printf(" (%s:%d) ", X->n->name, X->priority);
+	{	printf(" (%s:%d) ", X_lst->n->name, X_lst->priority);
 	}
 }
 
@@ -1074,7 +1074,7 @@ p_talk(Element *e, int lnr)
 	if (e && e->n)
 		newnever = e->n->ln;
 
-	if (Have_claim && X && X->pid == 0
+	if (Have_claim && X_lst && X_lst->pid == 0
 	&&  lastnever != newnever && e)
 	{	if (xspin)
 		{	printf("MSC: ~G line %d\n", newnever);
@@ -1184,8 +1184,8 @@ remotevar(Lextok *n)
 		}
 
 		/* check remote variables */
-		oX = X;
-		X = Y;
+		oX = X_lst;
+		X_lst = Y;
 
 		onl = n->lft;
 		n->lft = n->rgt;
@@ -1203,7 +1203,7 @@ remotevar(Lextok *n)
 
 		n->sym = os;
 		n->lft = onl;
-		X = oX;
+		X_lst = oX;
 		return i;
 	}
 	printf("remote ref: %s[%d] ", n->lft->sym->name, prno-added);

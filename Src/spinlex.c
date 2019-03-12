@@ -40,7 +40,7 @@ typedef struct C_Added {
 	struct C_Added *nxt;
 } C_Added;
 
-extern RunList	*X;
+extern RunList	*X_lst;
 extern ProcList	*ready;
 extern Symbol	*Fname, *oFname;
 extern Symbol	*context, *owner;
@@ -894,15 +894,15 @@ check_inline(IType *tmp)
 {	char buf[128];
 	ProcList *p;
 
-	if (!X) return;
+	if (!X_lst) return;
 
 	for (p = ready; p; p = p->nxt)
-	{	if (strcmp(p->n->name, X->n->name) == 0)
+	{	if (strcmp(p->n->name, X_lst->n->name) == 0)
 			continue;
 		sprintf(buf, "P%s->", p->n->name);
 		if (strstr((char *)tmp->cn, buf))
 		{	printf("spin: in proctype %s, ref to object in proctype %s\n",
-				X->n->name, p->n->name);
+				X_lst->n->name, p->n->name);
 			fatal("invalid variable ref in '%s'", tmp->nm->name);
 	}	}
 }

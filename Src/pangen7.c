@@ -268,7 +268,7 @@ state_body(OneState *s, Guard *guard)
 	}	}
 }
 
-static struct X {
+static struct X_tbl {
 	char *s;	int n;
 } spl[] = {
 	{"end",		3 },

@@ -590,7 +590,7 @@ chname(Symbol *sp)
 	printf("\t");
 }
 
-static struct X {
+static struct X_lkp {
 	int typ; char *nm;
 } xx[] = {
 	{ 'A', "exported as run parameter" },
@@ -619,7 +619,7 @@ chan_check(Symbol *sp)
 		return;
 report:
 	chname(sp);
-	for (i = d = 0; i < (int) (sizeof(xx)/sizeof(struct X)); i++)
+	for (i = d = 0; i < (int) (sizeof(xx)/sizeof(struct X_lkp)); i++)
 	{	b = 0;
 		for (a = sp->access; a; a = a->lnk)
 		{	if (a->typ == xx[i].typ)

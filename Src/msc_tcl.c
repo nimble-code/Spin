@@ -37,7 +37,7 @@ static int	xscale = 2;
 static int	yscale = 1;
 static int	no_box;
 
-extern int	ntrail, s_trail, pno, depth;
+extern int	ntrail, s_trail, prno, depth;
 extern Symbol	*oFname;
 
 extern void	exit(int);
@@ -358,9 +358,9 @@ pstext(int x, char *s)
 
 void
 dotag(FILE *fd, char *s)
-{	extern int columns, notabs; extern RunList *X;
+{	extern int columns, notabs; extern RunList *X_lst;
 	int i = (!strncmp(s, "MSC: ", 5))?5:0;
-	int pid = s_trail ? pno : (X?X->pid:0);
+	int pid = s_trail ? prno : (X_lst?X_lst->pid:0);
 
 	if (columns == 2)
 	{	pstext(pid, &s[i]);

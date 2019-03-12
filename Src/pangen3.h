@@ -1019,7 +1019,8 @@ static const char *R12[] = {
 	"\t\tcase %d: r = ((Q%d *)z)->contents[slot].fld%d; break;",
 	0,
 };
-const char *R13[] = {
+
+const char *R13_[] = {
 	"int ",
 	"unsend(int into)",
 	"{	int _m=0, j; uchar *z;\n",
@@ -1048,7 +1049,7 @@ const char *R13[] = {
 	"	switch (((Q0 *)qptr(into))->_t) {",
 	0,
 };
-const char *R14[] = {
+const char *R14_[] = {
 	"	default: Uerror(\"bad queue - unsend\");",
 	"	}",
 	"	return _m;",
@@ -1078,7 +1079,7 @@ const char *R14[] = {
 	"	switch (((Q0 *)qptr(from))->_t) {",
 	0,
 };
-const char *R15[] = {
+const char *R15_[] = {
 	"	default: Uerror(\"bad queue - qrecv\");",
 	"	}",
 	"}",

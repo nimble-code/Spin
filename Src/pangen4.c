@@ -14,7 +14,7 @@ extern Queue	*qtab;
 extern Symbol	*Fname;
 extern int	lineno, m_loss, Pid_nr, eventmapnr, multi_oval;
 extern short	nocast, has_provided, has_sorted;
-extern const char *R13[], *R14[], *R15[];
+extern const char *R13_[], *R14_[], *R15_[];
 
 static void	check_proc(Lextok *, int);
 
@@ -239,7 +239,7 @@ genunio(void)
 {	char buf1[256];
 	Queue *q; int i;
 
-	ntimes(fd_tc, 0, 1, R13);
+	ntimes(fd_tc, 0, 1, R13_);
 	for (q = qtab; q; q = q->nxt)
 	{	fprintf(fd_tc, "\tcase %d:\n", q->qid);
 
@@ -271,7 +271,7 @@ genunio(void)
 
 		fprintf(fd_tc, "\t\tbreak;\n");
 	}
-	ntimes(fd_tc, 0, 1, R14);
+	ntimes(fd_tc, 0, 1, R14_);
 	for (q = qtab; q; q = q->nxt)
 	{	sprintf(buf1, "((Q%d *)z)->contents", q->qid);
 		fprintf(fd_tc, "	case %d:\n", q->qid);
@@ -308,7 +308,7 @@ genunio(void)
 		}
 		fprintf(fd_tc, "\t\tbreak;\n");
 	}
-	ntimes(fd_tc, 0, 1, R15);
+	ntimes(fd_tc, 0, 1, R15_);
 }
 
 extern void explain(int);

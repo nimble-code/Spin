@@ -14,7 +14,7 @@
 #define MAXQ	2500		/* default max # queues  */
 #endif
 
-extern RunList	*X;
+extern RunList	*X_lst;
 extern Symbol	*Fname;
 extern int	verbose, TstOnly, s_trail, analyze, columns;
 extern int	lineno, depth, xspin, m_loss, jumpsteps;
@@ -55,7 +55,7 @@ int
 qmake(Symbol *s)
 {	Lextok *m;
 	Queue *q;
-	int i;
+	int i, j;
 
 	if (!s->ini)
 		return 0;
@@ -79,8 +79,9 @@ qmake(Symbol *s)
 	q->setat  = depth;
 
 	i = max(1, q->nslots);	/* 0-slot qs get 1 slot minimum */
+	j = q->nflds * i;
 
-	q->contents  = (int *) emalloc(q->nflds*i*sizeof(int));
+	q->contents  = (int *) emalloc(j*sizeof(int));
 	q->fld_width = (int *) emalloc(q->nflds*sizeof(int));
 	q->mtp       = (char **) emalloc(q->nflds*sizeof(char *));
 	q->stepnr    = (int *) emalloc(i*sizeof(int));
@@ -428,7 +429,7 @@ try_slot:
 static int
 s_snd(Queue *q, Lextok *n)
 {	Lextok *m;
-	RunList *rX, *sX = X;	/* rX=recvr, sX=sendr */
+	RunList *rX, *sX = X_lst;	/* rX=recvr, sX=sendr */
 	int i, j = 0;	/* q field# */
 
 	for (m = n->rgt; m && j < q->nflds; m = m->rgt, j++)
@@ -451,7 +452,7 @@ s_snd(Queue *q, Lextok *n)
 	q->stepnr[0] = depth;
 	if ((verbose&16) && depth >= jumpsteps)
 	{	m = n->rgt;
-		rX = X; X = sX;
+		rX = X_lst; X_lst = sX;
 
 		for (j = 0; m && j < q->nflds; m = m->rgt, j++)
 		{	sr_talk(n, eval(m->lft), "Sent ", "->", j, q);
@@ -469,7 +470,7 @@ s_snd(Queue *q, Lextok *n)
 				depth);
 		}
 
-		X = rX;	/* restore receiver's context */
+		X_lst = rX;	/* restore receiver's context */
 		if (!s_trail)
 		{	if (!n_rem || !q_rem)
 				fatal("cannot happen, s_snd", (char *) 0);
@@ -532,7 +533,7 @@ channm(Lextok *n)
 
 static void
 difcolumns(Lextok *n, char *tr, int v, int j, Queue *q)
-{	extern int pno;
+{	extern int prno;
 
 	if (j == 0)
 	{	GBuf[0] = '\0';
@@ -545,9 +546,9 @@ difcolumns(Lextok *n, char *tr, int v, int j, Queue *q)
 	if (j == q->nflds - 1)
 	{	int cnr;
 		if (s_trail)
-		{	cnr = pno;
+		{	cnr = prno;
 		} else
-		{	cnr = X?X->pid - Have_claim:0;
+		{	cnr = X_lst?X_lst->pid - Have_claim:0;
 		}
 		if (tr[0] == '[') strcat(GBuf, "]");
 		pstext(cnr, GBuf);
@@ -567,8 +568,8 @@ docolumns(Lextok *n, char *tr, int v, int j, Queue *q)
 	}
 	if (j == 0)
 	{	printf("%3d", q->qid);
-		if (X)
-		for (i = 0; i < X->pid - Have_claim; i++)
+		if (X_lst)
+		for (i = 0; i < X_lst->pid - Have_claim; i++)
 			printf("   .");
 		printf("   ");
 		GBuf[0] = '\0';

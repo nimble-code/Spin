@@ -12,7 +12,7 @@
 extern Ordered	 *all_names;
 extern FSM_use   *use_free;
 extern FSM_state **fsm_tbl;
-extern FSM_state *fsm;
+extern FSM_state *fsmx;
 extern int	 verbose, o_max;
 
 static FSM_trans *cur_t;
@@ -1723,11 +1723,11 @@ AST_store(ProcList *p, int start_state)
 		n_ast->p = p;
 		n_ast->i_st = start_state;
 		n_ast->relevant = 0;
-		n_ast->fsm = fsm;
+		n_ast->fsm = fsmx;
 		n_ast->nxt = ast;
 		ast = n_ast;
 	}
-	fsm = (FSM_state *) 0;	/* hide it from FSM_DEL */
+	fsmx = (FSM_state *) 0;	/* hide it from FSM_DEL */
 }
 
 static void

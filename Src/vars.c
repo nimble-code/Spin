@@ -14,7 +14,7 @@ extern int	analyze, jumpsteps, nproc, nstop, columns, old_priority_rules;
 extern int	lineno, depth, verbose, xspin, limited_vis, Pid_nr;
 extern Lextok	*Xu_List;
 extern Ordered	*all_names;
-extern RunList	*X, *LastX;
+extern RunList	*X_lst, *LastX;
 extern short	no_arrays, Have_claim, terse;
 extern Symbol	*Fname;
 
@@ -36,19 +36,19 @@ getval(Lextok *sn)
 	if (strcmp(s->name, "_last") == 0)
 		return (LastX)?LastX->pid:0;
 	if (strcmp(s->name, "_p") == 0)
-		return (X && X->pc)?X->pc->seqno:0;
+		return (X_lst && X_lst->pc)?X_lst->pc->seqno:0;
 	if (strcmp(s->name, "_pid") == 0)
-	{	if (!X) return 0;
-		return X->pid - Have_claim;
+	{	if (!X_lst) return 0;
+		return X_lst->pid - Have_claim;
 	}
 	if (strcmp(s->name, "_priority") == 0)
-	{	if (!X) return 0;
+	{	if (!X_lst) return 0;
 
 		if (old_priority_rules)
 		{	non_fatal("cannot refer to _priority with -o6", (char *) 0);
 			return 1;
 		}
-		return X->priority;
+		return X_lst->priority;
 	}
 
 	if (strcmp(s->name, "_nr_pr") == 0)
@@ -82,11 +82,11 @@ setval(Lextok *v, int n)
 		{	non_fatal("cannot refer to _priority with -o6", (char *) 0);
 			return 1;
 		}
-		if (!X)
+		if (!X_lst)
 		{	non_fatal("no context for _priority", (char *) 0);
 			return 1;
 		}
-		X->priority = n;
+		X_lst->priority = n;
 	}
 
 	if (v->sym->context && v->sym->type)
@@ -158,7 +158,7 @@ getglobal(Lextok *sn)
 {	Symbol *s = sn->sym;
 	int i, n = eval(sn->lft);
 
-	if (s->type == 0 && X && (i = find_lab(s, X->n, 0)))	/* getglobal */
+	if (s->type == 0 && X_lst && (i = find_lab(s, X_lst->n, 0)))	/* getglobal */
 	{	printf("findlab through getglobal on %s\n", s->name);
 		return i;	/* can this happen? */
 	}

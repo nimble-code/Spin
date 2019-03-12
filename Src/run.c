@@ -10,7 +10,7 @@
 #include "spin.h"
 #include "y.tab.h"
 
-extern RunList	*X, *run_lst;
+extern RunList	*X_lst, *run_lst;
 extern Symbol	*Fname;
 extern Element	*LastStep;
 extern int	Rvous, lineno, Tval, interactive, MadeChoice, Priority_Sum;
@@ -616,7 +616,7 @@ Enabled0(Element *e)
 
 	switch (e->n->ntyp) {
 	case '@':
-		return X->pid == (nproc-nstop-1);
+		return X_lst->pid == (nproc-nstop-1);
 	case '.':
 	case SET_P:
 		return 1;
@@ -655,14 +655,14 @@ pc_enabled(Lextok *n)
 	int result = 0;
 	RunList *Y, *oX;
 
-	if (pid == X->pid)
-		fatal("used: enabled(pid=thisproc) [%s]", X->n->name);
+	if (pid == X_lst->pid)
+		fatal("used: enabled(pid=thisproc) [%s]", X_lst->n->name);
 
 	for (Y = run_lst; Y; Y = Y->nxt)
 		if (--i == pid)
-		{	oX = X; X = Y;
-			result = Enabled0(X->pc);
-			X = oX;
+		{	oX = X_lst; X_lst = Y;
+			result = Enabled0(X_lst->pc);
+			X_lst = oX;
 			break;
 		}
 	return result;
@@ -675,7 +675,9 @@ pc_highest(Lextok *n)
 	int target = 0, result = 1;
 	RunList *Y, *oX;
 
-	if (X->prov && !eval(X->prov)) return 0; /* can't be highest unless fully enabled */
+	if (X_lst->prov && !eval(X_lst->prov))
+	{	return 0; /* can't be highest unless fully enabled */
+	}
 
 	for (Y = run_lst; Y; Y = Y->nxt)
 	{	if (--i == pid)
@@ -684,23 +686,23 @@ pc_highest(Lextok *n)
 	}	}
 if (0) printf("highest for pid %d @ priority = %d\n", pid, target);
 
-	oX = X;
+	oX = X_lst;
 	i = nproc - nstop;
 	for (Y = run_lst; Y; Y = Y->nxt)
 	{	i--;
 if (0) printf("	pid %d @ priority %d\t", Y->pid, Y->priority);
 		if (Y->priority > target)
-		{	X = Y;
-if (0) printf("enabled: %s\n", Enabled0(X->pc)?"yes":"nope");
-if (0) printf("provided: %s\n", eval(X->prov)?"yes":"nope");
-			if (Enabled0(X->pc) && (!X->prov || eval(X->prov)))
+		{	X_lst = Y;
+if (0) printf("enabled: %s\n", Enabled0(X_lst->pc)?"yes":"nope");
+if (0) printf("provided: %s\n", eval(X_lst->prov)?"yes":"nope");
+			if (Enabled0(X_lst->pc) && (!X_lst->prov || eval(X_lst->prov)))
 			{	result = 0;
 				break;
 		}	}
 else
 if (0) printf("\n");
 	}
-	X = oX;
+	X_lst = oX;
 
 	return result;
 }

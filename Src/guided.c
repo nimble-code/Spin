@@ -12,7 +12,7 @@
 #include <limits.h>
 #include "y.tab.h"
 
-extern RunList	*run_lst, *X;
+extern RunList	*run_lst, *X_lst;
 extern Element	*Al_El;
 extern Symbol	*Fname, *oFname;
 extern int	verbose, lineno, xspin, jumpsteps, depth, merger, cutoff;
@@ -21,7 +21,7 @@ extern short	Have_claim, Skip_claim, has_code;
 extern void ana_src(int, int);
 extern char	**trailfilename;
 
-int	TstOnly = 0, pno;
+int	TstOnly = 0, prno;
 
 static int	lastclaim = -1;
 static FILE	*fd;
@@ -69,7 +69,7 @@ hookup(void)
 int
 not_claim(void)
 {
-	return (!Have_claim || !X || X->pid != 0);
+	return (!Have_claim || !X_lst || X_lst->pid != 0);
 }
 
 int globmin = INT_MAX;
@@ -196,12 +196,12 @@ okay:
 
 	hookup();
 
-	while (fscanf(fd, "%d:%d:%d\n", &depth, &pno, &nst) == 3)
+	while (fscanf(fd, "%d:%d:%d\n", &depth, &prno, &nst) == 3)
 	{	if (depth == -2)
 		{	if (verbose)
-			{	printf("starting claim %d\n", pno);
+			{	printf("starting claim %d\n", prno);
 			}
-			start_claim(pno);
+			start_claim(prno);
 			continue;
 		}
 		if (depth == -4)
@@ -233,7 +233,7 @@ okay:
 			break;
 		}
 
-		if (Skip_claim && pno == 0) continue;
+		if (Skip_claim && prno == 0) continue;
 
 		for (dothis = Al_El; dothis; dothis = dothis->Nxt)
 		{	if (dothis->Seqno == nst)
@@ -241,14 +241,14 @@ okay:
 		}
 		if (!dothis)
 		{	printf("%3d: proc %d, no matching stmnt %d\n",
-				depth, pno - Have_claim, nst);
+				depth, prno - Have_claim, nst);
 			lost_trail();
 		}
 
 		i = nproc - nstop + Skip_claim;
 
 		if (dothis->n->ntyp == '@')
-		{	if (pno == i-1)
+		{	if (prno == i-1)
 			{	run_lst = run_lst->nxt;
 				nstop++;
 				if (verbose&4)
@@ -256,62 +256,63 @@ okay:
 					{	dotag(stdout, "<end>\n");
 						continue;
 					}
-					if (Have_claim && pno == 0)
+					if (Have_claim && prno == 0)
 					printf("%3d: claim terminates\n",
 						depth);
 					else
 					printf("%3d: proc %d terminates\n",
-						depth, pno - Have_claim);
+						depth, prno - Have_claim);
 				}
 				continue;
 			}
-			if (pno <= 1) continue;	/* init dies before never */
+			if (prno <= 1) continue;	/* init dies before never */
 			printf("%3d: stop error, ", depth);
 			printf("proc %d (i=%d) trans %d, %c\n",
-				pno - Have_claim, i, nst, dothis->n->ntyp);
+				prno - Have_claim, i, nst, dothis->n->ntyp);
 			lost_trail();
 		}
 
 		if (0 && !xspin && (verbose&32))
-		{	printf("step %d i=%d pno %d stmnt %d\n", depth, i, pno, nst);
+		{	printf("step %d i=%d pno %d stmnt %d\n", depth, i, prno, nst);
 		}
 
-		for (X = run_lst; X; X = X->nxt)
-		{	if (--i == pno)
+		for (X_lst = run_lst; X_lst; X_lst = X_lst->nxt)
+		{	if (--i == prno)
 				break;
 		}
 
-		if (!X)
+		if (!X_lst)
 		{	if (verbose&32)
-			{	printf("%3d: no process %d (stmnt %d)\n", depth, pno - Have_claim, nst);
+			{	printf("%3d: no process %d (stmnt %d)\n", depth, prno - Have_claim, nst);
 				printf(" max %d (%d - %d + %d) claim %d ",
 					nproc - nstop + Skip_claim,
 					nproc, nstop, Skip_claim, Have_claim);
 				printf("active processes:\n");
-				for (X = run_lst; X; X = X->nxt)
-				{	printf("\tpid %d\tproctype %s\n", X->pid, X->n->name);
+				for (X_lst = run_lst; X_lst; X_lst = X_lst->nxt)
+				{	printf("\tpid %d\tproctype %s\n", X_lst->pid, X_lst->n->name);
 				}
 				printf("\n");
 				continue;	
 			} else
-			{	printf("%3d:\tproc  %d (?) ", depth, pno);
+			{	printf("%3d:\tproc  %d (?) ", depth, prno);
 				lost_trail();
 			}
 		} else
-		{	int min_seq = find_min(X->ps);
-			int max_seq = find_max(X->ps);
+		{	int min_seq = find_min(X_lst->ps);
+			int max_seq = find_max(X_lst->ps);
 
 			if (nst < min_seq || nst > max_seq)
 			{	printf("%3d: error: invalid statement", depth);
 				if (verbose&32)
 				{	printf(": pid %d:%d (%s:%d:%d) stmnt %d (valid range %d .. %d)",
-					pno, X->pid, X->n->name, X->tn, X->b, nst, min_seq, max_seq);
+					prno, X_lst->pid, X_lst->n->name, X_lst->tn, X_lst->b,
+					nst, min_seq, max_seq);
 				}
 				printf("\n");
 				continue;
 				/* lost_trail(); */
 			}
-			X->pc  = dothis;
+			X_lst->pc  = dothis;
 		}
 
 		lineno = dothis->n->ln;
@@ -334,13 +335,13 @@ okay:
 						printf("]\n");
 					}
 					if (verbose&1) dumpglobals();
-					if (verbose&2) dumplocal(X, 0);
+					if (verbose&2) dumplocal(X_lst, 0);
 					if (xspin) printf("\n");
 				}
 				og = g;
 			} while (g && g != dothis->nxt);
-			if (X != NULL)
-			{	X->pc = g?huntele(g, 0, -1):g;
+			if (X_lst != NULL)
+			{	X_lst->pc = g?huntele(g, 0, -1):g;
 			}
 		} else
 		{
@@ -349,9 +350,9 @@ keepgoing:		if (dothis->merge_start)
 			else
 				a = dothis->merge;
 
-			if (X != NULL)
-			{	X->pc = eval_sub(dothis);
-				if (X->pc) X->pc = huntele(X->pc, 0, a);
+			if (X_lst != NULL)
+			{	X_lst->pc = eval_sub(dothis);
+				if (X_lst->pc) X_lst->pc = huntele(X_lst->pc, 0, a);
 			}
 
 			if (depth >= jumpsteps
@@ -368,25 +369,25 @@ keepgoing:		if (dothis->merge_start)
 					if (a && (verbose&32))
 					printf("\t<merge %d now @%d>",
 						dothis->merge,
-						(X && X->pc)?X->pc->seqno:-1);
+						(X_lst && X_lst->pc)?X_lst->pc->seqno:-1);
 					printf("\n");
 				}
 				if (verbose&1) dumpglobals();
-				if (verbose&2) dumplocal(X, 0);
+				if (verbose&2) dumplocal(X_lst, 0);
 				if (xspin) printf("\n");
 
-				if (X && !X->pc)
-				{	X->pc = dothis;
+				if (X_lst && !X_lst->pc)
+				{	X_lst->pc = dothis;
 					printf("\ttransition failed\n");
 					a = 0;	/* avoid inf loop */
 				}
 			}
-			if (a && X && X->pc && X->pc->seqno != a)
-			{	dothis = X->pc;
+			if (a && X_lst && X_lst->pc && X_lst->pc->seqno != a)
+			{	dothis = X_lst->pc;
 				goto keepgoing;
 		}	}
 
-		if (Have_claim && X && X->pid == 0
+		if (Have_claim && X_lst && X_lst->pid == 0
 		&&  dothis->n
 		&&  lastclaim != dothis->n->ln)
 		{	lastclaim = dothis->n->ln;

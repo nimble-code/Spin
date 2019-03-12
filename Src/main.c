@@ -604,10 +604,10 @@ preprocess(char *a, char *b, int a_tmp)
 		alldone(1);
 	}
 	sprintf(cmd, "%s %s > %s", precmd, a, b);
-	if (e_system(2, (const char *)cmd))		/* preprocessing */
+	if (e_system(2, (const char *)cmd))	/* preprocessing step */
 	{	(void) unlink((const char *) b);
 		if (a_tmp) (void) unlink((const char *) a);
-		fprintf(stdout, "spin: preprocessing failed\n");	/* 4.1.2 was stderr */
+		fprintf(stdout, "spin: preprocessing failed\n");
 		alldone(1); /* no return, error exit */
 	}
 	if (a_tmp) (void) unlink((const char *) a);
