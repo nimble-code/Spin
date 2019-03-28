@@ -603,11 +603,11 @@ preprocess(char *a, char *b, int a_tmp)
 	{	fprintf(stdout, "spin: too many -D args, aborting\n");
 		alldone(1);
 	}
-	sprintf(cmd, "%s %s > %s", precmd, a, b);
+	sprintf(cmd, "%s \"%s\" > \"%s\"", precmd, a, b);
 	if (e_system(2, (const char *)cmd))	/* preprocessing step */
 	{	(void) unlink((const char *) b);
 		if (a_tmp) (void) unlink((const char *) a);
-		fprintf(stdout, "spin: preprocessing failed\n");
+		fprintf(stdout, "spin: preprocessing failed %s\n", cmd);
 		alldone(1); /* no return, error exit */
 	}
 	if (a_tmp) (void) unlink((const char *) a);

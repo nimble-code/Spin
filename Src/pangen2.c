@@ -227,7 +227,7 @@ gensrc(void)
 	fprintf(fd_th, "#define PanSource	\"");
 	for (i = 0; oFname->name[i] != '\0'; i++)
 	{	char c = oFname->name[i];
-		if (c == '\\' || c == ' ') /* Windows path */
+		if (c == '\\') /* Windows path */
 		{	fprintf(fd_th, "\\");
 		}
 		fprintf(fd_th, "%c", c);
