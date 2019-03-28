@@ -259,7 +259,7 @@ typ_ck(int ft, int at, char *s)
 	if ((verbose&32) && ft != at
 	&& (ft == CHAN || at == CHAN)
 	&& (at != PREDEF || strcmp(s, "recv") != 0))
-	{	char buf[128], tag1[64], tag2[64];
+	{	char buf[256], tag1[64], tag2[64];
 		(void) sputtype(tag1, ft);
 		(void) sputtype(tag2, at);
 		sprintf(buf, "type-clash in %s, (%s<-> %s)", s, tag1, tag2);

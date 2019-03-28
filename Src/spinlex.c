@@ -1615,7 +1615,7 @@ again:
 				if (b - a <= 32)
 				{	push_back("if ");
 					for (i = a; i <= b; i++)
-					{	char buf[128];
+					{	char buf[256];
 						push_back(":: ");
 						sprintf(buf, "%s = %d ",
 							name, i);
@@ -1623,7 +1623,7 @@ again:
 					}
 					push_back("fi ");
 				} else
-				{	char buf[128];
+				{	char buf[256];
 					sprintf(buf, "%s = %d; do ",
 						name, a);
 					push_back(buf);
