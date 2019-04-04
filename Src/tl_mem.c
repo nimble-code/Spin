@@ -80,16 +80,16 @@ tl_emalloc(int U)
 }
 
 // FIXME: inefficient
-void* tl_erealloc(void *v, int U, int old_size)
-{
-    void* tmp = tl_emalloc(U);
+void*
+tl_erealloc(void *v, int U, int old_size)
+{	void* tmp = tl_emalloc(U);
 
-    if (v)
-    {   strncpy(tmp, v, old_size);
-        tfree(v);
-    }
+	if (v)
+	{	strncpy(tmp, v, old_size);
+		tfree(v);
+	}
 
-    return tmp;
+	return tmp;
 }
 
 void
