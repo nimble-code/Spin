@@ -294,6 +294,7 @@ Symbol	*prep_inline(Symbol *, Lextok *);
 
 char	*put_inline(FILE *, char *);
 char	*emalloc(size_t);
+char	*erealloc(void*, size_t, size_t);
 long	Rand(void);
 
 int	any_oper(Lextok *, int);

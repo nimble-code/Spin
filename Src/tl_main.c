@@ -23,7 +23,7 @@ int	state_cnt = 0;
 unsigned long	All_Mem = 0;
 char	*claim_name;
 
-static char	uform[4096];
+static char	*uform;
 static int	hasuform=0, cnt=0;
 
 extern void cache_stats(void);
@@ -115,7 +115,6 @@ tl_main(int argc, char *argv[])
 	tl_errs    = 0;
 	tl_terse   = 0;
 	All_Mem = 0;
-	memset(uform, 0, sizeof(uform));
 	hasuform=0;
 	cnt=0;
 	claim_name = (char *) 0;
@@ -136,8 +135,10 @@ tl_main(int argc, char *argv[])
 					||  argv[1][i] == '\n')
 						argv[1][i] = ' ';
 				}
+				size_t len = strlen(argv[1]);
+                uform = tl_emalloc(len + 1);
 				strcpy(uform, argv[1]);
-				hasuform = (int) strlen(uform);
+				hasuform = (int) len;
 				break;
 		case 'v':	tl_verbose++;
 				break;

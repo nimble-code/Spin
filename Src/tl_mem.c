@@ -79,6 +79,19 @@ tl_emalloc(int U)
 	return rp;
 }
 
+// FIXME: inefficient
+void* tl_erealloc(void *v, int U, int old_size)
+{
+    void* tmp = tl_emalloc(U);
+
+    if (v)
+    {   strncpy(tmp, v, old_size);
+        tfree(v);
+    }
+
+    return tmp;
+}
+
 void
 tfree(void *v)
 {	union M *m = (union M *) v;
