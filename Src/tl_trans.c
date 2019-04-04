@@ -447,13 +447,16 @@ catSlist(Symbol *a, Symbol *b)
 	/* remove duplicates from b */
 	for (p1 = a; p1; p1 = p1->next)
 	{	p3 = ZS;
-		for (p2 = b; p2; p2 = p2->next)
-		{	if (strcmp(p1->name, p2->name))
+		p2 = b;
+		while (p2)
+		{ if (strcmp(p1->name, p2->name))
 			{	p3 = p2;
+				p2 = p2->next;
 				continue;
 			}
 			tmp = p2->next;
 			tfree((void *) p2);
+			p2 = tmp;
 			if (p3)
 				p3->next = tmp;
 			else
