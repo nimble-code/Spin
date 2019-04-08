@@ -1057,8 +1057,8 @@ recursive(FILE *fd, Lextok *n)
 static Lextok *
 ltl_to_string(Lextok *n)
 {	Lextok *m = nn(ZN, 0, ZN, ZN);
-	char *retval;
-	char ltl_formula[2048];
+	ssize_t retval;
+	char *ltl_formula = NULL;
 	FILE *tf = fopen(TMP_FILE1, "w+"); /* tmpfile() fails on Windows 7 */
 
 	/* convert the parsed ltl to a string
@@ -1077,21 +1077,21 @@ ltl_to_string(Lextok *n)
 	dont_simplify = 0;
 	(void) fseek(tf, 0L, SEEK_SET);
 
-	memset(ltl_formula, 0, sizeof(ltl_formula));
-	retval = fgets(ltl_formula, sizeof(ltl_formula), tf);
+	size_t linebuffsize = 0;
+	retval = getline(&ltl_formula, &linebuffsize, tf);
 	fclose(tf);
 
 	(void) unlink(TMP_FILE1);
 
 	if (!retval)
-	{	printf("%p\n", retval);
+	{	printf("%ld\n", retval);
 		fatal("could not translate ltl ltl_formula", 0);
 	}
 
 	if (1) printf("ltl %s: %s\n", ltl_name, ltl_formula);
 
 	m->sym = lookup(ltl_formula);
-
+	free(ltl_formula);
 	return m;
 }
 

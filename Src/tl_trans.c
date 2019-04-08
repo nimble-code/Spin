@@ -20,7 +20,10 @@ static Mapping	*Mapped = (Mapping *) 0;
 static Graph	*Nodes_Set = (Graph *) 0;
 static Graph	*Nodes_Stack = (Graph *) 0;
 
-static char	dumpbuf[4096];
+static char	*dumpbuf = NULL;
+static size_t dumpbuf_size = 0;
+static size_t dumpbuf_capacity = 0;
+
 static int	Red_cnt  = 0;
 static int	Lab_cnt  = 0;
 static int	Base     = 0;
@@ -49,6 +52,20 @@ static void	push_stack(Graph *);
 static void	sdump(Node *);
 
 void
+append_to_dumpbuf(char* s)
+{
+    size_t len = strlen(s);
+    size_t size_needed = dumpbuf_size + len + 1;
+    if (size_needed > dumpbuf_capacity) {
+        dumpbuf = tl_erealloc(dumpbuf, size_needed, dumpbuf_capacity);
+        dumpbuf_capacity = size_needed;
+    }
+
+    strncpy(&(dumpbuf[dumpbuf_size]), s, len + 1);
+    dumpbuf_size += len;
+}
+
+void
 ini_trans(void)
 {
 	Stack_mx = 0;
@@ -59,7 +76,10 @@ ini_trans(void)
 	Nodes_Set = (Graph *) 0;
 	Nodes_Stack = (Graph *) 0;
 
-	memset(dumpbuf, 0, sizeof(dumpbuf));
+	dumpbuf_capacity = 4096;
+	dumpbuf = tl_emalloc(dumpbuf_capacity);
+	dumpbuf_size = 0;
+	memset(dumpbuf, 0, dumpbuf_capacity);
 	Red_cnt  = 0;
 	Lab_cnt  = 0;
 	Base     = 0;
@@ -447,13 +467,16 @@ catSlist(Symbol *a, Symbol *b)
 	/* remove duplicates from b */
 	for (p1 = a; p1; p1 = p1->next)
 	{	p3 = ZS;
-		for (p2 = b; p2; p2 = p2->next)
-		{	if (strcmp(p1->name, p2->name))
+		p2 = b;
+		while (p2)
+		{ if (strcmp(p1->name, p2->name))
 			{	p3 = p2;
+				p2 = p2->next;
 				continue;
 			}
 			tmp = p2->next;
 			tfree((void *) p2);
+			p2 = tmp;
 			if (p3)
 				p3->next = tmp;
 			else
@@ -545,33 +568,33 @@ static void
 sdump(Node *n)
 {
 	switch (n->ntyp) {
-	case PREDICATE:	strcat(dumpbuf, n->sym->name);
+	case PREDICATE:	append_to_dumpbuf(n->sym->name);
 			break;
-	case U_OPER:	strcat(dumpbuf, "U");
+	case U_OPER:	append_to_dumpbuf("U");
 			goto common2;
-	case V_OPER:	strcat(dumpbuf, "V");
+	case V_OPER:	append_to_dumpbuf("V");
 			goto common2;
-	case OR:	strcat(dumpbuf, "|");
+	case OR:	append_to_dumpbuf("|");
 			goto common2;
-	case AND:	strcat(dumpbuf, "&");
+	case AND:	append_to_dumpbuf("&");
 common2:		sdump(n->rgt);
 common1:		sdump(n->lft);
 			break;
 #ifdef NXT
-	case NEXT:	strcat(dumpbuf, "X");
+	case NEXT:	append_to_dumpbuf("X");
 			goto common1;
 #endif
-	case CEXPR:	strcat(dumpbuf, "c_expr {");
+	case CEXPR:	append_to_dumpbuf("c_expr {");
 			sdump(n->lft);
-			strcat(dumpbuf, "}");
+			append_to_dumpbuf("}");
 			break;
-	case NOT:	strcat(dumpbuf, "!");
+	case NOT:	append_to_dumpbuf("!");
 			goto common1;
-	case TRUE:	strcat(dumpbuf, "T");
+	case TRUE:	append_to_dumpbuf("T");
 			break;
-	case FALSE:	strcat(dumpbuf, "F");
+	case FALSE:	append_to_dumpbuf("F");
 			break;
-	default:	strcat(dumpbuf, "?");
+	default:	append_to_dumpbuf("?");
 			break;
 	}
 }
@@ -584,9 +607,15 @@ DoDump(Node *n)
 	if (n->ntyp == PREDICATE)
 		return n->sym;
 
-	dumpbuf[0] = '\0';
-	sdump(n);
-	return tl_lookup(dumpbuf);
+    if (dumpbuf) {
+        dumpbuf[0] = '\0';
+        dumpbuf_size = 0;
+        sdump(n);
+        return tl_lookup(dumpbuf);
+    }
+
+    sdump(n);
+    return tl_lookup("");
 }
 
 static int

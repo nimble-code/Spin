@@ -94,6 +94,7 @@ int	isequal(Node *, Node *);
 int	tl_Getchar(void);
 
 void	*tl_emalloc(int);
+void	*tl_erealloc(void*, int, int);
 void	a_stats(void);
 void	addtrans(Graph *, char *, Node *, char *);
 void	cache_stats(void);

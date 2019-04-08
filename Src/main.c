@@ -80,7 +80,7 @@ static char	**nvr_file = (char **) 0;
 static char	*ltl_claims = (char *) 0;
 static char	*pan_runtime = "";
 static char	*pan_comptime = "";
-static char	formula[4096];
+static char	*formula = NULL;
 static FILE	*fd_ltl = (FILE *) 0;
 static char	*PreArg[64];
 static int	PreCnt = 0;
@@ -1041,12 +1041,14 @@ samecase:			if (buzzed != 0)
 		{	printf("spin: cannot open %s\n", *ltl_file);
 			alldone(1);
 		}
-		if (!fgets(formula, 4096, tl_out))
+		size_t linebuffsize = 0;
+		ssize_t length = getline(&formula, &linebuffsize, tl_out);
+		if (!formula || !length)
 		{	printf("spin: cannot read %s\n", *ltl_file);
 		}
 		fclose(tl_out);
 		tl_out = stdout;
-		*ltl_file = (char *) formula;
+		*ltl_file = formula;
 	}
 	if (argc > 1)
 	{	FILE *fd = stdout;
