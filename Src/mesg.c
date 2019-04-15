@@ -743,6 +743,14 @@ void
 nochan_manip(Lextok *p, Lextok *n, int d)	/* p=lhs n=rhs */
 {	int e = 1;
 
+	if (!n
+	||  !p
+	||  !p->sym
+	||   p->sym->type == STRUCT)
+	{	/* if a struct, assignments to structure fields arent checked yet */
+		return;
+	}
+
 	if (d == 0 && p->sym && p->sym->type == CHAN)
 	{	setaccess(p->sym, ZS, 0, 'L');
 
@@ -793,7 +801,8 @@ nochan_manip(Lextok *p, Lextok *n, int d)	/* p=lhs n=rhs */
 
 	if (n->ntyp == NAME
 	||  n->ntyp == '.')
-		e = 0;	/* array index or struct element */
+	{	e = 0;	/* array index or struct element */
+	}
 
 	nochan_manip(p, n->lft, e);
 	nochan_manip(p, n->rgt, 1);
