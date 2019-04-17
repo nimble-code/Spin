@@ -75,6 +75,11 @@ static	int  Embedded = 0, inEventMap = 0, has_ini = 0;
 %token	NAME UNAME PNAME INAME		/* sym */
 %token	STRING CLAIM TRACE INIT	LTL	/* sym */
 
+/* addition for probability analisys */
+%token  PROB
+%token  LOSS
+%token  RELY
+
 %right	ASGN
 %left	SND O_SND RCV R_RCV /* SND doubles as boolean negation */
 %left	IMPLIES EQUIV			/* ltl */
@@ -389,10 +394,47 @@ osubt	: /* empty */		{ $$ = ZN; }
 	| ':' NAME		{ $$ = $2; }
 	;
 
-one_decl: vis TYPE osubt var_list { setptype($3, $4, $2->val, $1);
-				  $4->val = $2->val;
-				  $$ = $4;
+test_loss    : /* empty */
+| '[' LOSS ASGN const_expr '%' ']' {
+    
+    printf("I caught channel with loss val = %d!!\n", $4->val);
+
+}
+| '[' RELY ASGN const_expr '%' ']' {
+    
+    printf("I caught channel with relyability val = %d!!\n", $4->val);
+}
+;
+
+msg_loss    : /* empty */
+| '[' LOSS ASGN const_expr '%' ']' {
+    
+    printf("I caught send with loss val = %d!!\n", $4->val);
+    
+}
+| '[' RELY ASGN const_expr '%' ']' {
+    
+    printf("I caught send with relyability val = %d!!\n", $4->val);
+}
+| '[' RELY ASGN expr ']' {
+    
+    printf("I caught send with relyability expr = %d!!\n", $4->val);
+}
+| '[' LOSS ASGN expr ']' {
+    
+    printf("I caught send with loss expr = %d!!\n", $4->val);
+}
+;
+
+
+one_decl: vis TYPE test_loss osubt var_list { setptype($4, $5, $2->val, $1);
+				  $5->val = $2->val;
+				  $$ = $5;
 				}
+/*one_decl: vis TYPE osubt var_list { setptype($3, $4, $2->val, $1);
+    $4->val = $2->val;
+    $$ = $4;
+}*/
 	| vis UNAME var_list	{ setutype($3, $2->sym, $1);
 				  $$ = expand($3, Expand_Ok);
 				}
@@ -581,12 +623,23 @@ Special : varref RCV		{ Expand_Ok++; }
 				  $$ = nn($1,  'r', $1, $4);
 				  trackchanuse($4, ZN, 'R');
 				}
-	| varref SND		{ Expand_Ok++; }
+	| varref SND msg_loss		{ Expand_Ok++; }
 	  margs			{ Expand_Ok--; has_io++;
-				  $$ = nn($1, 's', $1, $4);
-				  $$->val=0; trackchanuse($4, ZN, 'S');
-				  any_runs($4);
+				  $$ = nn($1, 's', $1, $5);
+				  $$->val=0; trackchanuse($5, ZN, 'S');
+				  any_runs($5);
 				}
+/*Special : varref RCV        { Expand_Ok++; }
+rargs            { Expand_Ok--; has_io++;
+    $$ = nn($1,  'r', $1, $4);
+    trackchanuse($4, ZN, 'R');
+}
+| varref SND        { Expand_Ok++; }
+margs            { Expand_Ok--; has_io++;
+    $$ = nn($1, 's', $1, $4);
+    $$->val=0; trackchanuse($4, ZN, 'S');
+    any_runs($4);
+}*/
 	| for_pre ':' expr DOTDOT expr r_par	{
 				  for_setup($1, $3, $5); in_for = 0;
 				}
@@ -600,8 +653,9 @@ Special : varref RCV		{ Expand_Ok++; }
 				  trapwonly($3 /*, "select" */);
 				  $$ = sel_index($3, $5, $7);
 				}
-	| IF options FI 	{ $$ = nn($1, IF, ZN, ZN);
-        			  $$->sl = $2->sl;
+	| IF options FI 	{
+                  $$ = nn($1, IF, ZN, ZN);
+                  $$->sl = $2->sl;
 				  $$->ln = $1->ln;
 				  $$->fn = $1->fn;
 				  prune_opts($$);
@@ -742,17 +796,27 @@ Stmnt	: varref ASGN full_expr	{ $$ = nn($1, ASGN, $1, $3);	/* assignment */
 	| RETURN full_expr	{ $$ = return_statement($2); }	
 	;
 
-options : option		{ $$->sl = seqlist($1->sq, 0); }
+options : option		{ $$->sl = seqlist($1->sq, 0); printf("option \n p=%p", $1); }
 	| option options	{ $$->sl = seqlist($1->sq, $2->sl); }
 	;
 
-option  : SEP   		{ open_seq(0); }
-          sequence OS		{ $$ = nn(ZN,0,ZN,ZN);
-				  $$->sq = close_seq(6);
-				  $$->ln = $1->ln;
-				  $$->fn = $1->fn;
-				}
-	;
+option  : SEP           { open_seq(0); }
+prob
+sequence OS        { $$ = nn(ZN,0,ZN,ZN);
+    $$->sq = close_seq(6);
+    $$->ln = $1->ln;
+    $$->fn = $1->fn;
+}
+;
+
+prob    :/* empty */
+| '[' PROB ASGN const_expr '%' ']' {
+    printf("I caught probability with val = %d!!\n", $4->val);
+}
+| '[' PROB ASGN expr ']' {
+    printf("I caught probability with expression!!\n", $4->val);
+}
+;
 
 OS	: /* empty */
 	| semi			{ /* redundant semi at end of sequence */ }
@@ -1057,8 +1121,8 @@ recursive(FILE *fd, Lextok *n)
 static Lextok *
 ltl_to_string(Lextok *n)
 {	Lextok *m = nn(ZN, 0, ZN, ZN);
-	ssize_t retval;
-	char *ltl_formula = NULL;
+	char *retval;
+	char ltl_formula[2048];
 	FILE *tf = fopen(TMP_FILE1, "w+"); /* tmpfile() fails on Windows 7 */
 
 	/* convert the parsed ltl to a string
@@ -1077,21 +1141,21 @@ ltl_to_string(Lextok *n)
 	dont_simplify = 0;
 	(void) fseek(tf, 0L, SEEK_SET);
 
-	size_t linebuffsize = 0;
-	retval = getline(&ltl_formula, &linebuffsize, tf);
+	memset(ltl_formula, 0, sizeof(ltl_formula));
+	retval = fgets(ltl_formula, sizeof(ltl_formula), tf);
 	fclose(tf);
 
 	(void) unlink(TMP_FILE1);
 
 	if (!retval)
-	{	printf("%ld\n", retval);
+	{	printf("%p\n", retval);
 		fatal("could not translate ltl ltl_formula", 0);
 	}
 
 	if (1) printf("ltl %s: %s\n", ltl_name, ltl_formula);
 
 	m->sym = lookup(ltl_formula);
-	free(ltl_formula);
+
 	return m;
 }
 
