@@ -1786,6 +1786,10 @@ static struct {
 	{"unsigned",	TYPE,		UNSIGNED,	0},
 	{"xr",		XU,		XR,		0},
 	{"xs",		XU,		XS,		0},
+    {"prob",    PROB,    0,        0},
+    {"loss",    LOSS,    0,        0},
+    {"rely",    RELY,    0,        0},
+
 	{0, 		0,		0,		0},
 };
 
