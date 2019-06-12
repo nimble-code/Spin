@@ -1,0 +1,654 @@
+Distribution Update History of the SPIN sources
+===============================================
+
+==== Version 4.0.0 - 1 January 2003 ====
+
+See the end of the V3.Updates file for the main changes
+between the last version 3.5.3 and version 4.0.0.
+A glimpse of the Spin update history since 1989:
+
+ Version 0: Jan. 1989 - Jan. 1990  5.6K lines: book version
+ Version 1: Jan. 1990 - Jan. 1995  7.9K lines: first version on netlib
+ Version 2: Jan. 1995 - Aug. 1997  6.1K lines: partial-order reduction
+ Version 3: Aug. 1997 - Jan. 2003 17.9K lines: bdd-like compression (MA)
+ Version 4: Jan. 2003 -           28.2K lines: embedded c-code, bfs
+
+==== Version 4.0.1 - 7 January 2003 ====
+
+- the rule that one cannot combine a run operator
+  in an expression with any other type of boolean
+  or arithmetic operator within the same expression
+  is now enforced.
+- bfs now produces the usual stats upon finding
+  and error; and it now supports the -e option.
+- extended bfs to deal also with safety properties
+  specified in never claims and trace assertions.
+  unlike the regular dfs search, the bfs search cannot
+  handle the use of atomic sequences inside never claims.
+  it will issue a warning, and will abort, if it sees this.
+  unless constructs, d_steps, etc. should all work also
+  within never claims
+  a warning is issued if accept labels are found inside
+  the never claim (to warn that the bfs search is restricted
+  to safety properties only).
+  the never claim does always work to restrict the search
+  space to the part that is covered by the claim.
+- fixed bug in simulation mode, where atomicity was not
+  always correctly preserved across rv actions from one
+  atomic chain to another (if the sender action was the
+  last statement in an atomic sequence) reported by Judi Romijn.
+- added the BFS option also in the advanced verification
+  options panel of xspin401.tcl
+
+==== Version 4.0.2 - 6 March 2003 ====
+
+- removed a long-standing bug in the marking of transitions
+  for partial order reduction:
+  the guard statement of an atomic or d_step sequence within
+  which a non-atomic,atomic,or d_step sequence is nested did
+  not always get the proper tag
+  if the tag assigned was local and it should have been global,
+  the p.o. reduction algorithm could make an invalid reduction.
+  such a case can indirectly be constructed if an atomic sequence
+  contains an call of an inline function as the first statement.
+  (this case was found by Bram de Wachter)
+- removed reliance on tmpnam() in main.c -- gcc complains about
+  it allowing a race condition on the use of the name returned.
+  we now use fixed local names for the temporary files.
+  there could be a problem now if two users run spin within the
+  same directory simultaneously -- but that problem already
+  exists with xspin as well (pan.tmp and pan.pre) and is
+  easily avoided. (if needed, we could add a locking mechanism
+  at some point, but this seems overkill for the time being.)
+- the -m option now works the same in breadth-first search as it
+  does in depth-first search.  there's less of a strict reason
+  to cutoff the search at the -m depth with bfs, since the
+  stack is not pre-allocated in this case; it grows dynamically.
+  by setting -m to a very large number, one can therefore just
+  let the verifier proceed until it exhausts memory, or finishes
+  (that is to recreate the earlier behavior when needed).
+- increased the size of some internal arrays a bit to better
+  accomodate the use of very long identifier or structure names.
+- much improved rule for creating and locating error trail files:
+  if possible, the trail file is created by appending .trail
+  to the filename of the source model
+  some older operating systems don't like it if the filename
+  for the source model already contains a period, so if a
+  failure is detect, a second attempt is now made by stripping
+  the existing . extesion (e.g., .pml) and replacing it with
+  .trail (some os's also truncate this to .tra, which is also
+  accepted).
+
+==== Version 4.0.3 - 3 April 2003 ====
+
+- no verbose steps printed for never claim in guided simulations
+  unless -v is given as a commandline argument
+  state changes in the never claim are still printed, but with
+  the already existing separate output ("Never claim moves to...") 
+- new spin command-line option -I, to reproduce a version of the
+  specification after preprocessing and inlining operations are
+  done.  the reproduced code is not complete: declarations and
+  process parameters are skipped, some internally generated labels
+  and jumps (e.g., replacing break statements) also become visible.
+  the version is intended only to show what the effect of inlining
+  and preprocessing is.
+- change in sched.c to suppres printing of final value of variables
+  marked 'show' -- this looks like an assignment, which is confusing.
+- small fixes in xspin, which is now xspin402.tcl
+- in guided simulation mode, when a claim from an ltl property is
+  present, the simulator's pid nrs did not always agree with the
+  verifiers numbers -- this could lead to the wrong name for a
+  process being printed in the simulation trails.
+
+==== Version 4.0.4 - 12 April 2003 ====
+
+- there was a bug in 4.0.3 that prevented successful compilation
+  of pan.c (and unbalanced endif, caused by a missing newline
+  character in pangen1.h on line 3207)
+- there was a maximum of 128 variables that could be changed per
+  atomic sequence, this is now 512.
+
+==== Version 4.0.5 - 29 May 2003 ====
+
+- correction in the reporting of process id's during guided simulation.
+  the numbers could be off by one when never claims are used.
+  (just a reporting problem, the run itself was always correct)
+- increased bounds on the length of strings passed as preprocessor
+  commands
+- explicit cast of return value ot strlen to int, to keep compilers
+  happier
+- fixed subtle bug in the fairness option (reported by Dragan
+  Bosnacki).  with fairness enabled, standard claim stutter could
+  in special cases cause a false acceptance cycle to be reported
+  (i.e., a cycle not containing an accepting state).
+  for compatibility, the old behavior can still be obtained by
+  compiling the pan.c verifiers with -DOLDFAIR. the default is
+  the fixed algorithm.
+- restricted the maximum length of a string in the lookup table
+  for c_code segments to 1024 characters.  this table is only used
+  to print out the code segment in error traces -- so the truncation
+  is cosmetic, not functional.  it avoids compiler complaints about
+  excessively long strings though (which could prevent compilation).
+- improved error reporting when a value outside the range of the
+  target data type is passed as an parameter in a run statement
+
+==== Version 4.0.6 - 29 May 2003 ====
+
+- the fix of the fairness option wasn't quite right.
+  directive -DOLDFAIR is gone again, and the real fix
+  is now in place.
+
+==== Version 4.0.7 - 1 August 2003 ====
+
+.------------------------------------------------------.
+| Version 4.0.7 is the version of Spin that is         |
+| described in the Spin book (Addison-Wesley 2003)     |
+| and that is used for all examples there              |
+| http://spinroot.com/spin/Doc/Book_extras/index.html  |
+.------------------------------------------------------.
+
+- added (really restored) code for allowing separate
+  compilation of pan.c for model and claim
+  two new (previously undisclosed) commandline
+  options -S1 and -S2 -- usage documented in the new book
+
+- if it is detected that a c_expr statement definitely has
+  side effects, this now triggers a fatal error.
+
+- complains about more than 255 active processes
+  being declared in active prefix
+
+- fix in -A option: removed bug in handling of eval()
+
+- cosmetic changes:
+  endstate and end-state are now spelled 'end state' as
+  preferred by Websters dictionary (...)
+  hash-array, hash-table, and never-claim similarly
+  are now spelled without hyphens
+
+- improved error replay for models with embedded c code
+
+- the -m option is no longer automatically set in guided
+  simulation runs.
+
+- change spin.h to allow it to be included twice without
+  ill effects (happens in y.tab.c, generated from spin.y)
+
+- updated the make_gcc file for newer versions if cygwin
+
+==== Version 4.1.0 - 4 December 2003 ====
+
+- new spin option -h, when used it will print out the
+  seed number that was used for the random number
+  generator at the end of a simulation run -- useful
+  when you have to reproduce a run precisely, but forgot
+  to set an explicit seed value with option -n
+
+- c_track now has an optional extra argument, to be
+  documented - the extra qualifier cannot be used with BFS
+  (spin.h, spin.y, spinlex.c, pangen4.c, ...)
+
+- the documentation (book p. 41) says that unsigned data
+  can use a width specifier up to 32 bits -- it actually
+  only worked up to 31 bits. it now works as advertised.
+  fix courtesy of Doug McIlroy. (vars.c)
+
+- when trying to compile a model without initialized
+  channels, a confusing compiler error would result.
+  now avoided (spin.y, pangen1.c)
+
+- there is no longer a default maximum memory arena
+  on verifications, that would apply in the absence of
+  an explicit -DMEMCNT or -DMEMLIM setting (the default
+  was 256 Mb).
+
+- some more fixes to account for 64bit machines, courtesy
+  of C. Scott Ananian.
+
+- from Dominik Brettnacher, some instructions on compiling Spin
+  on a Mac under OS X, added to the installation README.html
+  file.
+
+- so far you could not use a -w parameter larger than
+  31 during bitstate search -- this effectively limited
+  the max bitarray to about 512Mb.  the max is now -w32
+  which extends this to 1Gb (i.e., 4 10^9 bits).
+  (really should be allowed to go higher, but wordsize
+  gets in the way for now.)
+
+- suppressed a redundant 'transition failed' message
+  that could occur during guided simulations (guided.c)
+
+- fixed a long standing bug that could show up if the last
+  element of an atomic sequence was itself a sub-sequence
+  (e.g., defined as an inline or as an unless stmnt).
+  in those cases, atomicity could be lost before the
+  last statement (sequence) completed. (flow.c)
+
+- fixed two long standing bugs in parsing of
+  nested unless structures. the bug showed up in
+  a double nested unless that is itself embedded in a
+  non-atomic block. symptom was that some code became
+  unreachable (thanks to Judi Romijn for the example).
+  goto statements that survived state machine optimization
+  also did not properly get tagged with escape options.
+
+- also fixed a bug in handling excessively long assertion
+  strings (larger than 999 characters) during verification
+
+- revised the way that c_track is implemented (the points
+  where c_update and c_revert are called) to make it a
+  little easier to maintain
+
+- removed some no longer used code from pangen1.h
+
+- fixed bug in treatment of rendezvous statements in BFS mode
+
+- xspin408.tcl update: compiler errors are now printed in the
+  log window, as they should have been all along...
+  (courtesy Doug McIlroy)
+
+==== Version 4.1.1 - 2 January 2004 ====
+
+- extended bitstate hashing on 32-bit machines to work correctly
+  with -w arguments up to and including -w34 (courtesy Peter Dillinger)
+- reduced amount of memory allocated to dfs stack in bitstate
+  mode to something more reasonable (it's accessed through a
+  hash function -- now related to the maxdepth, not the -w
+  parameter
+- fixed bug that could cause problem with very long assertions
+  (more than 256 characters long)
+
+- in xspin411, verbose mode during verifications is now default
+  (it adds line numbers reached in the never claim to the output)
+- small fixes to the search capability in most text windows
+
+==== Version 4.1.2 - 21 February 2004 ====
+
+- fixed bug in support for notrace assertions (the pan.c would
+  not compile if a notrace assertion was defined)
+- fixed unintended feature interaction between bitstate search
+  and the -i or -I runtime flags for finding the shortest
+  counter-example
+- some cosmetic changes to ease the life of static analyzers
+- fixed implementation of Jenkins function to optionally
+  skip a semi-compression of the statevector -- to increase speed
+  (pointed out by Peter Dillinger)
+- fixed bug in resetting memory stack arena that could show up
+  in iterative verification runs with pan -R argument
+  (also found by Peter Dillinger)
+- new version of xspin 4.1.2, with a better layout of some
+  of the panels
+
+==== Version 4.1.3 - 24 April 2004 ====
+
+- changed from using "cpp" by default to using "gcc -E -x c"
+  given that most users/systems have gcc anyway to compile c programs
+  and not all systems have cpp in a fixed place.
+  there should be no visible effect of this change.
+
+- a rendezvous send operation inside an atomic sequence was
+  incorrectly accepted as a candidate for merging with subsequent
+  statements in the atomic sequence. it is the only type of statement
+  that can cause loss of atomicity (and a switch to another process)
+  when *executable* (rather than when blocking, as is the case for
+  all other types of statements, including asynchronous sends).
+  this is now fixed, such that if there is at least one rv channel
+  in the system, send operations inside atomic sequences cannot
+  be merged with any other statement
+  (in general, we cannot determine statically if a send operation
+  targets an rv channel or an asynchronous channel, so we can only
+  safely allow the merging if there are no rv channels at all).
+  this can cause a small increase in the number of stored states
+  for models with rendezvous cannels
+
+- counter-examples produced for liveness properties (non-progress or
+  acceptance cycles) often contained one step too many -- now fixed
+
+- added check for reuse of varnames in multiple message fields
+  i.e., q?x,x is not allowed (would cause trouble in the verifier)
+
+- added a warning against using a remote reference to a label
+  that is declared inside an atomic or d_step sequence -- such
+  labels are always invisible to the never claim (since the
+  executing of the sequence containing the label is meant to be
+  indivisible), which can cause confusion.
+
+- "StackOnly" can be used as an alternative to "UnMatched" when used
+  as the optional 3rd argument a c_track primitive (see Spin2004 paper)
+
+==== Version 4.2.0 - 27 June 2004 ====
+
+- main.c now recognizes __OpenBSD__ and treats it the same as __FreeBSD__
+
+- general cleanup of code (removing some ifdefs etc)
+
+- allow reuse of varnames in multiple message fields (see 4.1.3) if
+  var is an array variable (e.g., using different elements)
+
+- deleted support for directive -DCOVEST -- replaced with -DNOCOVEST
+
+- deleted support for directive -DHYBRID_HASH
+
+- deleted support for directive -DOHASH, -DJHASH, -DEXTENDED
+  added -DMM for an experimental/debugging mode (non-documented)
+
+- replaced Jenkins' original hashfunction with an extended version
+  contributed by Peter Dillinger.
+  it uses more of the information to generate multiple pseudo hash values
+  (multi-hashing with anywhere from 1,2,... hash-functions)
+
+- added runtime verifier flag -k to support multi-hashing in Bitstate mode.
+  pan -k2 reproduces the default behavior, with 2 bits set per state.
+  pan -k1 is the same as the old pan -s (which also still works).
+  (as also first suggested by Dillinger and Manolios from Georgia Tech.)
+
+- some more useful hints are generated at the end of each bitstate
+  run about possible improvements in coverage, based on the results
+  obtained in the last run.
+
+- updated xspin420.tcl to match the above changes in verification options.
+
+==== Version 4.2.1 - 8 October 2004 ====
+
+- improvement of BFS mode for partial order reduction, thanks to
+  Dragan Bosnacki
+- fewer redundant declarations and fewer complaints from static analyzers
+- a d_step could under some circumstances interfere with a rendezvous
+  in progress (e.g., when the d_step started with an if statement, or
+  when it started with a send or receive rather then a straight guard
+  condition (i.e., an expression).  this now works as it should.
+- 4.2.0 attempted to make support for coverage estimates the default.
+  this, however, means that on some systems the pan.c source has to be
+  compiled with an additional -lm flag (for the math library)
+  coverage estimates had to be turned off explicitly by compiling with
+  -DNOCOVEST
+  in 4.2.1 the earlier default is restored, meaning that you have to
+  specify -DCOVEST to get the coverage estimates (and presumably you
+  will then know to compile also with -lm)
+- fixed bug that caused an internal name conflict on the verification
+  of the mobile1 model from the Test distribution
+- fixed a problem that prevented having more than 127 distinct proctypes
+  the max is now 255, the same as the max number of running processes.
+- fix to restore bitstate hashing to work on 64-bit machines
+  we still only compute a 32-bit hash; the largest usable bitstate
+  hash-array remains 2^35 bits (i.e., 2^32 bytes or 4 Gigabytes).
+  (the maximum on 32-bit machines remains -w34 or 2 Gigabytes)
+  for 64-bit mode, we will extend this soon to take advantage of
+  larger memory sizes available on those machines. [see 4.2.5]
+- the default number of hash-functions used in bitstate hashing
+  is now 3 (equivalent to a runtime option -k3), which gives slightly
+  better coverage in most cases
+
+==== Version 4.2.2 - 12 December 2004 ====
+
+- verifiers now can be compiled with -DRANDOMIZE (for dfs mode only)
+  to achieve that transitions within each process are explored in
+  random, rather than fixed, order. the other in which processes are
+  explored remains fixed, with most recently created process explored
+  first (if we can think of a good way of supporting random mode
+  for this, we may add this later).  if there is an 'else' transition
+  among the option, no randomization is done (since 'else' currently
+  must be explored as the last option in a set, to work correctly).
+  this option can be useful to get more meaningful coverage of very
+  large states that cannot be explored exhaustively.
+  the idea for this option is Doron Peled's.
+- fixed a limitation in the pan.c verifiers that prevented the use
+  of channels with more than 256 slots.  this should rarely be an
+  issue, since very large asynchronous channels are seldomly useful
+  in verifications, but it might as well work.
+- fix to avoid a compiler complaint about a missing prototype when
+  compiling pan.c with -DBFS
+- renamed error message about us of hidden arrays in parameter list
+  to the more accurate description 'array of structures'
+
+==== Version 4.2.3 - 5 February 2005 ====
+
+- _pid and _ are no longer considered global for partial order reduction
+- fixed bug that could lead to the error "confusing control structure"
+  during guided simulations (replay of error trails)
+- fixed problem where an error trail could be 1 step too long for
+  invalid endstate errors
+- added experimental 64-bit hash mode for 64-bit machines,
+  compile pan.c in bitstate mode with the additional directive -DHASH64
+  the code is by Bob Jenkins: http://burtleburtle.net/bob/c/lookup8.c
+  [placeholder for a later extension for 64 bit machines]
+
+==== Version 4.2.4 - 14 February 2005 ====
+
+- added missing newline after #ifdef HASH64 -- introduced in 4.2.3
+  this caused a compiler warning when compiling pan.c in -DBITSTATE mode
+- a terminating run ending in an accept state was not stutter extended
+  unless a never claim was defined.  this now works also without a
+  never claim, provided that a search for acceptance cycles is performed.
+  in the absence of a never claim the corresponding error type is
+  called a 'accept stutter' sequence (to distinguish it from 'claim stutter')
+  (bug report from Alice Miller)
+  the extension is disabled if the compiler directive -DNOSTUTTER is used,
+  just like for the normal claim stutter extension rule
+- added support for using -DSC on file sizes larger than 2Gb (courtesy Hendrik Tews)
+- in simulation mode, the guard statement of a d_step sequence was not
+  subject to escape clauses from a possible unless statement, contrary to the
+  language spec. in verification mode this did work correctly; simulation mode fixed.
+  (courtesy Theo Ruys and David Guaspari)
+- added warning for use of an 'unless' construct inside a d_step sequence
+
+==== Version 4.2.5 - 2 April 2005 ====
+
+- the default bitstate space size is now 1 Mb (was 512K)
+- the default hashtable size in exhaustive mode is now 512K slots (was 256K)
+- fixed memory leak that can bite in very long simulation runs
+  (courtesy Hendrik Tews)
+- now turns off dataflow optimization (setting dead variables to 0)
+  when remote variable references are used. (this is a little bit of
+  overkill, since we'd only need to turn it off for the variables
+  that are being monitored from the never claim, but it is simple and safe)
+- you can now compile pan.c with -DHASH64 to invoke a 64bit Jenkins hash,
+  (enabled by default on 64bit machines) or disable it by compiling with -DHASH32
+  (which is the default on 32bit machines)
+  the 64-bit version of Spin (and of the pan.c files it generates) has now been
+  fully tested; this means that we can now use more than 4 Gbyte of memory, both
+  in full state and in bitstate mode.
+- added pan runtime options -M and -G (inspired by the work of Peter Dillinger
+  and Panagiotis Manolios on 3Spin), with a simple implementation.
+  (the code for pangen1.h actually got smaller in this update).
+
+  these two new options are available in bitstate mode only and allow the user to
+  define a bitstate hash array that is not necessarily equal to a power of two.
+  if you use -M or -G, then this overrides any other setting you may have
+  used for -w.  for example:
+	pan -M5 will use a hash array of 5 Megabytes
+	pan -G7 will use a hash array of 7 Gigabytes.
+  use this instead of -w when the hash array cannot be a power of 2 bytes large.
+  pan -M4 is technically the same as pan -w25 in that it will allocate
+  a hash array of 4 Megabytes (2^(25-3) bytes), but it can be slower
+  because indices into the hash-array are now computed with a modulo operator
+  instead of with faster bit masks and bit shifts. similarly,
+  pan -G1 is technicall the same as pan -M1024 or pan -w33
+  whether the use of -M and -G is slower than -w depends on your compiler.
+  many modern compilers (e.g. gcc and microsoft visual studio) will automatically
+  optimize the hash array access anyway when it effectively is a power
+  of two large (i.e., independent of whether you use -w25 or -M4).
+  in a small set of tests on  a 2.5 GHz machine, using both gcc and the MS
+  compilers, no meaningful difference in speed when using -M or -G could be
+  measured, compared with -w (not even for non powers of two hash array sizes).
+  (the difference in runtime was in the order of 3 to 4%).
+
+==== Version 4.2.6 - 27 October 2005 ====
+
+- mostly small fixes -- one bug fix for reading error trails on 64bit machines
+  (courtesy Ignacy Gawedzki)
+- the full tar file now creates all files into a single common directory named
+  Spin, which will simplify keep track of versions and updates
+- small update of xspin as well (now xspin4.2.6)
+  the main change in xspin is that on startup it will now look for a file with
+  the same name as the filename argument given (which is typically the name of
+  the file with the Promela model in it) with extension .xsp
+  so when executing "xspin model"  the command will look for a file "model.xsp".
+  xspin will read this file (if present) for commands to execute upon startup.
+  (very useful for demos!)
+  commands must start with either "X:" or "L:"
+  an L: command must be followed by a number, which is used to set the number of
+  lines that should be visible in the command log window
+  an X: command can be followed by any shell command, that xspin will now execute
+  automatically, with the output appearing in the command log window
+  an example .xsp file:
+
+X: spin -a model
+L: 25
+X: nice gcc -DMEMLIM=1000 -DCOLLAPSE -DSAFETY -DREACH -o pan pan.c
+X: nice time -p ./pan -i -m150
+X: spin -t -c -q3 model
+X: cp model.trail pan_in.trail
+
+==== Version 4.2.7 - 23 June 2006 ====
+
+- change in pc_zpp.c, courtesy of Sasha Ivanov, to fix an incorrect order of
+  preprocessing directives -- scanning "if" before "ifdef" and "ifndef"
+
+- all 3 very dubious types of statements in the following model were erroneously
+  accepted by Spin version 4.2.6 and predecessors.
+  they no longer are -- courtesy of the class of 2006 @ Caltech CS
+	active proctype X() {
+		chan q = [2] of { int, int };
+
+		_nr_pr++;	/* change the number of processes... */
+		_p = 3;		/* change the state of process X.... */
+		q!2(run X());	/* something really devious with run */
+	}
+
+- added the compiler directive __NetBSD__
+
+- the vectorsize is now always stored in an unsigned long, to avoid
+  some obscure bugs when the size is chosen too small
+
+- fix in the parsing of LTL formulae with spin -f to make sure that
+  unbalanced braces are always detected
+
+- added warning against use of rendezvous in BFS mode -- which cannot
+  guarantee that all invalid endstates will be preserved
+
+- minor things: make_pc now defaults to gcc instead of cl (the microsoft
+  visual studio compiler)
+
+- xspin4.2.7 disables some bindings that seem to be failing
+  consistently now on all platforms, although the reason is unclear
+  (this occurs in the automata view and the msc views, which are supposed
+  to track states or execution steps to source lines in the main text
+  window -- instead these bindings, if enabled, now seem to hang the gui)
+
+==== Version 4.2.8 - 6 January 2007 ====
+
+- added optimizations in cycle search described by Schwoon & Esparza 2005,
+  in  'a note on on-the-fly verification algorithms' and in
+  Gastin, Moro, and Zeitoun 2004, 'Minimization of counter-examples in Spin'
+  to allow for early detection of acceptance cycles, if a state is found
+  on the stack that is accepting, while still in the 1st dfs. the version
+  also mentioned in Schwoon & Esparza -- for the case where the source state
+  of such a transition is accepting -- is also included.
+
+- eleminated many of the #ifdef PC directives that distinguished between
+  use of y.tab.h and y_tab.h which is no longer needed with the newer
+  versions if yacc on cygwin (e.g., bison yacc)
+
+- the use of a non-local x[rs] assertion is now fatal
+
+- fixed small problem where scheduler could lose track of a process during
+  simulations
+
+- small rewrites for problems spotted by static analyzers
+
+- restored correct working of separate compilation option (-S[12])
+
+- fixed initialization problem with local variables (making sure that
+  a local can be initialized with a parameter or with the value of a
+  previously declared and initialized local
+
+- emalloc now returns NULL when 0 bytes are requested (robert shelton 10/20/06)
+
+- using _stat instead of stat on WIN32 platforms for compatibility with cl.exe
+
+- avoided a problem with non-writable strings, in pan.c
+
+- renamed QPROVISO to Q_PROVISO in preparation for related updates in 4.3.0
+
+- fixed problem with the final transition of an error trail sometimes
+  not appearing in the trail file (alex groce)
+
+==== Version 4.2.9 - 8 February 2007 ====
+
+- the optimization for cycle search from 4.2.8 wasn't complete -- it could cause
+  annoying messages to show up, and the start of a cycle not being identified
+  in all cases (Moti Ben-Ari) -- it now works they way it was intended
+
+- made it possible to compile pan.c with visual studio, provided that -DWIN32 or
+  -DWIN64 are included in the compiler directives; see make_pc for an example.
+  without this, file creat calls would crash the application -- because the windows
+  implementation of this call uses its own set of flags...
+
+- the spin parser now flags all cases where the wrong number of parameters
+  is specified in a run statement (as suggested by Klaus Havelund)
+
+- it is now possible to use a c_expr inside an expression, e.g. as in
+	x[ c_expr { 4 } ] = 3 or x[ c_expr { f() } ]  (Rajeev Joshi)
+
+- a new option for ./pan when embedded C code is used: -S to replay the
+  error trace without printing anything other than the user-defined printfs
+  from the model itself or from inside c_code fragments - (Rajeev Joshi)
+
+==== Version 4.3.0 - 22 June 2007 ====
+
+- bug fix (thank you Claus Traulsen) for goto jumps from one atomic
+  sequence into another. if the first was globally safe, but the second
+  was not, then an erroneous partial-order reduction was possible
+- small changes based on static analyzer output, to increase robustness
+- smaller pan.c files generated if huge arrays are part of the model
+- more accurate reporting of statecounts in bitstate liveness mode
+- better portability for compilation with visual studio
+- likely to be the last spin version 4 release -- the next should be 5.0
+  which supports safety and liveness verification on multi-core systems
+
+==== Version 5.0 - 26 October 2007 ====
+
+- lots of small changes to make the sources friendlier to static analyzers,
+  like coverity, klocwork, codesonar, and uno, so that they find fewer things
+  to warn about
+- improved check for a match of the number of operands specified to a run
+  operator with the number of formal parameters specified for the proctype
+  (courtesy an example by Klaus Havelund)
+- memory counts are now printed properly as MB quantities (divided by
+  1024*1024 instead of 1,000,000)
+- more accurate treament of atomic sections that contain goto statements,
+  when they jump into a different atomic section (especially when the two
+  atomics have different properties under partial order reduction)
+  (courtesy and example by Claus Traulsen)
+- improvement treatment of run statements for processes that initialize
+  local variables with global expressions. in these cases the run
+  statement itself is now recognized as global -- otherwise it can still
+  be treated as local under partial order reduction rules
+- improved treatment of variable update printing when xspin is used.
+  before, large structures were always full printed on every step, which
+  could slow down xspin significantly -- this now happens only if there
+  was a change of at least one of the values printed.
+
+  Additions:
+- support for use of multi-core systems, for both safety and liveness
+  properties. see: http://www.spinroot.com/spin/multicore/
+- added the time of a run in seconds as part of all outputs, and in many
+  cases also the number of new states reached per second
+
+- new compile-time directives for pan.c supported in Version 5.0 include:
+	NCORE, SEP_STATE, USE_DISK, MAX_DSK_FILE, FULL_TRAIL, T_ALERT
+  and for more specialized use:
+	SET_SEG_SIZE, SET_WQ_SIZE, C_INIT, SHORT_T, ONESECOND
+  the following three can be left unspecified unless prompted by pan itself
+  on a first trial run:
+	VMAX, PMAX, QMAX,
+  the use of all the above directives is explained in
+	http://www.spinroot.com/spin/multicore/V5_Readme.html
+  for typical multi-core applications only the use of -DNCORE=N is
+  typically needed
+- a small number of other new directives is not related to the use of
+  multicore verifications - their use is also explained (at the very
+  bottom of) the V5_Readme.html file mentioned above. they are:
+	FREQ, NUSCC, BUDGET, THROTTLE, LOOPSTATE, NO_V_PROVISO

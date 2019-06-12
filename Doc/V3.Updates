@@ -1,0 +1,925 @@
+Distribution Update History of the SPIN sources
+===============================================
+
+==== Version 3.0.0 - 12 August 1997 ====
+
+A new release, a new V3.Updates file.  See the end
+of the V2.Updates file for the main changes between
+the last version 2.9.7 and the new version 3.0.0.
+
+Spin Version 1 lasted from Jan. 1990 - Jan.   1995.
+Spin Version 2 lasted from Jan. 1995 - August 1997.
+
+The shell script upgrade2 will take any version of
+Spin between version 2.7 and 2.9 to version 3.0.
+Upgrades from 3.0 forward will appear in a new shell
+script upgrade3, to keep the file small.
+
+==== Version 3.0.1 - 19 August 1997 ====
+
+- on older PC's the hashing behavior could be substandard.
+  on those systems an int is often interpreted as a 16 bit,
+  instead of a 32-bit quantity.  the fix made is to declare
+  the relevant variables as long integers instead of plain
+  integers. there is no visible difference for other systems.
+- printf accidentily picked up a redundant newline in 3.0.0
+  it is gone again.
+- interactive use of spin models with rendez-vous statements
+  could get hung in some cases.
+
+==== Version 3.0.2 - 24 August 1997 ====
+
+- improved the fix for interactive use of rv's from 3.0.1
+- the parser now catches the use of 'run' to initialize
+  global variables as an error.
+- the parser now catches the use of any initializer on
+  a formal parameter in a proctype as an error.
+- addition of a new datatype to Promela: unsigned
+  usage:
+	unsigned name : 3;
+  declares 'name' to be a variable that can hold unsigned
+  values -- stored in 3 bits (i.e., values 0..7 inclusive).
+  values outside the declared range are truncated to the
+  range on assignments
+- d_step may now appear inside and atomic and vice versa
+- extra option -E to pass arguments to the C preprocessor
+  usage:
+	spin -E-Dfoo=faa filename
+  to redefined foo as faa in the filename
+	spin -Pmy_cpp -E-E filename
+  use my_cpp as the preprocessor (replacing cpp) and
+  pass it flag -E when it is called.
+
+==== Version 3.0.3 - 8 September 1997 ====
+
+- unsigned variables weren't cast correctly during
+  simulation runs --
+- warnings about variables being of too generous a type
+  are now only generated when the -v verbose option is set
+- extra warnings, on use of channels, are now also
+  generated with spin -v -- still more with spin -v -g 
+- can now pass directives to the preprocessor with a simpler
+  spin option -D..., e.g., spin -DLOSS=1 spec
+  the earluer -E-D... also still works
+- a few more additions to xspin303.tcl
+
+==== Version 3.0.4 - 25 October 1997 ====
+
+- now accepts truncated extensions of pan.trail
+  (often visible only as pan.tra) on PCs
+- now recognizes compiler directive __FreeBSD__
+- redundant include file <malloc.h> deleted from main.c
+- now properly initializes all channels hidden in typedef
+  structures
+- made it possible to generate structural views of the
+  promela model, but tracking channel uses (more to come)
+- added pc_zpp.c to the sources - used only on the pc
+
+==== Version 3.0.5 - 5 November 1997 ====
+
+- corrected bug in the builtin macro preprocessor of the
+  PC-version (only) of spin.  if the first literal match
+  of the macro source failed to be a valid replacement string,
+  no further matches were tried on that line
+- corrected bug in interactive simulation mode that could
+  cause a failure to return control to the user
+
+==== Version 3.0.6 - 16 December 1997 ====
+
+- a value that is truncated in an assignment to a variable
+  of a small type triggered an error message that sometimes
+  could cause xspin to miss a display update for the variable
+  values pannel.
+- on a -c flag spin was a little too talkative, assuming also
+  a -v verbose flag for the final detail printed at the end of
+  a simulation run.
+- fixed an error in the processing of logical OR in the presence
+  of the X operator in LTL formulae -- this only affected the
+  outcome of a translation if Spin was compiled with -DNXT
+  to enable the LTL next-time operator (this is not enabled by
+  default, because it jeopardizes compatibility with the partial
+  order reductions)
+- a check for non-progress, in combination with provided clauses
+  on proctypes, could fail. the omission was that the never claim
+  process searched for its own provided clause, which should in
+  this case default to true.
+- the restriction that the use of any provided clause voided the
+  partial order reduction was much too strict: it suffices to mark
+  all statements in only the proctype that is labeled with a
+  provided clause unsafe -- other processes are not affected.
+- added new Test/pathfinder example to the Test directory,
+  illustrating the use of provided clauses
+- the standard stutter extension on finite sequences is not
+  allowed to produce non-progress cycles, but in combination with
+  the weak-fairness option this erroneously could happen.
+  (stutter-extension on temporal claim matches is only applied
+  to standard acceptance properties, under runtime option -a)
+- there was an error in the implementation of weak fairness
+  that could cause the algorithm to miss matching acceptance or
+  non-progress cycles with weak-fairness enabled.  a small change
+  in the implementation of this option (incrementing the Choueka
+  counter values by 1) repairs this flaw.
+
+==== Version 3.0.7 - 18 December 1997 ====
+
+- the check on a self-loop, added in 3.0.6, unintentionally also
+  ruled out self-loops in never claims, which are harmless (e.g.,
+  to allow for a finite prefix of 'true' propositions).
+
+==== Version 3.0.8 - 2 January 1998 ====
+
+- with fairness enabled, a process was considered to be temporarily
+  blocked while other processes performed a rv handshake.  this
+  could cause a cycle to be reported as fair that normally would not
+  be considered as such. fairness rule 2 was updated to avoid this.
+- an assignment beginning a dstep sequence was incorrectly considered
+  to be executable in the middle of a rendezvous handshake in progress
+  elsewhere.
+
+==== Version 3.0.9 - 11 January 1998 ====
+
+- rendezvous communications lacked an arrow in the new postscript
+  output generated with spin option -M
+- new predefined channel name STDIN for reading a character from
+  the standard input as in:
+	chan STDIN;
+	short c;
+	do
+	:: STDIN?c ->
+		if
+		:: c == -1 -> /* EOF */
+			break
+		:: else ->
+			printf("%c", c)
+		fi
+	od
+- to match this, added support for recognizing character
+  symbols in Promela such as 'i', '\n', '\t', '\r', etc.
+- fixed the bug that prevented weak fairness from being
+  turned off during verifications.... (bug introduced in 3.0.8)
+- small improvements in error catching (mostly related to
+  illegal structure references)
+
+==== Version 3.1.0 - 27 January 1998 ====
+
+- all transitions from a local process state that is referenced
+  within the never claim (or ltl property) are now properly labeled
+  as unsafe in the partial order reduction
+- a d_step that appears at the last statement in a proctype no longer
+  generates an error in the simulator
+- the predefined variable _last is now updated correctly during the
+  verification process (thanks Pedro Merino for the examples)
+- weak fairness is now considered incompatible with partial order reduction
+  in models that contain rendezvous operations (thanks Dennis Dams for
+  the example that revealed this)
+
+==== Version 3.1.1 - 28 January 1998 ====
+
+- fixed a goof in pc_zpp.c -- only visible in the precompiled PC
+  version.  symptom: it would fail to expand some macros with the
+  builtin version of cpp.  in particular, it would fail on the
+  testcase: Test/leader from the distribution (thanks Mike Ferguson).
+
+==== Version 3.1.2 - 14 March 1998 ====
+
+- added a Cut/Copy/Paste meny to the text window of xspin version 3.1.2
+  (big convenience), plus a few smaller fixes
+- the verifiers generated by spin have two extra run-time options:
+	-E to ignore all invalid endstate errors
+	-A to ignore all assert() violations
+- added #include <strings.h> to pan.c
+- main in pan.c is now properly typed 'int' instead of 'void'
+- the following change, introduced in 2.9.0, was unnecessary
+	- assignments to channel variables can violate xr/xs assertions.
+	  there is now a check to catch such violations
+  the check is removed:
+  when an xr channel variable is assigned to, it's old value is simply lost.
+  it was the old value (operations on the channel that the value pointed
+  to) that the xr/xs assertion applied to, not to the variable name as such.
+  operations on the new channel id that the variable now points to
+  are subject to the same xr/xs claims as the old one did.
+- new argument to spin:
+	spin -N claimfile ... promelaspec
+  reads the never claim from 'claimfile'
+  (the main filename 'promelaspec' is always the last argument)
+- new argument to spin
+	spin -C promelaspec
+  prints some channel access info on stdout, useful for producing
+  a structural view of the system
+  (used to be an added output in spin -v)
+- fixed bug in pan.c that caused some states created during claim stutter
+  from not being removed from the dfs stack.  should rarely have occured.
+- all the above extensions are supported in Xspin 3.1.2
+- redesigned Xspin's LTL properties management dialogue panel
+- fixed problem with hanging of long simulations on pc's
+  (a buffer overflow problem internal to windows95/nt)
+
+==== Version 3.1.3 - 16 March 1998 ====
+
+- small bug fix in sym.c -- reported too many variables as
+  unused on a spin -a -v spec
+- small bug fix in xspin312.tcl -- replaced "else if" with "elseif"
+- both bugs reported by Theo Ruys within hours after the release of 3.1.2
+  thanks Theo!
+
+==== Version 3.2.0 - 7 April 1998 ====
+
+- a modest extension of the language:
+  there is now a procedure-like construct that should reduce the need
+  for macros.  Promela 'inline' functions preserve linenumber
+  references in simulations (at least, that's the idea).
+  an inline definition look like this (appearing outside all proctypes)
+
+	inline functionname(x, y) {
+		...a promela fragment...
+	}
+
+  a call looks like this -- and can appear wherever a statement can appear:
+
+	functionname(4, a);
+
+  the replacement text is inlined by the parser, with proper parameter
+  matching and replacement.
+  inlines can be recursive (one inline can call another), but not cyclic.
+
+  there is still no local scope for variables.  this means that the scope
+  of any local variable declared is always the entire proctype body --
+  no matter where it is declared.
+  local variables may be declared at the start of an inline -- but such
+  variables have the same status as a local variable at the place of the call.
+
+- added an example to the Test directory, illustrating inlines (Test/abp)
+
+- timeout is no longer automatically enabled and available as a
+  user-selectable option during interactive simulation.  it could cause
+  counter-intuitive behavior, e.g. when the timeout was used in an unless-
+  escape
+- 'else' is now flagged as unexecutable when appropriate during interactive
+  simulations -- where possible it is offered as a choice so that an
+  execution can be forced in a given direction.
+- small fixes and fiddles with xspin
+
+==== Version 3.2.1 - 4 July 1998 ====
+
+- added compile time directive HC, for a version of Wolper's hash-compact
+  algorithm.  it can speed up the search, and reduce memory requirements,
+  with a relatively low probability of hash-collisions (or missed states).
+  this is a modification of exhaustive search where we store a 32-bit
+  hash-value in the hash-tables, as a compressed state vector.
+  the effective size of the compressed state-vector is the width of the
+  hash-table itself (controlled by the runtime -w parameter) plus 32 bits
+  (by default this is: 18+32 = 50 bits of information).
+  the hash-table entries have some additional overhead which pushes total
+  memory usage slightly higher -- but the memory reductions can be quite
+  substantial (depending, trivially, on the length of the state vector
+  without compression)
+  to enable: compile pan.c with -DHC (perferably combined with -DSAFETY)
+- fixed fgets problem discovered by Theo Ruys
+  (problem: newlines could accidentily be added to the input text)
+- fixed two bugs in dstep code generated in pan.c; improved error reporting
+- fixed bug in processing of include files, when an ltl claim is used
+
+==== Version 3.2.2 - 21 July 1998 ====
+
+- generalized the hash-compact implementation
+  by default (compiling pan.c with -DHC) 6 bytes are stored:
+  4 bytes from the first hash and 2 bytes from a second hash
+  this gives 32+16 = 48 bits of information, which should secure
+  a very low collision probability
+  alternatives are -DHC0 (for 32 bits) -DHC1 (for 40 bits) -DHC2 (48 bits)
+  and -DHC3 (56 bits).
+- reversed the order in which the transitions in a never claim are
+  generated -- this tends to shorten the counter-examples generated
+  (by putting the 'true' self-loops that at the end of the list, rather
+  than at the beginning).  Thanks to Dragan Bosnacki.
+- fixed a bug in xspin.tcl that could cause the application to hang
+  when used on a PC (e.g., any simulation of leader...).
+  (this synchronization bug was introduced in 3.1.4.)
+
+==== Version 3.2.3 - 1 August 1998 ====
+
+- an atomic that ends with a jump into another
+  atomic sequence, now connects correctly without
+  breaking atomicity
+- the choice of a rendezvous partner for send operations
+  wasn't random during simulations (when multiple targets
+  for the rendezvous are available).  it is now.
+- fix in xspin to avoid confusion between proctype names
+  with a common prefix, in rendering an automaton view
+- fix in pc_zpp.c for occasional incorrect comment processing
+  and incorrect #define processing (affected the PC version only)
+
+==== Version 3.2.4 - 10 January 1999 ====
+
+modifications:
+- replaced type "unsigned" in parameter to Malloc and emalloc
+  with "unsigned long long" to support 64 bit word size machines
+  (thanks to Judi Romijn's experiments at CWI)
+  (may not be recognized by non-ansi standard c-compilers)
+extensions:
+- added a runtime flag -J for both spin (simulations) and
+  for pan (verification runs), to specify that nested unless
+  clauses are to be evaluated in reverse order from the default
+  (to match java semantics of catch clauses) at the request
+  of Klaus Havelund.
+- added runtime flags -qN and -B for spin (simulations)
+  -q4 suppresses printing output related to queue 4
+  -B suppresses printing the final wrapups at the end of a run
+- added runtime flag -v for pan (verification) to add filenames
+  to linenumbers in the listings of unreached states (xspin does
+  not support these extensions yet)
+bug-fixes:
+- a very long source statement could overflow an internal
+  buffer in pan.c, upon the generation of a trail-file.
+  (thanks for Klaus Havelund's experiments with a java->spin
+   translator)
+- compilation with a vectorsize greater than 1024 could cause
+  the model checker to behave incorrectly in cases when receive
+  statements were used that received data into global variables
+  (instead of locals).  this now works correctly.
+- removed bug in the optimization code of the ltl-translation
+  algorithm -- it could remove untils in cases such as
+  p /\ (q U r) not only if p==r, but also if p appeared within r
+- line numbers could be inaccurate if #if 0 ... #endif directives
+  were used inside inline declarations.  corrected.
+- fixed a bug in ltl translation due to a failure to recognize
+  'true' to be part of any 'and' form -- should have been a rare
+  occurrence.
+- fixed a bug that affected the use of rendezvous statements in
+  the guard of an escape clause of an unless
+
+==== Version 3.3.0 - 1 June 1999 ====
+
+- rearranged code to share code for identical cases
+  in pan.m and pan.b -- this reduces the file sizes by up
+  to 60% and similarly reduces compilation times for pan.c
+- added pan.c compiler directive MEMLIM
+  compiling pan.c with -DMEMLIM=N will restrict memory use
+  to N Megabytes precisely;  this is an alternative to the
+  existing limit -DMEMCNT=N which restricts to 2^N bytes
+  and gives less precise control.
+- added new data declaration tag 'local' which can be used
+  wherever currently 'show' or 'hidden' can be used.
+  it allows one to identify global variables that are
+  effectively local (used by only 1 process) as data objects
+  of which manipulation is safe for partial order reductions.
+  there's no check for the validity of the tag during verification.
+- automatically hide unused or write-only variables
+  option can be turned off with spin option -o2
+- eval() (used in receive statements to turn a variable into
+  a constant value) can now contain an arbitrary expression,
+  instead of just a name (request of Victor Bos).
+- it is no longer an error to have multiple mtype definitions
+  (they are catenated internally)
+- more verbose error-trails during guided simulations - in verbose
+  mode it now includes explicit mention of never claim moves, if
+  a never claim is involved
+- added also an experimental option to generate code separately
+  for the main system and for the never claim - this makes
+  separate compilation possible.  the option will be finetuned
+  and documented once it has settled.  for the time being, they
+  are not listed in the usage listings.
+- also added, but not enabled, fledgling support for a bisimulation
+  reduction algorithm that might be applied to never claims to
+  reduce their size (inspired by work of Kousha Etessami),
+
+- bugfixes (the first two found by Wenhui Zhang):
+  - in fairness option (could miss a fair cycle)
+  - in implementation of the -DMA option (could incorrectly
+    claim an intersection of the 1st dfs stack an declare a
+    cycle when none existed)
+  - in the conversion of ltl formulae to automata (could
+    occassionaly fail to match common subexpressions)
+  - bug fix in the runtime code for random receive, fixed
+  - fixed execution of atomics during interactive simulation
+  - fixed possibly erroneous marking as 'dead' variables used
+    to index a structure variable array
+
+- during interactive simulation, to avoid confusion, choices
+  between different *escapes* on a statement are no longer offered
+  in user menus, but are now always resolved by the simulator
+- removed all uses of "long long" and replace with "long."
+  the former (temporarily used in 3.2.4) is not in ansi c,
+  and the latter will be interpreted correctly on 64bit machines
+  by a 64bit compiler.
+- added better support for 64bit machines -- avoiding deteriorated
+  performance of the hashing algorithms (courtesy Doug McIlroy)
+- the pc version could get the linenumber references wrong after
+  multiline comments - now repaired (courtesy Mike Ferguson)
+- removed bug in xspin.tcl that prevented the selection of
+  bitstate hashing from the ltl properties manager panel
+  (courtesy Theo Ruys)
+- added an option in xspin to exclude specific channels from the
+  msc displays (you have to know the channel number though)
+- fixes in the interactive simulation model (courtesy Judi Romijn)
+  - d_steps and atomics now always run to completion without
+  prompting the user for intermediate choices that could break
+  the atomicity (and the semantics rules).
+  - unless escapes no longer reach inside d_steps (they do reach
+  inside atomics)
+- merges sequences of safe or atomic steps -- a considerable speedup
+  this behavior can be disabled with spin option -o3
+- computes precondition for feasibility of rv - this option can be
+  enabled with spin option -o4 -- it seems of little use in practice
+- dataflow analysis -- can be disabled with spin option -o1
+- partial evaluation to remove dead edges from verification model
+  (i.e., with a constant 'false' guard)
+- added pan compile time option -DSC to enable new stack cycling option.
+  this will swap parts of deep stacks to a diskfile with only low overhead.
+  it needs no further user action to work -- the runtime -m flag
+  remains, but now simply sets the size of the part of the stack
+  that is in core (i.e., you need not set it explicitly unless you want to)
+- added pan compile time option -DLC to optinally use hashcompacted stackstates
+  during Bitstate runs. it is slower by about 20-30%, but in cases
+  where -DSC is used (very deep stacks) it can safe a lot of extra memory.
+  for this reason -DSC always enables -DLC by default
+
+==== Version 3.3.1 - 12 July 1999 ====
+
+- fix in pangen2.h, to avoid a null-pointer reference
+  in the automata preparation routines. it can occur in some cases
+  where progress labels are used in combination with p.o. reduction
+- fix for weak-fairness in combination with p.o. reduction and
+  unless/rendez-vous (courtesy Dragan Bosnacki)
+- fix to prevent an infinite cycle during the weak-fairness based
+  verifications. (when both the 2nd and the 1st dfs stacks are
+  intersected with a non-zero choueka counter value, the search
+  used to continue - instead this should be treated as a regular
+  stack match)
+- better feedback on spin -a when parts of the automaton are pruned
+  due to constant false guards
+- added spin option -w (extra verbose) to force all variable
+  values to be printed at every execution step during simulations
+
+==== Version 3.3.2 - 16 July 1999 ====
+
+- correcting an initially erroneous fix in 3.3.1 that prevented
+  compilation alltogether for sources generated through xspin. (...)
+  (it left a reference to counters used in the weak fairness algorithm
+   in the code that had to be suppressed if weak fairness isn't used)
+
+==== Version 3.3.3 - 21 July 1999 ====
+
+- fix in the new code for dataflow analysis. in some cases a core-dump
+  could result if a particular control-flow structure was encountered
+  (courtesy Klaus Havelund)
+- updated Xspin to 3.3.3 to deal with the new policy in 3.3 that printfs
+  during simulations are always indented by a number of tab-stops that
+  corresponds to the process number of the process that executes the
+  printf - this makes printfs from the same process line up in columns,
+  but it confused xspin.  (fix courtesy of Theo Ruys)
+
+==== Version 3.3.4 - 9 September 1999 ====
+
+- new pan option -T to prevent an existing trail file from being
+  overwritten (useful if you run multiple copies of pan with
+  bitstate hashing and different -w parameters, to optimize chances
+  of finding errors fast -- the first run to write the trail file
+  then wins)
+- small improvement in error reporting for use of special labels inside
+  atomic and d_step sequences
+- small portability change to avoid problems with some compilers (e.g.
+  the ones used on plan9)
+- increased some statically defined maxima (e.g. for the max length of
+  a single statement - now increased to 2K bytes to avoid problems with
+  machine generated Promela files)
+
+==== Version 3.3.5 - 28 September 1999 ====
+
+- two bug-fixes in the ltl->never claim conversion (with thanks to
+  Heikki Tauriainen for reporting them)
+- increase in some static buffer sizes to allow for long
+  (typically machine generated) variable names
+- removed some debugging printfs
+
+==== Version 3.3.6 - 23 November 1999 ====
+
+- two small extensions and 4 important bug fixes
+
+- added runtime option -t to pan;  using pan -tsuf will
+  cause error trails to be written into spec.suf instead of
+  spec.trail (which remains the default)
+- added a verbose output to the verification runs, to write
+  a line of output each time a new state in the never claim
+  is reached.  this helps keeping track of progress in long
+  running verifications -- and helps to avoid false positives
+  (i.e., when most states in the never claim are unreached,
+  which is a strong indication that the LTL formula that
+  produced the claim isn't related to real behavior of the
+  system)
+
+- bug fix in the fairness algorithm (-f flag during verification)
+  that could cause false error reports to be generated
+- bug fix in the stack cycling compile-time option to pan.c (-DSC)
+  which could cause erroneous behavior of the verifier
+  (both of these reported by Muffy Calder and Alice Miller)
+- bug fix in the generation of never claims from LTL -- missing
+  parentheses around subexpressions in a guard
+- fix to circumvent buggy behavior from gcc on Unix platforms
+  (its version of sbrk can return memory that is not properly
+   word aligned -- which causes memory faults in pan)
+
+==== Version 3.3.7 - 6 December 1999 ====
+
+- 3.3.6 introduced a bug that prevented the verifier code
+  from compiling unless fairness was enabled -- corrected in 3.3.7
+- fixed a minor problem with the as yet unadvertised separate
+  compilation option (compiling the program separately from
+  the claim to speed up verifications of multiple claims)
+- fixed a bug in the simulation code that could make the
+  simulator miss executing statements. it could lead to
+  misleading traces for errors. (thanks to an example by Pim Kars)
+
+==== Version 3.3.8 - 1 January 2000 ====
+
+- fixed a bug in the simulation code that caused no output
+  to appear, for instance, when the traceback is done with
+  a guided simulation for the Test/loops testfile -- fixed
+- fixed bug in the generation of ltl formula of the type:
+	<>[]p && []<>q && []<>r
+  traced to a mistake in the comparison of states in the
+  buchi automaton that could unjustly claim two states to
+  be identical even if they differed (reported by Hagiya)
+- added a cast to (double) for manipulation of MEMLIM to
+  avoid problems with some compilers
+- added a small optimization that rids the spec of repeated
+  sequential skip statements, or skips immediately following
+  printfs (these may be present in mechanically generated specs)
+
+==== Version 3.3.9 - 31 January 2000 ====
+
+- fixed several more bugs in the ltl -> buchi automata
+  conversion - found with a random testing method
+  described by Heikki Tauriainen. the method consists
+  of generating random ltl formula with a fixed number of
+  propositional symbols, with varying numbers of operators,
+  and generating random statespaces over the boolean
+  operands, up to preset maximum number of states.
+  we've done tests with three databases, consisting of:
+	- 27 handpicked standard ltl formulae with up to 4
+	  operands
+	- 5356 random ltl formulae with up to 10 temporal
+	  operators and up to 3 operands
+	- 20577 ltl formulae with up to 3 temporal operators
+	  and up to 3 operands
+  each formula was tested for 25 randomly generated statespaces
+  with up to 50 global states.
+  we checked spin's automata generation method against an
+  independent implementation by kousha etessami, and verified
+  that each of the tests either failed with both tools or
+  passed with both tools -- any difference pointed to a bug
+  in one of the two tools.
+  the fixes in spin version 3.3.9 are mostly related
+  to the use of the X (next operator -- which is normally
+  disabled but can be enabled by compiling the spin sources
+  with the extra compiler directive -DNXT) and V (the dual
+  of U) in long formula.
+- used the opportunity to add in some more optimizations
+  that reduce the size of the automata that are produced
+  (which in many cases also speeds up the generation process).
+  the optimizations were inspired by kousha etessami's work.
+  (email: kousha@research.bell-labs.com)
+
+==== Version 3.3.10 - 15 March 2000 ====
+
+- this should be a final, stable release of spin
+  version 3.3, barring the unforeseen.
+  we'll move to 3.4.0 in a next round of extensions.
+
+- made the number of active processes a globally visible
+  read-only variable: _nr_pr
+  this makes it possible to start a process and then wait
+  for it to complete:
+	run A(); (_nr_pr == _pid+1);
+  useful for simulating function calls.
+- the appearance of a timeout in the guard of a d_step
+  sequence was treated as an error - it is not treated
+  as a warning. (in the guard a timeout is ok)
+- fixed rounding error in calculating the nr of bytes
+  to be stored in statevector with -DCOLLAPSE option.
+  in rare cases the roundoff error could result in
+  missed states when collapse was enabled. reported by
+  Dragan Bosnacki.
+- improved ltl->buchi automata conversion some more
+  to be described in an upcoming paper by kousha.
+- small update of xspin.tcl -- it failed to record spin
+  command line options in the advanced verification options
+  panel. reported by Theo Ruys.
+
+==== Version 3.4.0 - 14 August 2000 ====
+
+- fixed two remaining problems with the ltl conversion
+  algorithm, related to nested untils and the use of the next
+  operator (thanks again Heikki Tauriainen).
+- deals better with renaming files for preprocessing -- no
+  longer relies on temporary files residing on the same
+  filesystem as the working directory
+- added an alignment attribute for the State vector to force
+  gcc to align this structure on a wordboundary (on solaris
+  machines gcc apparently considers this optional).
+- fixed two problems in the use of trace-assertions (could
+  fail when tracking actions on rendezvous channels)
+- new xspin340.tcl that deals better with non-terminating
+  simulation runs on pcs.
+- added support for property-based slicing, to be documented.
+  one example in the Test directory illustrates its use: the
+  wordcount example.
+- added two examples (mobile[12]) that show how specifications
+  in the pi-calculus can be rendered in Promela (thanks Joachim
+  Parrow).
+
+==== Version 3.4.1 - 15 August 2000 ====
+
+- fixed problem with spin option -m -- it stopped working after
+  the upgrade to spin 3.3.0 a year ago. (Thanks Theo Ruys and Rui Hu).
+- minor twiddles to avoid some spurious warnings from gcc on pan_ast.c
+
+==== Version 3.4.2 - 28 October 2000 ====
+
+- release 3.4.1 had some windows carriage returns in some of the
+  source files, which unix compilers don't like - removed
+- two small fixes in the data dependency algorithm, e.g. to make sure
+  that an array index is never considered a def
+- made the allignment attribute on the State struct GCC specific
+  (which it is -- used only on Solaris)
+- the -o2 flag didn't work as advertised, fixed.
+- fix to prevent problems with too liberal use of sequence brackets
+  which could cause a coredump in some cases
+
+==== Version 3.4.3 - 22 December 2000 ====
+
+- small bug fixes, related to the use of {...} for plain sequences
+  (other than for atomic or d_step sequences), and the use of
+  enabled to refer to the running process in simulation mode
+
+==== Version 3.4.4 - 2 February 2001 ====
+
+- fix of the trace assertion code in pan.c (there was a problem
+  when trace assertions were used in combination with rv operations)
+- fix of marking of unreachable states (some reached states could
+  erroneously be reported as unreached in some cases)
+
+==== Version 3.4.5 - 8 March 2001 ====
+
+- one more bug found by Heikki Tauriainen - in the LTL -> Buchi
+  conversion algorithm. it was caused by an unjustified optimization
+  in tl_rewrt.c -- now commented out.
+
+==== Version 3.4.6 - 29 March 2001 ====
+
+- when using rendezvous channels, the compression mask was
+  not completely restored on backward moves during the search.
+  the correctness of the search was not affected, but the
+  number of reached states became larger than necessary
+  (up to twice as large as needed). bug fixed.
+  (found and reported by Vivek Shanbhag)
+
+==== Version 3.4.7 - 23 April 2001 ====
+
+- fixed a number of small bugs in xspin.tcl (now version 3.4.7)
+  (shaded out menu items were not enabled, errors on cancel of
+   simulation runs, etc.)
+- pruned the number of unreached states reported, by removing
+  reports for internal states (marked ".(goto)" or "goto :b3")
+- fixed bug in pid assignements on guided simulation for np-cycles
+
+==== Version 3.4.8 - 22 June 2001 ====
+
+- more small bug fixes
+  e.g., a problem with parameters on inline calls, if the name
+  of an actual parameter equals the name of another formal parameter
+  in the same inline; a typo in an 'attribute' annotation; some
+  missing parameters in rarely executed printf calls
+
+==== Version 3.4.9 - 1 October 2001 ====
+
+- two bug fixes:
+  - problem with xr/xs declarations for processes that can be
+  instatiated with multiple pids -- could lead to a coredump
+  - problem with treatment of merged statements in guided simulations.
+  could lead to a statement being printed twice when it only
+  occurred once.
+
+==== Version 3.4.10 - 30 October 2001 ====
+
+- two bug fixes:
+  - trace assertions were not working correctly, failing to
+  reliably generate matches for all channels within the scope
+  of an assertion. this was likely broken when statement merging
+  was first introduced in version 3.3
+  - added protection against the use of pids outside the valid
+  range in remote references (i.e., less than 0 or over 255)
+
+==== Version 3.4.11 - 17 December 2001 ====
+
+- a bevy of small bug fixes:
+- during verification, sorted send operations
+  (e.g., q!!m) were not reversed accurately, leading to
+  potentially inconsistent error trails
+- 'else' was not interpreted correctly when it appeared
+  as the first statement of a d_step
+- process death was not in all possible cases considered a safe
+  action, and thus could be deferred longer than necessary
+- collapse did not in all cases generate the best compression
+
+==== Version 3.4.12 - 18 December 2001 ====
+
+- correcting a dumn coding error in 3.4.11 that made the
+  pan.c source uncompilable..
+
+==== Version 3.4.13 - 31 January 2002 ====
+
+- new option -T, to suppress pid-dependent indenting of outputs
+- new datatype 'pid' for storing return values from run expressions
+
+- improved reporting of unreached states for models with inlines.
+- improved reporting of memory use for bitstate verification runs.
+- fewer unused vars in pan.c for common modes of compilation.
+- during simulation each line of output is now immediately flushed
+- new restrictions on the use of 'run': max 1 run operator per
+  expression, and run cannot be combined with other conditionals.
+  this secures that if a run expression fails, because the max nr
+  of procs would be exceeded, the expression as a whole will have
+  no side-effects.
+
+- corrected bug in treatment of parameters to inlines
+- corrected bug that showed up for some bizarre combinations
+  of constructs (d_step nested in atomic, embedded in loop)
+  sympton was that the spin parser would hang
+- the maximum number of processes during simulation is now
+  equal to that during verification (255) - to prevent
+  runaway simulations.  the exact number can be redefined
+  when spin is compiled, by adding a directive, e.g. -DMAXP=512
+  similarly the max nr of message channels during simulation
+  can be set by compiling spin with a directive, e.g. -DMAXQ=512
+  the bounds used during verification (255) cannot be changed.
+
+==== Version 3.4.14 - 6 April 2002 ====
+
+- added new spin option -uN to truncate a simulation run after
+  precisely N steps were taken.  in combination with option -jM
+  this can select step M to N from a very long simulation
+  (say guided or random);  example: spin -j10 -u20 spec
+  prints step 10 up to 20, but nothing else
+
+- corrected important bug introduced in 3.4.13 that caused a
+  core dump during verification runs. the bug was caused by
+  a poor attempt to correct reporting of unreached states
+  due to statement merging effects.
+
+- corrected compilation error for an unusual combination of
+  compiler directives
+
+==== Version 3.4.15 - 1 June 2002 ====
+
+- much improved hashfunctions, at the suggestion of Jan Hajek
+  from The Netherlands (the original implementor of the Approver
+  tool from the seventies).
+  this makes for better performance in both exhaustive searches
+  (fewer hashcollisions on standard hashtable, therefore often
+  faster), in bitstate and hashcompact searches (more coverage).
+  the old hashfunctions are reenabled if pan.c is compiled
+  with the new directive -DOHASH. the new functions are the default.
+- improved reports of unreachable states, in the presence of
+  statement merging.
+- small change in the indenting of printf output -- it now lines
+  up better with process columns in -c simulation output
+- fewer compiler warnings
+- some small fiddles with xspin to fix small problems
+- giving up on maintaining the upgrade3 scripts -- they get too
+  long and they do not seem to be used much
+
+==== Version 3.4.16 - 2 June 2002 ====
+
+- a bug slipped in in 3.4.15, bitstate verification failed
+- also increased the default memory limit on PCs to 64 Mb
+
+==== Version 3.4.17 - 19 September 2002 ====
+
+- added a function printm(x) to print the symbolic name of
+  an mtype constant.  this is equivalent to printf("%e", x),
+  but can be more convenient.
+- changed the structure of the never claim that is included
+  by default if pan.c is compiled for non-progress cycle
+  detection with directive -DNP
+  the change is to check first for a move to the accepting
+  state, rather than last.  this reduces the length of
+  error trails that are generated, matching the earlier
+  change made in version 3.2.2, thanks again to Dragan Bosnacki
+  for pointing this out.
+- rearranged the code for pan_ast.c so that it can be compiled
+  separately, rather than as an include file of pangen5.c
+- a bug had been hiding in the -DCOLLAPSE memory compression
+  option that could in rare cases lead to states being missed
+  during a verification
+  the bug could be avoided with the optional -DJOINPROCS.
+  it is now permanently fixed by extending the nr of bytes
+  stored somewhat (the type of each process is now stored
+  explicitly in the compressed statevector, to avoid the
+  confusion that can result if two processes of the same
+  contents but with different types could be created with
+  the same pid, but as alternative options from the same
+  state -- a case found by Remco van Engelen.
+  the fix increases memory use slightly in some case (around
+  10% in many test cases) but retains the greater part of
+  the memory compression benefit. if needed, the fix can
+  be disabled by compiling pan.c with -DNOFIX
+- pan_ast.c is now a separately compiled file, just like
+  all the others, instead of being #included into pangen5.c
+- more attempts to fix the accuracy of reachability reports
+
+==== Version 3.5.0 - 1 October 2002 ====
+
+- variable names starting with an underscore were mistreated
+  in the data flow analysis.
+- this is meant to be a stable release of spin version 3, with
+  minor changes in contact-information for the new spinroot.com
+  website for all documentation, workshop information and
+  newsletters.
+
+==== Version 3.5.1 - 11 November 2002 ====
+
+- bug in parsing of remote label references, could cause a
+  core-dump of spin -a
+- small additional improvements in reporting of unreachable
+  states - to more accurately take into account optimizations
+  made in the transition structure before verification starts
+- noted incompatability of combining -DREACH and -DMA
+
+==== Version 3.5.2 - 30 November 2002 ====
+
+- slightly improved line number references in reporting syntax
+  errors within d_steps
+- extension: remote references usually are written as:
+	proctypename[pid]@labelname
+  if there is only one instantiation of the proctype, then the
+  pid can more easily be figured out by Spin than by the user,
+  so it can, in these cases, now be omitted, making an anonymous
+  remote reference possible, as in:
+	proctypename@labelname
+  if there turn out to be multiple possible matches, Spin will
+  warn in simulation mode -- but not in verification mode.
+  (the additional check would probably be too consuming).
+- during the execution of a d_step, spin would by default
+  still print out every execution step in simulations (under
+  the -p option).  now it will only do so in verbose mode
+  (with also -v).
+- if the last step in an atomic sequence was a rendezvous
+  send operation, atomicity would not reliably move with
+  the handshake to the receiver.  this is fixed.
+- the simulator used a confused method to help the user out
+  if the pid of a process was guessed incorrectly in a remote
+  reference operation. this is now done more sanely:  if a
+  variable is used for the pid, the simulator now trusts that
+  it was set correctly -- the remote ref will simply fail with
+  an error warning if this is not the case.  if the user specified
+  the pid with a fixed constant, the simulator will now always
+  add 1 to the number if the presence of a never claim is detected.
+  (this is because behind the scenes the pid's will move up one
+  slot to accomodate the claim -- this is always hidden from the
+  user -- allowing the user to assume that pids always start at 0).
+
+==== Version 3.5.3 - 8 December 2002 ====
+
+- slightly better error reporting when the nr of pars in a send
+  or run statement differs from the nr declared
+- handling more cases of structure expansion (e.g., structure
+  reference inside other structure used as msg parameter)
+
+==== Version 4.0.0 - 1 January 2003 ====
+
+- Summary of the main changes that motivated the increase of the
+  main Spin version number from 3 to 4
+- added support for embedded C code, primarily to support
+  model extractors that can generate Spin models from C code
+  more easily now, but indirectly this extension also makes
+  all C data types and language elements available within
+  Spin models.  a powerful extension - but with few safeguards
+  against erroneous use. read the documentation carefully.
+- added a Breadth-First search option (compile pan.c with -DBFS)
+  this option works only for safety properties.  it often uses
+  more memory and more time than the standard Depth-First search
+  mode that Spin uses, but it can find the shortest possible
+  error-trails more easily than with the dfs.
+  cycle detection is hard with bfs, so it's not supported yet.
+  all state compression modes are supported (bitstate, collapse,
+  hash-compact, mininized automata, etc.)
+- a small number of bug fixes -- e.g., some unless constructs
+  gave compile-time errors in pan.c, some combinations of
+  compiler directives gave compiler errors, fewer unused vars
+  reported with some more rarely used combinations of compiler
+  directives.
+- slightly rearranged the makefiles -- there is now a separate
+  shell script (make_pc) for windows and a makefile for unix
+  (make_unix). there's also a script for compiling a debuggable
+  version of spin with gcc and gdb (make_gcc).
+  by default these scripts and makefiles now enable the LTL next
+  operator.
+- the call to sbrk() instead of malloc() on Unix is now no longer
+  the default -- it could cause large amounts of memory that on
+  Linux systems is pre-allocated to malloc, to be inaccessible.
+- on Windows PC's the compiler directive -DPC to compile pan.c
+  source is no longer needed (it is only needed to compile spin
+  itself)
+
+All further updates will appear in the new file: V4.Updates

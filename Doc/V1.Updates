@@ -1,0 +1,358 @@
+Update History of the SPIN Version 1.0 sources
+==============================================
+
+==== Version 1.0 - January 1991 ====
+
+The version published in the first printing of
+``Design and Validation of Computer Protocols''
+is nominally SPIN Version 1.0.
+The notes below describe all modifications to that
+source that were made between January 1991 and
+December 1994 (when the distribution switched to
+Spin Version 2.0, see V2.Updates).
+
+==== Version 1.1 - April 1991 ====
+
+1. (4/6/91)
+a queue with a single field of type bool is now mapped onto
+an unsigned char to avoid compilers mapping it onto unsigned int.
+2. (4/7/91)
+variables are now sorted by type in the statevector (more compact
+and thus improves hashing)
+3. (4/7/91)
+improved handling of atomic move (removes a statespace-intercept
+bug for initial process with id=0)
+4. (5/22/91)
+allow multiple labels per statement, without needing skip-fillers
+5. (6/11/91)
+fixed bug in reassigning labels in pan.t 
+6. (7/30/91)
+- added proc_skip[] and q_skip[] arrays to pan sources
+  the creation of processes and queues was not always
+  reversible due to word-alignment errors... [caused sv_restor() error]
+- removed Have_claim from sched.c; the adjustment of pids was incorrect
+- a remote ref to a non-existing pid is now always 0, and does not
+  cause a dummy global variable to be created by default with -t...
+  (chages in vars.c and sched.c)
+7. (8/1/91)
+- fixed a potentially infinite cycle in walk_sub()
+8. (8/7/91)
+- fixed bug: couldn't complete rendez-vous inside atomic sections
+9. (8/22/91)
+- lookup(s) failed to check a match on globals when
+  performing a local lookup of names; caused guided simulations
+  to report type clashes.
+
+==== Version 1.2 - August 1991 ====
+
+1. (9/11/91)
+- added traps to check for uninitialized channels in pan.c
+- added descriptive statement strings into transition matrix
+  which are now reported with unreached code etc.
+2. (1/7/92)
+- removed bug: no state should be stored in mid-rv.
+  note that a rv need not complete and matching
+  on the mid state of an unsuccessful rv may cause
+  missing errors (a rv may legally not complete in
+  some cases, without causing deadlock, and not in others).
+  the change also reduces the number of states stored.
+3. (1/11/92)
+- made printout for R different from r in mesg.c
+
+==== Version 1.3 - January 1992 ==== [current USL Toolchest version]
+
+1. 3/6/92
+- bug fixed in usage of -l with rendez-vous (forgot "if (boq==-1)") pangen1.h
+2. 4/10/92
+- converted to new hstore with sorted linked lists (roughly 10% faster)
+3. 6/3/92
+- remote variables were not promoted to (int) before referral in expressions
+  updated Errata with some warnings (e.g., about modeling system invariants
+  in the presence of timeouts, and using the wrong number of parameters in
+  receives)
+- updated makefile with hint for yacc-flags
+4. 6/10/92
+- spin now returns the number of parse errors found upon exit from main
+- yyin is now declared extern in main
+- srand is now declared void in spin.h
+5. 7/4/92
+- added pan options -d and -d -d to printout the internal state tables
+  pan will no longer report structurally unreachable states as
+  dynamically unreachable
+- added warning when spec is modified since pan.trail written
+- solved a trail problem when user guess pids which are offset by claim
+- print proper process numbers for spin -t when a claim is running
+- fixed error in lookup of _p values (it's a local var not global)
+- improved claim checking with geoffrey browns claim stuttering semantics
+
+==== Version 1.4 - July 1992 ====
+
+1. 7/8/92
+- replaced emalloc with a dedicated emalloc/malloc/free package; this
+  is six times faster on pftp.ses1 example compared to sysV library malloc
+2. 7/12/92
+- added default array bounds checking (except for remote references)
+  makes validations a little slower (say 5% - 10%), but is safer, and
+  the user can override it by compiling: cc -DNOBOUNDCHECK pan.c
+3. 8/26/92
+- improved the acceptance cycle detection method with a new algorithm
+  due to Patrice Godefroid, that works in both bitstate and exhaustive
+  search mode (the old version worked only in exhaustive mode)
+  time and space complexity of the new algorithm is the same as that for
+  non-progress cycle detection algorithm (at worst twice that of a straight search)
+  the method is functionally the same as the earlier method due to Courcoubetis,
+  Vardi, Wolper, and Yannakakis (CAV'90), but uses the 2-bit demon trick from
+  the non-progress cycle detector to distinguish between 1st and 2nd search.
+- fixed a buglet in lex.l that catenated strings printed on a single line
+  (thanks Alan Wenban for catching it)
+4. 12/11/92
+- intermediate states in atomic sequences were not stored in standard search
+  mode, but stored when a never claim was defined - that was unnecessary, and
+  has now been avoided.  behavior doesn't change, but memory consumption in
+  exhaustive mode is now reduced somewhat.
+- the acceptance cycle detection algorithm would initiate its second search
+  from an accepting state within a never claim, even when the system was
+  inside an atomic sequence - it could therefore produce non-existing cycles.
+  has been fixed (both fixes thanks to Patrice Godefroid and Didier Pirrotin)
+
+==== Version 1.5 - January 1993 ====
+
+1.5.0
+- an option -V was added both to spin itself and to the analyzers
+  generated by spin to print the source version number.
+- a compiler directive VERBOSE was added to the generated analyzers
+  to assist the user in understanding how the depth-first searches
+  are performed.  to invoke the extra printouts compile
+  the source as cc -DVERBOSE pan.c (plus any other directives you may
+  be using, such as -DBITSTATE or -DMEMCNT=23)
+- a small bug-fix was added to avoid a misplaced compiler directive
+  (in BITSTATE mode, in the absence of accept labels in the model, there
+  could be a compiler error that is now avoided)
+- somewhat improved error reporting.
+- several more important runtime options for the generated analyzers
+  were added:
+  1	an explicit runtime option -a to invoke the search for
+	acceptance cycles.  until now this used to happen by default
+	unless you specified an explicit -l option for a search for
+	non-progress cycles.  from now on a search for cycles
+	always has to be specified explicitly as either -a or -l.
+  2	a runtime option -f to modify the search for cycles under
+	`weak fairness.'   it works for both -a (acceptance cycles)
+	and for -l (non-progress cycles), and is independent of the
+	search mode (full state storage or bitstate hashing)
+	using -f may increase the time-complexity of a search, but
+	it does not alter the space requirements
+- specifying -f without either -a or -l would have no effect, so it
+  is considered an error.
+- you cannot combine options -a and -l
+- you can always combine -a with a never claim, but
+- you cannot combine -l with a never claim.
+- a harmless glitch in the setting of tau values for atomic moves
+  was fixed - it should not alter the behavior of the analyzers
+- another small fix in the reporting of unreachable code (previous versions
+  of spin could forget to report some of the states)
+- remember: to search for acceptance cycles, you always must
+  specify option -a now (or -f -a if restricted to fair cycles)
+
+=
+1.5.1 - 2/23/93
+- the acceptance cycle detector now starts the search for an acceptance
+  cycle after any move, whether in the claim or in the system
+  (until now, it only did so after a system move - which did not cover
+   all cases correctly, specifically for cases that are covered by the
+   claim stutter semantics, and for cases where acceptance cycles are only
+   defined inside the claim, and not in the system)
+1.5.2 - 3/1/93
+- the change from 1.5.1 was incorrect - a search from acceptence cycles
+  starts after system moves, or after stutter-claim moves, but not
+  for other claim moves (a stutter claim move is used to cycle the claim
+  in valid and invalid endstates - it triggers an error report if the claim
+  can cycle through an accept state in this case - it should not trigger
+  error reports in any other case)
+1.5.3 - 3/19/93
+- spin now catches SIGPIPE signals, and exits when it sees one.
+  added an option -X to use stdout instead of stderr for all error messages
+  (these upgrades are in preparation for an X-interface to spin)
+1.5.4 - 4/15/93
+- in simulation mode spin didn't always flag it as an error if an array-name
+  was used as a formal parameter in a proctype declaration (spin -a always
+  reports it correctly) - the error report is now given
+- added Xspin to the distribution as bundle4 - an X-interface to spin based
+  on the (public domain) toolkit Tcl/Tk from the university of berkeley.
+1.5.5 - 4/21/93
+- fixed an error in fair_cycle(); the original algorithm omitted to set
+  the correct value in a pointer to the current process during the fairness
+  checks - the result was that fairness calls were not always accurate.
+- some small improvements in the Xspin interface (call it XSPIN version 1.0.1)
+- improvement in sched.c - to match the assignemnts of pids to those of the validator
+1.5.6 - 5/21/93
+- another error in fair_cycle; code inserted for the detection of self-loops
+  was incorrect; it has been omitted.
+  non-fair cycles that can become fair *only* by the inclusion of a dummy
+  	"do :: skip od"
+  loop in one of the processes may be missed in a verification using the -f flag.
+  since such busy-looping constructs are not (or should not be) used in Promela
+  anyway, this should not create problems
+- changed the data-types used in the hash-functions - to secure portability
+  of SPIN to 64 bit machines.
+1.5.7 - 7/1/93
+- fixed a subtle error that happens when a remote variable is used deeply nested inside
+  the index of another remote variable (array)
+- also fixed a spurious error report on array bound checking in such cases
+- both cases should be rare enough that it didn't bite anyone - they affected only
+  simulation mode
+1.5.8 - 10/1/93
+- made it an error to place a label at the first statement of a sub-sequence.
+  spin's optimization strategy (to speed up searches) can defeat such an
+  unconventional label placement easily, which can cause problems in remote references.
+  the rule is (and has actually always been) that constructs such as
+	do		if		atomic {
+	:: L: a = 1	:: L: a = 1		L: a = 1
+	od		fi		}
+  should be written as:
+	L: do		L: if		L: atomic {
+	   :: a = 1	   :: a = 1		a = 1
+	   od		   fi		   }
+  the rule is now enforced.  to make it easier, the above message is printed if the
+  label is accidentily misplaced, in the heat of design...
+  note that the first state of a subsequence equals the state of the enclosing
+  construct (e.g., the start state of each option in a do-structure is the very
+  same state as the start state of the do-structure itself)
+1.5.9 - 11/17/93
+ A small error in the management of rendez-vous status during the search had
+ slipped in on 9/11/91.  finally caught and removed.
+1.5.10 - 11/19/93
+-spin attempts to optimize goto and break statements by removing them from
+ the transition matrix wherever possible.  this has no visible effect, other
+ then achieving an extra speedup of the validation.
+ in a small number of cases, though, the labels must be preserved
+ one such case is when a goto or break carries a progress, end, or accept label.
+ in that case the jump is preserved (that case was always treated correctly).
+ another case, that was overlooked so far, is when the label in front of a goto
+ is used in a remote reference, such as P[pid]:label.  the use is dubious, but
+ cannot be excluded. in 1.5.10 this case has been added to the exceptions - where
+ the gotos are not removed from the matrix.
+-also fixed: the never claim no longer steps in the middle of a rendez-vous handshake
+ (it was correctly observed by a user that it shoudln't - since its really atomic)
+-also fixed: the initial state of a newly started process in the simulator
+ now always matches that of the validator (same optimization steps are done)
+ the avoids some cases of lost trails in guided simulations
+1.5.11 - 2/1/94
+-the fix from 1.5.10 works by inserting a dummy skip statement in between
+ a label and the statement that follows it (a goto in this case)
+ that calls for an extra statement, with a unique state number
+ the extra state numbers weren't counted in the allocation of memory for the
+ transition matrix - which could cause some peculiar behavior in the (luckily)
+ few cases where this improvement kicked in.  it's fixed in this release.
+-another improvement, that had been waiting in the wings for a chance to make it
+ into the released version - is that the timeout variable is now testable inside
+ never claims (that wasn't true before).
+1.5.12 - 1/20/94
+-added a random number generator - compliments of Thierry Cattel.
+ as an alternative to the badly performing standard routines provided 
+ on most systems.  should improve simulations - affects nothing else.
+1.5.13 - 3/27/94
+-small improvement in handling of syntax errors in parser.
+-added clarifications to the file `roadmap' in bundle3
+-added manual.ps to the distribution
+1.5.14 - 4/22/94
+-until now you had to turn on message loss (-m) explicitly when following
+ a backtrace (using spin -t) from a system that was generated with message
+ loss enabled (i.e., with spin -a -m).  that is easy to forget.  spin -t no
+ longer explicitly requires the -m flag in these cases, to avoid confusion.
+ it is still valid to use -m in combination with -t, but not required.
+1.5.15 - 5/20/94
+-removed small bug from sched.c (the simulator) that could prevent a process
+ from being deleted correctly from the run queue when the last two processes die.
+1.5.16 - 6/3/94
+-if a goto jump inside an atomic sequence jumped to the last statement of the
+ sequence, spin would get confused and mark that jump as non-atomic
+ version 1.5.16 handles this case correctly
+-added an error production to the grammar - to improve syntax error reporting
+1.5.17 - 7/15/94
+-a remote reference to a non-existing variable could result in a core-dump
+ during guided simulations;  fixed in this version.
+1.5.18 - 8/1/94
+-during simulation a remote reference to a previously unused local variable
+ from another process would return the default 0 value - instead of the initial
+ value of such a variable.  this caused the behavior of validator and simulator
+ to differ in such cases (in the validator all variables are always created and
+ initialized upon process creation - in the simulator variables are created and
+ initialized in a `lazy' fashion: upon the first reference.
+ this is now fixed so that the simulator's behavior is now no different from
+ the validator: refering to a previously unused variable of a running process
+ returns its initial value - as it should.
+
+==== Version 1.6 - August 1994 ====
+
+1.6.0 - 8/5/94
+-Important improvement - Please Read!
+-it was always a problem to get ``mtype'' names used inside messages to
+ be distinguished properly from other integers in (guided) simulations.
+ the rule used so far was that if a message field held a ``constant''
+ it was interpreted and printed as an mtype name, and else as a value.
+
+ starting with version 1.6 this is handled better as follows:
+ if you declare a message field to have type ``mtype'' it is ALWAYS printed
+ as a symbolic name, never as a value. 
+ for example, you can now declare a channel as:
+	chan sender = [12] of { mtype, byte, short, chan, mtype };
+ so that the first and last field are always printed symbolically as a name,
+ never as a value.  only bits, bytes, shorts, and ints, are now printed
+ as values.
+ make good note of the change:  you will almost always want to use mtype
+ declarations for at least some of the fields in any channel declaration.
+ the new functionality greatly increases the clarity of tracebacks with spin -t
+
+-new compile time option cc -DPEG pan.c - to force the runtime analyzer to
+ gather statistics about how often each transition (the bracketed number in
+ the pan -d output) is executed.
+
+1.6.1 - 8/16/94
+-added a declaration of procedure putpeg, to avoid a compiler warning
+-made sure that booleans such as q?[msg] can be used in any combination
+ in assert statements (until now spin could insert newlines that spoiled
+ printfs on debugging output)
+
+1.6.2 - 8/20/94
+-tightened the parser to reject expressions inside receive statements.
+ so far these were silently accepted (incorrectly) - and badly translated
+ into pan.[mb] files.  the fields in a receive statement can legally only
+ contain variable-names or constants (mtypes).  variables are set, and
+ constant fields are matched in the receive.
+-cleaned up the enforcement of the MEMCNT parameter (the compile time parameter
+ that is used to set a physical memory limit at 2**MEMCNT bytes)
+ we now check *before* allocating a new chunk of memory whether this will
+ exceed the limit - instead of *after* having done so - as was the case so far.
+ gives a better report on which memory request caused memory to run out.
+
+1.6.3 - 8/27/94
+-the simulator failed to recognize remote label references properly.
+ has been fixed in sched.c.
+-the validator failed to report blocking statements inside atomic sequences
+ when a never claim was present - it defaulted to claim stutter instead.
+ it now correctly reports the error.
+
+1.6.4 - 9/18/94
+-in rare cases, an accept cycle could be missed if it can only be closed
+ by multiple claim stutter moves through a sequence of distinct claim states
+ this now works as it should.
+-added some helpful printfs that are included when the -DVERBOSE and -DDEBUG
+ compile time flags are used on pan.c's
+
+1.6.5 - 10/19/94
+-the mtype field of message queues wasn't interpreted correctly in
+ in the printout of verbose simulation runs (the field was printed
+ numerically instead of symbolically).
+
+1.6.6 - 11/15/94
+ minor fix in procedure call of new_state - to avoid compiler complaints
+ about use of an ANSI-isms in an otherwise pre-ANSI-C source.
+ (version 2.0 - see below) is completely ANSI/POSIX standard and will not
+ compile with pre-ANSI compilers.  version 1.6.6 is the last
+ version of SPIN that does not make this requirement.
+
+12/24/94
+ Version 1.6.6 is the last update of Spin Version 1.
+ The distribution will switch to Spin Version 2.0, and
+ all further updates will be documented in: Doc/V2.Updates.

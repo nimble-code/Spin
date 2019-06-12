@@ -1,0 +1,1163 @@
+Distribution Update History of the SPIN sources
+===============================================
+
+==== Version 2.0 - 1 January 1995 ====
+
+The version published in the first printing of
+``Design and Validation of Computer Protocols''
+is nominally SPIN Version 1.0.
+
+SPIN version 2.0 includes a partial order reduction
+mode and many extensions and revisions that are
+documented in the file Doc/WhatsNew.ps of the
+distribution.  This file lists all updates
+made to these sources after the first release.
+
+===== 2.0.1 - 7 January 1995 ====
+
+An automatic shell script `upgrades' in the main
+SPIN directory will be maintained from now on.
+For all future updates it will suffice to retrieve
+just the upgrades file, and execute it in the Src
+directory to apply all changes.  The tar file will
+of course be kept up to date at all times as well.
+
+Changes in this update:
+1. MEMCNT can now grow larger than 2^31 - for those
+   happy users that have a machine with more than
+   a Gigabyte of main memory.
+   (N.B. this fix was made and distributed before the
+   upgrades file was started - so this one change isn't
+   available in that way)
+2. Change in the lexical analyzer to accept redundant
+   text at the end of preprocessor directives, that
+   some versions of cpp may produce.
+
+===== 2.0.2 - 10 January 1995 ====
+
+Two small updates to pangen1.h to avoid problems on
+some systems when (1) compiling pan.c with profiling
+enabled, or (2) when using the new predefined function
+enabled() in combination with partial order reduction.
+
+===== 2.0.3 - 12 January 1995 ====
+
+At request, added a printout of the mapping from label
+names as used in the Promela source to state numbers as
+used in the verifier to spin option -d.
+to see just this new part of the listing, say:
+	spin -d spec | grep "^label"
+first column is the keyword "label"
+second column is the name of the label
+third column is the state number assigned
+last column is the name of the proctype in which the
+label is used.
+the same state numbers and transitions are
+also used by the verifier, and can be printed as
+before with:
+	spin -a spec; cc -o pan pan.c; pan -d
+
+===== 2.0.4 - 14 January 1995 ====
+
+With the introduction of `else' a new opportunity for
+silly syntax mistakes is created.  it is all too tempting
+to write:
+	if
+	:: condition ->
+		more
+	:: else
+		something
+	fi
+and forgot the statement separator that is required between
+the `else' and `something'
+this likely typo is easy to recognize, and is silently
+repaired and accepted by the new lexical analyzer.
+
+===== 2.0.5 - 17 January 1995 ====
+
+transition labels for send and receive operations
+now preserve all the information from the source text
+(i.e., the symbolic names for all message parameters used).
+
+===== 2.0.6 - 27 January 1995 ====
+
+two fixes, both caught by Roberto Manione and Paola:
+- deeply nested structures (more than two levels)
+  could give syntax errors, and
+- the transition label of an `else' statement wasn't
+  always printed correctly in the traces.
+
+===== 2.0.7 - 2 February 1995 ====
+
+- another fix of the implementation of data structures
+  to make references of deeply nested structure work
+  the way they should
+- removed suboptimal working of safety marking of
+  atomic sequences.  reductions are now slightly
+  larger in some cases.
+- improved boundary checking of array indexing also
+  slightly (made it more efficient for some cases)
+
+===== 2.0.8 - 7 February 1995 ====
+
+- adjusted line number counting slightly in spinlex.c
+  to avoid annoying off-by-one errors.
+
+===== 2.0.9 - 9 February 1995 ====
+
+- removed a bug in the transition structures that are
+  generated for d_steps. (small fix in pangen2.h)
+
+===== 2.1 - 15 February 1995 ====
+
+- removed two errors in the implementation of d_steps:
+   one was related to the treatment of `else' during verification
+   another related to the execution of d_steps in guided simulations
+- improved the treatment of rendez-vous in SPIN verbose printings
+   improves match with xspin; avoids misinterpretation of pids
+- made mtype fields be interpreted uniformly in all SPIN modes
+- added message sequence charts in xspin
+- removed stutter-closedness checks from pangen2.h (no change
+  in functionality, just replaced a dubious check with a more
+  precise descriptive warning)
+
+===== 2.1.1 - 17 February 1995 ====
+
+- instantiated channels declared inside typedefs weren't
+  properly initialized
+
+===== 2.2 - 19 February 1995 ====
+
+- main extension of functionality:
+  added an interactive simulation mode (both in xspin and in spin itself)
+  that will be described at greater length in Newsletter #4.
+  also improved some of the printouts for verbose simulation runs.
+
+- added a precompiler directive -DREACH to force exploration of
+  all states reachable within N execution steps from the initial
+  system state, when the search is deliberately truncated with -mN.
+  normally such a truncated search does not give that guarantee.
+  (note that if a state at level N-1 is also reachable from the
+  initial state within 1 execution step, but it is reached via the
+  longer path first in the DFS - then all successors via the shorter
+  path would normally not be explored, because they succeed a
+  previously visited state. with -DREACH we remember the depth at
+  which a state was visited, and consider it unvisited when encountered
+  on a shorter path.  not compatible with BITSTATE - for the obvious
+  reason (no room to store the depth counts).
+
+- fixed a bug in pangen[24].c that could cause an internal consistency check
+  in the runtime verifiers to fail, and cause the run to terminate with
+  the error `sv_save failed'
+
+===== 2.2.1 - 23 February 1995 ====
+
+- small refinements to interactive simulation mode (xspin and spin)
+
+===== 2.2.2 - 24 February 1995 ====
+
+- added missing prototype in 2.2.1, and fix parameter mistake in a
+  function that was added in 2.2.1
+
+===== 2.2.3 -  3 March 1995 ====
+
+- bug fix in implementation of d_step (dstep.c)
+  and some mild improvements in error reporting
+
+===== 2.2.4 -  9 March 1995 ====
+
+- made sure process numbers assigned by simulator
+  are always the same as those assigned by the verifier
+- by request: added a binary exclusive-or operator ('^')
+
+===== 2.2.5 -  14 March 1995 ====
+
+- removed error in treatment of `else' during random simulation.
+  `else' was incorrectly considered to be executable also
+  in the middle of a rendez-vous handshake. no more.
+
+===== 2.2.6 -  21 March 1995 ====
+
+- made sure that variable declarations are reproduced in
+  the pan.c sources in the same order as they are given
+  in the original promela specification.  this matters
+  in cases where new variables are initialized with each
+  others values.
+- better error handling when a reference is made erroneously
+  to an assumed element of an undeclared structure
+
+===== 2.2.7 -  23 March 1995 ====
+
+- catches more cases of blocking executions inside d_step
+  sequences
+- better handling of timeout, when using both blocking
+  atomic sequences and never claims.  the behavior of the
+  simulator and the verifier didn't always match in these
+  cases.  it does now.
+
+===== 2.2.8 -  30 March 1995 ====
+
+- inside dstep sequences `else' wasn't translated correctly
+
+===== 2.2.9 -  12 April 1995 ====
+
+- removed a mismatch between spin and xspin in dataflow output
+- clarified the scope of dataflow checks spin's -? response
+- fixed a typo that could confuse pid assignments when -DNOCLAIM is used
+- improved some of spin's outputs a little for xspin's benefit
+
+===== 2.2.10 -  18 April 1995 ====
+
+- removed a redundancy in the creation of channel templates
+  during the generation of a verifier with spin option -a
+
+===== 2.3.0 -  19 April 1995 ====
+
+- an extension of functionality.  until now the simulator would execute
+  a receive test (for instance: q?[var1,var2] ) erroneously with
+  side-effects, possibly altering the values of the variables.
+  any boolean condition in Promela, however, must be side-effect free
+  and therefore the verifier had the correct implementation (no value
+  transfers in a test of executability of this type)
+  michael griffioen noted that the poll of a message in a channel was
+  nonetheless usefull.  this leads to a new type of operation in Promela.
+  pending more thorough documentation, here's an example of
+  each of the existing ones:
+
+  A.	q?var1,const,var2	- fifo receive (constants must be matched)
+				  if successful, the message is removed
+				  from the channel
+  B.	q??var1,const,var	- random receive (as A., but from any slot
+				  that has a matching message, checked in
+				  fifo order) if successful, the message is
+				  removed from the channel
+  C.	q?[var1,const,var2]	- boolean test of executability of type A receive.
+  D.	q??[var1,const,var2]	- boolean test of executability of type B receive.
+  E.	q?<var1,const,var2>	- fifo poll, exactly as A, but the message is
+				  not removed from the channel
+  F.	q??<var1,const,var2>	- random receive poll, exactly as B, but message
+				  not removed from the channel
+
+  there are still only two different ways to test the executability of a
+  receive operation without side-effects (be it a normal receive or a poll
+  operation)
+  the two new operations of type E and F allow one to retrieve the contents
+  of a message from a channel, without altering the state of the channel.
+  all constant fields must of course still be matched, and if no variables
+  are present, an operation of type E has the same effect as one of type C.
+  (and similarly for types F and D)
+
+===== 2.3.1 -  20 April 1995 ====
+
+- slightly more conservative treatment for the change from 2.2.10
+  some redundancy is caused by the spec, and now flagged as warnings.
+  using a typedef structure that contains an initialized channel in
+  a formal parameter list, for instance, is always reduncant and uses
+  up channel templates in the verifier - without otherwise doing harm,
+  but there is a limit (255) to the number of templates that can exist.
+  the limit is now also checked and a warning is given when it is exceeded.
+
+===== 2.3.2 -  25 April 1995 ====
+
+- adjustment of output format of guided simulation to match a recent
+  change in Xspin (better tracking of printfs in MSC's)
+
+===== 2.3.3 -  29 April 1995 ====
+
+- bit or bool variables cannot be hidden - this is now reported as a
+  syntax error if attempted
+- the reporting of the options during interactive simulations is
+  improved - mysterious options, such as [ATOMIC] are now avoided better
+
+===== 2.3.4 -  1 May 1995 ====
+
+- added the keyword D_proctype as an alternative to proctype to
+  indicate that all the corresponding processes are expected to
+  be deterministic.  the determinism is not enforced, but it is
+  checked by the verifier.  no other difference exists.  a simulation
+  will not pick up violations of this requirement.
+
+===== 2.3.5 -  13 May 1995 ====
+
+- the check for enforcing determinism (2.3.4) was not placed
+  correctly.  it is now.
+
+===== 2.3.6 -  18 May 1995 ====
+
+- removed bug in code generation for arrays of bools
+- moved a debug-printf statement
+
+===== 2.3.7 -  18 May 1995 ====
+
+- removed bug in testing enabledness of run statements
+  during interactive simulations
+
+===== 2.3.8 -  19 May 1995 ====
+
+- small change in bitstate mode.  the verifier checks if a
+  new state is previously visited, or appears on the dfs stack.
+  (information about presence in the stack is only needed to
+   enforce the partial order reduction rules)
+  in both cases (in bitstate mode) the check is done via hashing
+  into a bitarray; with the array for the statespace much larger
+  than the one for the stack.
+  so far, if either match succeeded, the search was truncated.
+  any match in the stack-array that is combined with no-match in
+  the statespace array, however, is necessarily caused by a
+  hash-collision (i.e., is a false match) and can be discarded.
+  the coverage of bitstate runs should improve slightly by this
+  change.  nothing else will be affected.
+
+===== 2.4.0 -  22 May 1995 ====
+
+- new functionality: there is a new option to SPIN that
+  can be used in guided simulations (that is: in combination
+  with the option -t, when following a error trail produced
+  by one of the verifiers generated by SPIN)
+  for very lengthy trails, it can take a while to reach an
+  interesting point in the sequence.  by adding the option
+  -jN one can now skip over the first N steps in the trail
+  (more precisely: supress the printing during those steps)
+  and quickly get to the interesting parts.
+  for instance:
+	spin -t -p -g -l -v -j1000 spec
+  skips the first 1000 steps and prints the rest.
+  caveat: if there are fewer than 1000 steps in the trail,
+  only the last state of the trail gets printed.
+- avoiding some more redundant printouts during guided simulations
+  will also help to speed up the browsing of error trails with XSPIN
+- the extension is supported in the new version of XSPIN as well
+- the new version of XSPIN also supports BREAKPOINTS during
+  all types of simulation
+  breakpoints are supported via the MSC printf statements
+  *	including a printf that starts with the prefix "MSC: "
+	in a Promela Model will cause the remainder of the line
+	printed to be included as a box inside the MSC charts
+	maintined by XSPIN.
+  *	if the remainder of such a line contains the capitalized word
+	BREAK, the simulator will pause at that line and wait for
+	the user to reactivate the run (single step or run)
+
+===== 2.4.1 -  4 June 1995 ====
+
+- added runtime option -e to verifiers produced by SPIN.
+  with this option all errors encountered during the verification
+  are saved in a trail file - up to the limit imposed by -cN
+  (the default is one trail).  the first trail has the extension .trail,
+  as before (which is also the only extension expected right now under
+  the guided simulation option -t of SPIN). subsequent trails have
+  extensions .trail1, .trail2, ... etc.
+  use this option in combination with -cN
+	using -c5 -e will produce the first 5 trails,
+	using -c0 -e will produce all trails.
+- modified Xspin to work also with the new Tcl7.4/Tk4.0, which is now
+  in beta release.  the changes should not affect the working under
+  the current version Tcl7.3/Tk3.6
+- there is now a file called `version_nr' in the directory /netlib/spin
+  on the distribution server.  the file contains just the version
+  number from the currently distributed SPIN sources (avoids having to
+  download larger files to find out if anything changed)
+- added runtime option -hN to choose another than the default hash-function
+  (useful in bitstate mode.  N must be an integer between 1 and 32)
+- improved the implementation of the new runtime option -s (for selecting
+  single-bit hashing instead of the default double-bit hashing)
+  especially useful in combination with -hN for sequential multihashing
+  techniques (iterative approximation of exhaustive searches for very large
+  problem sizes)
+- starting with this version of Xspin there will also be a separate upgrades
+  script to keep the Tcl/Tk files up to date.
+
+===== 2.4.2 -  11 June 1995 ====
+
+- so far, variables were created and initialized in the simulator
+  as late as possible:  upon the first reference.  a variable that
+  is never referenced was therefore never created - which is some
+  sense of economy.  however, if the local is initialized with an
+  expression that includes references to other variables (local or
+  global) then those other variables might well change value before
+  the first reference to the initialized local is made - and thus
+  the local might obtain an unexpected initial value.
+  the error was caught by Thierry Cattel - and lazy variable creation
+  is now abandoned.  the verifier is unaffected by this fix -- it
+  already id the right thing (instant creation of all locals on process
+  initialization).
+- channels deeply hidden inside structures were not properly logged
+  in the partial order reduction tables.  it could cause an abort of
+  a verification run with the mysterious error "unknown q_id, q_cond."
+  it works properly now.  error caught by Greg Duval.
+- made a small change in output format (comments only) for remote
+  references
+- made the new runtim option -e (from version 2.4.1) also accessible
+  from within XSPIN
+- changed the MSC canvas in the simulation mode of XSPIn to no longer
+  be self-scrolling (it defeated any attempt from the user to select
+  other portions of the MSC to ponder, other than the tail, during a
+  run).  also made the message transfer arrows wider - and added an
+  option to replace the symbolic step numbers in the MSC's with source
+  text.
+
+===== 2.5 -  7 July 1995 ====
+
+Fixes
+- values of rendez-vous receives were printed incorrectly in printouts
+  of spin simulation runs - this could confuse xspin; the symptom was that
+  some rendez-vous send-recv arrows were not drawn in the MSC displays.
+- rendez-vous operations that guarded escapes did not always execute
+  properly in random simulations.
+- in xspin, the boxes produced by an MSC printf could lose its text
+  after the cursor would pass over it - that's no longer the case
+- the use of a remote references used to disable the partial order
+  reduction algorithm.  instead, such references now automatically label
+  the transition that enters or exits from the corresponding process state
+  as unsafe.  this suffices to preserve the use of the partial order
+  reduction.  (proposed by Ratan Nalumasu.)
+
+Small Changes
+- added a print line in verbose output for process creations - as well
+  as process terminations.  it will be used in a future version of xspin.
+- made all xspin verification run timed - the user+system time info
+  appears in the xspin logs
+- on aborted verification runs, xspin will now also print the partial
+  information gathered up to the point of the abort
+- slightly changed the way aborts are handled in xspin
+- never claims containing assignments (i.e., side-effects) can be useful
+  in some cases.  spin will still generate warnings, but allows the user
+  to ignore them (i.e., the exit status of spin is no longer affected)
+- in simulation mode - xspin now pays attention to filenames and will not
+  try to hilight lines in files that are not visible in the main text window
+- added compile-time directive -DNOFAIR to allow compilation of a verifier
+  if it is known that the weak-fairness option will not be used -- this
+  avoids some memory overhead, and runs slightly faster.
+  the fastest run can be obtained by compiling -DNOCOMP -DNOFAIR (turning
+  off the state compression and the weak fairness related code)
+  the most memory frugal run (apart from the effects of -DREDUCE) can be
+  obtained by compiling with just -DNOFAIR (and leaving compression turned
+  on by default)  note that memory consumed also goes up with the value
+  provided for the -m option (the maximum depth of the stack)
+- added a file Doc/Pan.Directives with an overview of all user definable
+  compile-time directives of the above type.
+
+Extension
+- added a mechanism to define process priorities for use during random
+  simulations - to make high priority processes more likely to execute
+  than low priority processes.
+  as alternatives to the standard:
+	run pname(...)
+	active proctype pname() { ... }
+  you may now add a numeric execution priority:
+	run pname(...) priority N
+  and/or
+	active proctype pname() priority N
+  (with N a number >= 1)
+  the default execution priority is 1; a higher number indicates a
+  higher priority.  for instance, a priority 10 process is 10x more
+  likely to execute than a priority 1 process, etc.
+  the priority specified at the proctype declaration only affects the
+  processes that are initiated through the `active' prefix
+  a process instantiated with a run statement always gets the priority
+  that is explicitly or implicitly specified there (the default is 1).
+  the execution priorities have no effect during verification, guided,
+  or interactive simulation.
+- added an example specification file (Test/priorities) to verify the
+  correct operation of the execution priorities
+
+===== 2.5.1 -  12 July 1995 ====
+
+- some tweaks to correct the last update (a simulation run could
+  fail to terminate - and xspin could fail to detect the zero exit
+  status of spin after warning messages are printed)
+
+===== 2.6 -  16 July 1995 ====
+
+- added a new option for executable verifiers - to compute the effective
+  value range of all variables during executions.
+  the option is enabled by compiling pan.c with the directive -DVAR_RANGES
+  values are tracked in the range 0..255 only - to keep the memory
+  and runtime overhead introduced by this feature reasonable.
+  (the overhead is now restricted to roughly 40 bytes per variable -
+   it would increase to over 8k per variable if extended to the full
+   range of 16-bit integers)
+- a new option in the validation panel to support the above extension
+  was added
+- xspin now supports compile-time option -DNOFAIR to produce faster
+  verifiers when the weak fairness option is not selected
+- added an example in directory Test to illustrate dynamic creation
+  of processes (Test/erathostenes)
+- removed an error message that attempted to warn when a data structure
+  that contained an initialized channel was passed to a process as a
+  formal parameter.  it leads to the creation of a redundant channel,
+  but is otherwise harmless.
+- changed the data types of some option flags from int to short
+
+===== 2.6.1 -  18 July 1995 ====
+
+- option -jN (introduced in version 2.4.0) -- to skip the verbose
+  printouts for the first N execution steps -- now also works in
+  random simulation mode.
+  only process creations and terminations are still always printed
+- channel names are no longer included in the -DVAR_RANGES output
+  at least not by default (see version 2.6 - above)
+  to still include them, generate the verifier in verbose mode
+  as ``spin -a -v spec'' instead of the default ``spin -a spec''
+- predefined variable _last was not quite implemented correctly
+  in the verifier (the error was harmless, but if you tried to write
+  specifications that included this construct, you may have had
+  more trouble than necessary getting it to work properly)
+
+===== 2.7.Beta -  24 July 1995 ====
+
+Fixes
+- when an atomic sequence blocks, the process executing that sequence
+  loses control, and another process can run.  when all processes block,
+  the predefined variable 'timeout' becomes true, and all processes again
+  get a chance to execute.  if all processes still block - we have reached
+  an end-state (valid or invalid, depending on how states are labeled).
+  until now, timeout was allowed to become true before an atomically
+  executing process could lose control - this is not strictly conform the
+  semantics given above, and therefore no longer possible.
+- it is now caught as a runtime error (in verification) if an attempt
+  is made to perform a rendez-vous operation within a d_step sequence.
+- it is also caught as an error if a 'timeout' statement is used inside
+  a d_step sequence (it may be used as the first statement only)
+- an else statement that appears jointly with i/o statements in
+  a selection structure violates the rules of a partial order
+  reduction.  a warning is now included if this combination is seen, both
+  at compile-time and at run-time.  the combination should probably be
+  prevented alltogether since its semantics are also not always clear.
+- one more correction to the implementation of 'else' inside dsteps
+  to avoid a possibly unjustified error report during verification
+- a previously missed case of the appearance of multiple 'else' statements
+  in selection structures is now caught and reported
+- fixed a missing case were process numbers (_pid's) did not match
+  between a verification run and a guided simulation run. (if a never
+  claim was used, there could be an off-by-one difference.)
+- rendez-vous operations are now offered as a choice in interactive
+  simulation mode only when they are executable - as they should be
+- the introduction of active proctypes in 2.5 introduced an obscure
+  line-number problem (after the first active proctype in a model
+  that contains initialized local vars, the line numbers could be
+  off). it's fixed in this version.
+
+Extensions
+- The main extension added in this release is the inclusion of an
+  algorithm, due to Gerth, Peled, Wolper and Vardi, for the translation
+  from LTL formulae into Promela never claims.  The new options are
+  supported both in SPIN directly, and from XSPIN's interface.
+
+- added the option to specify an enabling condition for each
+  proctype.  the syntax is as follows:
+        proctype name(...) provided ( expression )
+        {
+                ...
+        }
+  where the expression is a general side-effect free expression
+  that may contain constants, global variables, and it may contain
+  the predefined variables timeout and _pid, but not other local
+  variables or parameters, and no remote references.
+
+  the proctype may be declared active or passive.  no enabling
+  conditions can be specified on run statements unfortunately.
+  the provided clauses take effect both during simulation runs
+  and during verification runs.
+
+- extended XSPIN with a barchart that can give a dynamic display
+  of the relative fraction of the system execution that is used by
+  each process.  modified the layout of the Simulation option panel,
+  to make some of the runtime display panels optional.
+
+- added a <Clear> button to most text windows (to clear the contents
+  of the display)
+
+- added <Larger> and <Smaller> scaling buttons to canvas displays
+  (that is: the FSM view displays and the MSC display).  the buttons
+  show up when the image is complete (e.g., when the message sequence
+  chart has been completed) - so that it can be scaled to size as a
+  whole.
+
+- added new <Help> buttons, with matching explanations, to most display
+  panels - and updated and extended the help menus.
+
+===== 2.7 -  3 August 1995 ====
+
+- fixed possible memory allignment problem on sun sytems
+- several fine tunings of xspin
+- made it possible to let the vectorsize get larger than 2^15 bytes
+  to support very large models
+- a provided clause has no effect inside d_step sequences, but it
+  is looked at during atomic sequences.  this rule is now enforced
+  equally in simulation and validation.
+- the use of enabled() and pc_value() outside never claims now triggers
+  a warning instead of an error message (i.e., it is now accepted).
+  in models with synchronous channels, the use of enabled() still makes
+  verification impossible (both random and interactive simulations will
+  work though)
+- added an option to `preserve' a message sequence chart across
+  simulation runs (by default, all remnants of an old run are removed)
+
+===== 2.7.1 -  9 August 1995 ====
+
+- removed bug in the code that implements the compile time directive
+  to verifier source -DNOFAIR, which was introduced in version 2.5,
+  (and picked up starting with version 2.6 also via xspin).
+
+===== 2.7.2 -  14 August 1995 ====
+
+- the LTL formula parser accidentily swapped the arguments of U and V
+  operators.  it does it correctly now.  the associativity of U and
+  V now defaults to left-associative.
+- arithmetic on channel id's was so far silently condoned.
+  it is now flagged as an error.  it is still valid to say: c = d,
+  if both c and d are declared as chan's, but d may no longer be
+  part of an expression.
+- unless operators now distribute properly to (only) the guard of
+  d_step sequences (but not into the body of the d_step).
+
+===== 2.7.3 -  15 August 1995 ====
+
+- tweek in implementation of provided clauses - to make it possible
+  to use `enabled()' inside them.
+
+===== 2.7.4 -  25 September 1995 ====
+
+- fixed a small omission in the implementation of dsteps
+- allowed `else' to be combined with boolean channel references
+  such as len and receive-poll
+- added some compiler directives for agressively collapsing
+  the size of state vectors during exhaustive explorations.
+  this option is still experimental
+- made some cosmetic changes in the look and feel of xspin
+
+===== 2.7.5 -  7 October 1995 ====
+
+- the value returned by a run statement triggered and
+  unwarranted error report from spin, if assigned to a variable
+- xspin didn't offer all possible choices in the menus, when
+  used in interactive simulation mode
+- somewhat more careful in closing file descriptors once they
+  are no longer needed (to avoid running out on some systems)
+- some small cosmetic changes in xspin (smaller arrows in the
+  message sequence chart - to improve readability)
+
+===== 2.7.6 -  8 December 1995 ====
+
+- added a compiler directive PC to allow for compiling the
+  SPIN sources for a PC.  (this is only needed in the makefile
+  for spin itself - not for the pan.? files.)
+  if you generate a y.tab.c file with yacc on a standard Unix
+  machine, you must replace every occurrence of y.tab.[ch]
+  with y_tab.[ch] in all the spin sources as well before compiling.
+  some of the source file names also may need to be shortened.
+- some syntax errors reported by spin fell between the cracks
+  in xspin simulations.  they are now correctly reported in the
+  simulation window and the log window.
+- in interactive simulation mode - typing `q' is now a recognized
+  way to terminate the session
+- option -jN (skip output for the first N steps) now also works
+  for interactive simulations.  the first N steps are then as in
+  a random simulation.
+- FSMview in xspin is updated to offer also the statemachine
+  view for never claims - and to suppress the one for an init
+  segment, if none is used
+- fixed a bug in implementation of hidden structures - some of
+  the references came out incorrectly in the pan.c code
+
+===== 2.7.7 -  1 February 1996 ====
+
+- made it possible to combine the search for acceptance cycles
+  with one for non-progress cycles, to find cycles with at least
+  one accepting state and no progress states.
+  the combined search is compatible with -f (weak fairness).
+  [note added at 2.8.0 -- this wasn't completely robust, and
+   therefore undone in 2.8.0]
+- added the explicit choice for the specification of a positive
+  or a negative property in LTL interface to xspin
+- fixed a bug in the ltl translator (it failed to produce the correct
+  automaton for the right-hand side of an until-clause, if that clause
+  contained boolean and-operators)
+- in non-xspin mode, process states are now identified as <endstates>
+  (where applicable) in the simulation trails
+- it is now flagged as an error if a `run' statement is used
+  inside a d_step sequence
+- added two new options ( -i and -I ) for the generated verifiers
+  (pan -i / pan -I).  recommended compilation of pan.c is with -DREACH
+  for exhaustive mode (-DREACH has no effect on BITSTATE mode).
+  option -i will search for the shortest path to an error.
+  the search starts as before - but when an error is found, the
+  search depth (-m) is automatically truncated to the length of that
+  error sequence - so that only shorter sequences can now be
+  found.  the last sequence generated will be the shortest one possible.
+  option -I is more aggressive:  it halves the search depth
+  whenever an error is found, to try to generate one that is at most
+  half the length of the last generated one.
+  if no errors are found at all, the use of -i or -I has no effect on
+  the coverage of search performed (but the effect of using -DREACH
+  is an increase in memory and time used, see the notes at version 2.2).
+
+===== 2.7.8 -  25 February 1996 ====
+
+Extensions
+- a new runtime option on the verifiers produced by Spin is -q
+  it enforces stricter conformance to what is promised in the book.
+  by default, the verifiers produced by Spin require each process to have
+  either terminated or be in a state labeled with an endstate-label, when
+  the system as a whole terminates.   the book says that for such a state
+  to be valid also all channels must be empty.  option -q enforces that
+  stricter check (which is not always necessary).  the option was suggested
+  by Pim Kars of Twente Univ., The Netherlands.
+- `mtype' is now a real data-type, that can be used everywhere a `bit'
+  `byte' `short' or `int' data-type is valid.
+  variables of type `mtype' can be assigned symbolic values from the range
+  declared in mtype range definitions (i.e.: mtype = { ... }; ).
+  the value range of an mtype variable (global or local) remains equal
+  to that of a `byte' variable (i.e., 0..255).
+  for instance:
+	mtype = { full, empty, half_full };
+	mtype glass = empty;
+  the extension was suggested by Alessandro Cimatti, Italy.
+- the formfeed character (^L or in C-terms: \f) is now an acceptable
+  white space character -- this makes it easier to produce printable
+  promela documents straight from the source (also suggested by Cimatti).
+- a new predefined and write-only (scratch) variable is introduced: _
+  the variable can be assigned to in any context, but it is an error to
+  try to read its value. for instance:
+	q?_,_,_;	/* to remove a message from q */
+	_ = 12;		/* assign a value to _ (not very useful) */
+  the value of _ is not stored in the state-vector
+  it may replace the need for the keyword `hidden' completely
+  the syntax was suggested by Norman Ramsey (inspired by Standard ML)
+
+Fixes
+- the FSM-view mode in xspin wasn't very robust, especially when moving
+  nodes, or changing scale.  it should be much better now.  button-1 or
+  button-2 can move nodes around.  click button-1 at any edge to see
+  its edge label (it no longer comes up when you hover over the edge -
+  the magic point was too hard to find in many cases).
+- fixed bug in processing of structure names, introduced in 2.7.5, caught
+  by Thierry Cattel, France.
+- trying to pass an array hidden inside a structure as a parameter
+  to a process (in a run statement) was not caught as a syntax error
+- trying to pass too many parameters in same also wasn't caught
+- in interactive mode, the menus provided by xspin were sometimes
+  incorrect for interactions in a rendez-vous system, caught by Pim Kars.
+
+===== 2.8.0 -  19 March 1996 ====
+
+- new version of the Spin sources that can be compiled, installed, and
+  used successfully on PC systems running Windows95.
+  (Because of remaining flaws in the latest Tcl/Tk 7.5/4.1 beta 3
+   release, Xspin will not run on Windows 3.1 systems.  Spin itself
+   however will work correctly on any platform.)
+  to compile, you'll need the public domain version of gcc and yacc for PCs,
+  (see README.spin under Related Software, for pointers on where to
+  get these if you don't already have them)
+
+  to use Spin on a PC, compile the Spin sources with directive -DPC
+  (if you have no `make' utitility on the PC, simply execute the
+  following three commands to obtain a spin.exe
+	byacc -v -d spin.y
+	gcc -DPC *.c -o spin
+	coff2exe spin
+  alternatively, use the precompiled spin.exe from the distribution
+  (contained in the pc_spin280.zip file)
+
+- small extension of xspin - lines with printf("MSC: ...\n") show up
+  in xspin's graphical message sequence chart panel. the colors can now
+  also be changed from the default yellow to red green or blue,
+  respectively, as follows;
+	printf("MSC: ~R ...\n")
+	printf("MSC: ~G ...\n")
+	printf("MSC: ~B ...\n")
+  (suggested by Michael Griffioen, The Netherlands)
+- small changes to improve portability and ANSI compliance of the C code
+- compile-time option -DREDUCE (partial order reduction) is now the
+  default type of verification.  both spin and xspin now use this default.
+  to compile a verifier without using reduction, compile -DNOREDUCE
+- missed case of syntax check for use of _ as lvalue corrected
+- missed case of printing mtype values in symbolic form also corrected
+- printfs no longer generate output during verification runs
+  (this was rarely useful, since statements are executed in DFS search
+  order and maybe executed repeatedly in seemingly bewildering order)
+  a compile time directive -DPRINTF was added to suppress this change
+  (this may be useful in debugging, but in little else)
+  this relies on stdarg.h being available on your system - if not, compile
+  Spin itself with -DPRINTF, and the new code will not be added.
+
+===== 2.8.1 -  12 April 1996 ====
+
+- we found a case where the partial order reduction method
+  introduced in Spin version 2.0 was not compatible with
+  the nested depth-first search method that Spin uses for
+  cycle detection (i.e., runtime options -a and -l)
+  the essence of the problem is that reachability properties
+  are affected by the so-called `liveness proviso' from the
+  partial order reduction method.  this `liveness proviso'
+  acted on different states in the 1st and in the 2nd dfs,
+  which could affect the basic reachability properties of states.
+  the problem is corrected in 2.8.1.  as a side-effect of this
+  upgrade, a few other problems with the implementation of the
+  nested depth first searches were also corrected.  in some cases
+  the changes do cause an increase of memory requirements.
+  a new compiler directive -DSAFETY is added to make sure that
+  more frugal verifiers can be produced if liveness is not required.
+- other fixes - one small fix of interactive simulation mode -
+  some small fixes to avoid compiler warnings in tl_parse.c -
+  a fix in pangen3.h to avoid a compile-time error for a few
+  cases of index bound-checking. small fixes in tl_buchi and
+  tl_trans to correct treatment of "[]true" and "[]false"
+- cosmetic changes to the xspin tcl/tk files
+
+===== 2.8.2 -  19 April 1996 ====
+
+- revised Doc/WhatsNew.ps to match the extensions in the
+  current version of the software
+- one more change to the algorithm for acceptance cycle detection
+- changed filenames for multiple error-trails (to ease use on PCs)
+  from spec.trail%d to spec%d.trail
+- some small changes to improve portability
+
+===== 2.8.3 -  23 April 1996 ====
+
+- corrected a missed optimization in the new acceptance cycle detection
+  algorithm from 2.8.[12]
+- corrected a problem with blocking atomic sequences in pangen1.h
+- added a predefined function predicate np_
+  the value of np_ is true if the system is in a non-progress state
+  and false otherwise.  (claim stutter doesn't count as non-progress.)
+  np_ can only be used inside never claims, and if it is used all
+  transitions into and out of progress states become visible/global
+  under the partial order reduction
+- background:
+  the intended purpose of np_ is to support a more efficient check
+  for the existence of non-progress cycles. (the efficient check we
+  had was lost with the changes from 2.8.[12])  instead of the default
+  check with runtime option -l, a more efficient method (under partial
+  order reduction) is to use the never claim:
+	never {
+	        /* non-progress: <>[] np_ */
+	        do
+	        :: skip
+	        :: np_ -> break
+	        od;
+	accept: do
+	        :: np_
+	        od
+	}
+  and to perform a standard check for acceptance cycles (runtime
+  option -a) -- the partial order reduction algorithm can optimize
+  a search for the existence of acceptance cycles much better than
+  one for non-progress cycles.
+  a related advantage of searching for non-progress cycles with an
+  LTL property is that the LTL formula (<>[] np_) can easily be
+  combined with extra LTL properties, to built more sophisticated
+  types of searches.
+
+===== 2.8.4 -  25 April 1996 ====
+
+- cycles are closed at a different point in the dfs with the change from
+  2.8.[12], as a result, the cycle-point was no longer accurate - which
+  could be confusing.  fixed
+- all moves through progress states and accepting states within the program
+  are visible under the partial order reduction rules.  it is unlikely that
+  one would use extra accept labels in a program, if an LTL property or a
+  never claim with accept labels is used, but just in case, this is covered.
+
+===== 2.8.5 -  7 May 1996 ====
+
+- process creation and process deletion are global actions
+  they were incorrectly labeled as safe/local actions for the
+  purposes of partial order reduction.  they are global, because
+  the execution of either one can change the executability of
+  similar actions in other processes
+- didn't catch as an error when too many message parameters are
+  specified in a receive test q?[...] (in verifications).
+  it was reported in all other cases, just not for queue tests
+  (the simulator reported it correctly, when flag -r is used)
+- peculiar nestings of array and non-array structure elements
+  could generate incorrect code
+- with fairness enabled (-f), cycles were sometimes closed at the
+  wrong place in the runtime verifiers.
+- a variable initialized with itself could cause spin to go into
+  an infinite loop.  the error is now caught properly.
+
+===== 2.8.6 -  17 May 1996 ====
+
+- timeout's weren't always marked as global actions in partial
+  order reductions - they are now -- this can cause a small increase
+  in the number of reached states during reduced searches
+- fixed error that could cause a coredump on a remote reference
+  during guided simulations (reported by Joe Lin, Bellcore)
+- improved the efficiency of partial order search for acceptance
+  cycles in bitstate mode. (for non-progress cycles, though, we still
+  can't take much advantage of reduction during bitstate searches)
+- fixed the error that caused the extent of a cycle not to be
+  marked correctly in bitstate mode (the trails were always correct,
+  but the cycle point was sometimes placed incorrectly)
+- fixed error that could cause non-existent acceptance cycles to
+  be produced in bitstate mode (hopefully the last aftershock from
+  the correction of the cycle detection method in version 2.8.1)
+
+===== 2.9.0 -  14 July 1996 ====
+
+- Important Change:
+  Spin now contains a predefined never claim template that captures
+  non-progress as a standard LTL property (it is the template described
+  under the notes for 2.8.3 above)
+  this made it possible to unify the code for -a and -l;  it brings
+  option -l (non-progress cycle detection) within the same automata
+  theoretic framework as -a;  and it secures full compatibility of
+  both options -a and -l with partial order reduced searches.
+
+  compiled versions of pan.c now support *either* -a *or* -l, not both
+
+  by default, the verifiers check for safety properties and standard
+  buchi acceptance (option -a).
+  to search for non-progress cycles (i.e., to *replace* option -a with
+  option -l), compile the verifier with the new directive -DNP
+- Xspin 2.9.0 supports this change, and makes it invisible to the user.
+
+- the state vector length is now added explicitly into the state vector.
+  in virtually all cases this is redundant, but it is safer.
+  it can optionally be omitted from the state vector again (saving
+  4 bytes of overhead per state) with the new compiler directive -DNOVSZ
+
+- the verifiers didn't allow a d_step sequence to begin with a
+  rendez-vous receive operation.  that's now fixed.
+
+- change in the as-yet non-documented mode for extra agressive
+  state compressions (added in version 2.7.4, not enabled yet for
+  normal use - more information on this mode will come later)
+
+- assignments to channel variables can violate xr/xs assertions.
+  there is now a check to catch such violations
+
+- updated the PC executable of xspin for the newer current version of
+  gcc - updated the readme files to match the above changes
+
+- added the code for handling the Next Operator from LTL.  the code is
+  not yet enabled (to enable it, compile the sources with -DNXT added).
+  note that when partial order reduction is used this operator cannot
+  be used.  we'll figure out the appropriate warnings and then enable
+  the code (i.e., when you use it, you must compile pan.c with -DNOREDUCE).
+- in the process of this update, we also caught a bug in the translation
+  of LTL formulae into never claims (affecting how the initial state of
+  the claim was encoded).  the implementation has meanwhile been subjected
+  to a more thorough check of the correctness of the translation -- using
+  another model checker (cospan) as a sanity check. (both model checkers
+  have passed the test)
+
+===== 2.9.1 -  16 September 1996 ====
+
+- no major changes - some purification and minor fixes
+- updated email address for bug reports to bell-labs.com in
+  all source files
+- disallowed remote references inside d_step sequences
+  (the verifier has no problem, but the simulator may
+  resolve these differently can cause strange guided
+  simulation results)
+- provided some missing arguments to a routine in pangen1.c
+  that could trigger compile time errors before
+- improved the COLLAPSE modes to be slightly more frugal
+- added explicit casts from shorts to ints to avoid warnings
+  of some compilers...  also fixed a possible bad reference
+  to the stack if an error is found in the first execution step
+- fixed a case where the cycle-extent wasn't set correctly
+  (found by stavros tripakis)
+- write and rewrite just a single trail-file for options -[iI]
+  (instead of numbered trails)
+- fixed a bug in weak fairness cycle detection that had crept
+  in with the overhaul from version 2.8
+- fixed order of variable initialization in simulator (can
+  make a difference if a local variable is initialized with
+  the value of a parameter, which should now work correctly)
+- expanded the number of options accessible through Xspin
+
+===== 2.9.2 -  28 September 1996 ====
+
+- with a -c0 flag, the 2.9.1 verifiers would still stop at the
+  first error encountered, instead of ignoring all errors.
+  has been corrected (-c0 means: don't stop at errors)
+- corrected the instructions and the numbers in Test/README.tests
+  for the current version of spin (for leader and pftp there are
+  some small differences)
+
+===== 2.9.3 -  5 October 1996 ====
+
+- added a function eval() to allow casting a variable name into
+  a constant value inside receive arguments.  this makes it possible
+  to match a message field with a variable value, as in
+	q?eval(_pid),par2,par3
+  until now, only constant values could be matched in this way.
+  note that in the above example the value of _pid does not change,
+  but it guarantees that the receive is unexecutable unless the first
+  message parameter is equal to the value of variable _pid
+  eval() can be used for any message field - the argument must be a
+  (local or global) variable reference (not be a general expression).
+- in the process, discovered that global references inside the parameter
+  list of send or receive statements would not be detected for the
+  marking of safe and unsafe statements for the partial order reduction.
+  this is now corrected - it may lead to a small increase in the number
+  of reachable states under partial order reduction
+
+===== 2.9.4 -  4 November 1996 ====
+
+- the order of initialization of parameters and local variables after
+  a process instantiation was incorrect in the verifier - this could
+  be noticed when a local var was instantiated with a formal parameter
+  inside the variable declaration itself (the verifier failed to do this).
+- added a missing case for interpreting eval() in run.c (see 2.9.3)
+- removed possible erroneous behavior during interactive simulations
+  when a choice is made between multiple rendez-vous handshakes
+- added SVDUMP compiler directive and some extra code to allow for the
+  creation of a statespace dump into a file called sv_dump
+- added an option in Xspin to redraw the layout of an FSM-view using
+  the program 'dot' -- the option automatically enables itself if xspin
+  notices that 'dot' is available on the host system (an extra button
+  is created, giving the redraw option)
+
+===== 2.9.5 -  18 February 1997 ====
+
+- thoroughly revised -DCOLLAPSE -- it can now be used without
+  further thought to reduce memory requirements of an exhaustive run
+  by up to 80-90% without loss of information.  the price is an
+  increase in runtime by 2x to 3x.
+- added new compiler directives -DHYBRID_HASH and -DCOVEST
+  (both for experimental use, see the Pan.Directives file)
+- renamed file sv_dump (see 2.9.4) to 'spec'.svd, for compatibility
+  with PCs
+- removed spin's -D option (dataflow).  it was inaccurate, and
+  took up more source code than warranted (300 lines in main.c and
+  another 60 or so in Xspin)
+
+===== 2.9.6 - 20 March 1997 ====
+
+- bug fix -- for vectorsizes larger than 1024 the generated
+  code from 2.9.5 contained an error in the backward execution
+  of the transition for send operations.  (this did not
+  affect the verification unless a compiler directive -DVECTORSZ=N
+  with N>1024 was used -- which triggered an error-report)
+- sometimes one may try typing 'pan -h' instead of 'pan -?'
+  to get the options listing of the verifiers.  this now gives
+  the expected response.
+- previous versions of the spin Windows95 executable in pc_spin*.zip
+  were compiled as 16-bit executable -- the current version is a
+  32-bit executable.  the newer versions of tcl/tk actually care
+  about the difference and will hang if you try to do a simulation
+  run with one of the older spin executables installed...
+- discrepancy in the stats on memory use reported at the end of a
+  bitstate run corrected.
+- new xspin295 file that corrects a problem when xspin is used on
+  unix systems with a file name argument (it reported an undeclared
+  function).
+
+===== 2.9.7 - 18 April 1997 ====
+
+- spin now recognizes a commandline option -P that can be used to
+  define a different preprocessor.  the default behavior on Unix
+  systems corresponds to:
+	spin -P/lib/cpp [..other options..] model
+  and on solaris systems:
+	spin -P/usr/ccs/lib/cpp [..other options..] model
+  (note, these two are the defaults, so these are just examples)
+  use this option to define your own preprocessor for Promela++ variants
+- bitstate mode can be made to hash over compressed state-vectors
+  (using the byte-masking method).  this can improve the coverage
+  in some cases. to enable, use -DBCOMP
+- -DSVDUMP (see 2.9.4) now also works in -DBITSTATE mode
+- added compiletime option -DRANDSTORE=33 to reduce the probability of
+  storing the bits in the hasharray in -DBITSTATE mode to 33%
+  give an integer value between 0 and 99 -- low values increase
+  the amount of work done (time complexity) roughly by the reverse
+  of the probability (i.e., by 5x for -DRANDSTORE=20), but they also
+  increase the effective coverage for oversized systems. this can be
+  useful in sequential bitstate hashing to improve accumulative coverage.
+- combined the 3 readme-files into a single comprehensive README.
+
+===== 3.0.0 - 29 April 1997 ====
+
+- new additions to Spin's functionality that motivates upping the
+  version number to 3.0:
+
+	1. a new BDD-like state compression option based on
+	   the storage of reachable states in an automaton,
+	   combined with a checkpoint/recovery option for long runs.
+	   for the automata based compression, compiled -DMA=N
+		with N the maximum length of the statevector in bytes
+		expected (spin will complain if you guess too low)
+	   for checkpointing, compile -DW_XPT
+		to get a checkpoint file written out every multiple
+		of one million states stored
+	   for restarting a run from a checkpoint file, compile -DR_XPT
+
+	2. addition of "event trace" definitions. for a description
+	   see Section 4 of the extended WhatsNew.ps
+
+	3. addition of a columnated simulation output mode
+	   for raw spin that mimicks the view one could so
+	   far only obtain with through the intermediacy of
+	   xspin. to use, say:
+	   	spin -c spec (or spin -t -c spec)
+	   there is one column per running process.  message send
+	   or receive events that cannot be associated with a process
+	   for any reason are printed in column zero.
+
+	4. addition of a Postscript output option to spin.
+	   this can be used to create a postscript file for a message
+	   flow of a simulation, without needing the intervention of
+	   xspin (which can be slow).
+		spin -M spec
+	   generates the message flow in file spec.ps
+	   also supported is:
+		spin -t -M spec
+	   to convert an error trail into postscript form.
+
+	5. addition of the ability in Xspin to automatically
+	   track variable values -- by prefixing their declaration
+	   in Promela with the keyword "show", e.g. "show byte cnt;"
+	   also added: automatic tracking of the state changes in
+	   the never claim, if present, during guided simulations
+	   (i.e., when inspecting an error.trail produced by the
+	   verifier)
+
+	6. addition of an option to convert LTL formula stored in files.
+
+	7. Xspin is now compatible with Windows95 and WindowsNT
+
+smaller, changes
+	- spin generates hints when the data-type of a variable is
+	  over-declared (i.e., it will detect the use of integers for
+	  storing booleans etc.)
+	- the spin -d output for structure variables now includes the
+	  name of the structure declaration (as the 3rd field, which
+	  was unused in this case) to make the listings unambiguous.
+	  [change from Frank Weil]
+	- spin -t can now take an argument.  without an argument
+	  	spin -t spec opens spec.trail
+	  	spin -t4 opens spec4.trail
+	  (multiple trails are generated with runtime option
+	   	pan -c0 -e)
+	- bugfix: local channels were not always restored correctly to
+	  their previous state on the reverse move of a process deletion
+	  in the verification (i.e., the deletion of the process to which
+	  those channels were local).
+	- bugfix: stutter moves were only done in the 2nd dfs, to close
+	  cycles. this has to be done in both 1st and 2nd, to avoid missing
+	  the valid stutter extension of some finite behaviors
+	- process death is now a conditionally safe action -- this partly
+	  reverses a decision made in version 2.8.5.
+	  the condition for safety is: this is the youngest process and
+	  there are fewer than the max nr of processes running.  this means
+	  that the action cannot enable any blocked run statements, although
+	  it may enable more process deaths (i.e., of processes that now
+	  become youngest).
+	  it does imply that a process dies as quickly as possible.  allowing
+	  them to also linger merely creates articifial execution scenarios
+	  where the number of active processes can grow without bound.
+	  compatibility with 2.8.5-2.9.7 on this issue can be forced by
+	  compiling pan.c with -DGLOB_ALPHA
+	- atomics inside atomics or dsteps are now accepted by the parser,
+	  and ignored.
+	- there is now a Syntax-Check option in Xspin
+	  [suggested by Klaus Havelund]
+	- true and false are now predefined constants
+
+Subsequent updates will appear in a new file: V3.Updates

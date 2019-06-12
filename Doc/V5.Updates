@@ -1,0 +1,364 @@
+Distribution Update History of the SPIN sources
+===============================================
+
+==== Version 5.0 - 26 October 2007 ====
+
+The update history since 1989:
+
+ Version 0: Jan. 1989 - Jan. 1990  5.6K lines: original book version
+ Version 1: Jan. 1990 - Jan. 1995  7.9K lines: first version on netlib
+ Version 2: Jan. 1995 - Aug. 1997  6.1K lines: partial-order reduction
+ Version 3: Aug. 1997 - Jan. 2003 17.9K lines: bdd-like compression (MA)
+ Version 4: Jan. 2003 - Oct. 2007 28.2K lines: embedded c-code, bfs
+ Version 5: Oct. 2007 -           32.8K lines: multi-core & swarm support
+
+See the end of the V4.Updates file for the main changes
+between the last Spin version 4.3.0 and Spin version 5.0.
+
+For more details on the use of the new options in 5.0, see also:
+	http://www.spinroot.com/spin/multicore/V5_Readme.html
+and
+	http://www.spinroot.com/spin/multicore/index.html
+which has additional details on the IEEE TSE paper on Spin V5.0.
+
+==== Version 5.1 - 3 November 2007 ====
+
+- fixed an endless loop in the parser for complex atomic sequences
+  (thanks to Mirek Filipow for the example)
+- noticed poor scaling for shared memory system with more than 8 cpus
+  in large rings the downstream cpus can fail to receive sufficient work
+  for some applications, which leads to poor performance.
+  modified the algorithm by adding a global queue that allows
+  cpus to also share some states independent of the ring structure.
+  (and modified the termination algorithm slightly to accomodate this)
+  this improves overall behavior, allows for deeper handoff depths, and
+  restores the scaling on mega-multicore systems
+  linear scalling sometimes stops past roughly 8 cpu's, but some speedup
+  was measured with the new algorithm up to 36 cpu-nodes
+- disabling the global queue is possible but not recommended
+- other smaller fixes, e.g. in issueing recompilation hints etc.
+
+==== Version 5.1.1 - 11 November 2007 ====
+
+- added a new directive -DSFH for fast safety verification
+  this uses a little more memory, but can give a significant speedup
+  it uses Hsieh's fast hash function, which isn't as good as Jenkins,
+  but can be faster, especially when compiling -O2 or -O3.
+  this option does not work in 64-bit mode (yet).
+  the speedup for safety properties the speedup can be up to 2x.
+- some more code cleanup -- more uses of #error and #warning to
+  give faster feedback on unsupported combinations of directives
+- reduced verbosity of outputs in multi-core mode somewhat
+- moved queue access pointers (free and full) into shared memory
+  to give more flexibility in defining handoff strategies
+  (i.e., all cores can now access all queues in principle)
+  added experimental handoff strategies -DPSTAT (with or without -DRROBIN)
+  another experimental handoff strategy is -DFRUGAL (when not using -DPSTAT)
+  [removed in 5.1.2 -- after more experiments showing limited benefit]
+- changed handoff heuristic for bitstate mode, to no longer drop
+  states silently if the target q is full, but instead to explore
+  such states locally -- this increases maxdepth requirements, but
+  is more faithful to the way non-bitstate searches work, and gives
+  better coverage overall
+- changed the way that the global queue is used for multi-core search
+  (the global queue was introduced in 5.1.0 to support scaling to larger
+  number of cores) it is now the second choice, not the first, for a
+  handoff -- the first choice is the normal handoff strategy (normally
+  a handoff to the right neighbor in the logical ring of cores)
+- removed the obsolete directive -DCOVEST
+
+==== Version 5.1.2 - 22 November 2007 ====
+
+- added an automatic resize option for the hashtable in non-bitstate mode
+  this is generally more efficient, although it will still remain faster to
+  choose the right -w parameter up front.
+  this option increases memory use somewhat (the hash now has to be stored
+  in the hashtable together with each state -- which adds about 4 bytes to
+  each state) the automatic resizing feature can be disabled with -DNO_RESIZE
+  (e.g., to reduce memory).  not enabled in multi-core mode.
+- replaced the global heap in multicore mode with separate heaps for each
+  process (still using shared memory of course) -- this reduces the
+  amount of locking needed (suggested by Petr Rockai -- comparable to using hoard)
+- rewrote the compress function with some loop unwinding to try to speed
+  it up a bit (but no major improvement noticed)
+- increased the number of critical sections used for hashtable access in
+  multi-core mode 8x. this improves scaling for some problems
+  (e.g., for elevator2.3 from the BEEM database).
+- made it in principle possible to use more than 2 cores for liveness
+  verification, although more work would be needed to turn this into
+  a method that can speedup the verification of liveness properties further
+- reduced SFH to non-bitstate mode (it is slower than Jenkins if used for
+  double-bit hash computations)
+- changed the format of printfs a little to line up numbers better in output.
+  also improved the accuracy of the resource usage numbers reported
+  in multi-core mode
+- removed the experimentsl directives PSTAT, RROBIN, and FRUGAL from 5.1.1
+- also removed another stale directive R_H
+- updated the 64-bit version of Jenkins hash with the latest version
+  posted on his website (already a few years ago it seems).
+  no big difference in performance or accuracy could be noted though.
+- made liveness verification work with a global queue
+- changed the details of the state handoff mechanism, to rely more on
+  the global queue, to improve scaling behavior on larger numbers of cores
+- reduced the sizes of the handoff queues to the handoff-depth leaving
+  only the global queue at a fixed 128 MB -- in measurements this was a win
+- improved code for setting default values for MEMLIM
+- increased the value of VMAX to match that of the full VECTORSZ, so that
+  redefining it will be less frequently necessary -- leaving VMAX too high
+  reduces only the number of available slots in the queues
+- increased the value of PMAX and QMAX from 16 to 64, so that they
+  also should need adjusting much more rarely
+
+==== Version 5.1.3 - 8 December 2007 ====
+
+- fixed important bug that was introduced in 5.1.2 -- the automatic resize option
+  did not work correctly when -DCOLLAPSE was used. the result of a verification was
+  still correct, but the hashtable would become very slow after a single resizing,
+  and possibly duplicate work being done.  corrected. (found by Alex Groce)
+- if the directive -DSPACE is defined, a more memory frugal (and slightly slower)
+  algorithm is used. no automatic resize of the hashtable and no suppression of
+  the default statevector compression mode (used by default in combination with SFH)
+- COLLAPSE compression didn't work with the new hash functions
+- if NGQ is defined (no global queue) in multi-core mode, the local workqueues
+  of the cpus is now a fixed size, rather than derived from the -z argument
+- preventing crash of the parser on the structure if :: false fi, reported
+  by Peter Schauss
+- on CYGWIN the max segment size for shared memory is now restricted to 512MB,
+  matching the max imposed by cywin itself
+- increased the max length of an input line to 1024 (from 512), to avoid preprocessing
+  problems for very long LTL formulae (reported by Peter Schauss)
+
+==== Version 5.1.4 - 27 January 2008 ====
+
+- fixed bug in enforcement of weak fairness -- introduced in 4.2.8 with the shortcut
+  based on Schwoon & Esparza 2005. the early stop after a match on the stack did
+  not take the fairness algorithm into account -- which means that it could generate
+  a counter-example that did not meet the fairness requirement.
+  reported by david farago.
+- added option to explore dfs in reverse with -DREVERSE (useful for very large searches
+  that run out of memory or time before completing the search)
+- added option to allow bfs to use disk, by compiling with -DBFS_DISK
+- can set limit to incore bfs queue with -DBFS_LIMIT=N (default N=100000 states)
+- can set limit to size of each file created with -DBFS_DISK_LIMIT=N (default N=1000000 states)
+- removed obsolete directive -DQLIST
+- made disk-use option for multi-core search work in more cases
+- new runtime option for pan.c to set a time limit to a verification run to a fixed
+  number of N minutes by saying ./pan -QN (single-core runs only)
+
+==== Version 5.1.5 - 26 April 2008 ====
+
+- added directives -DT_REVERSE to reverse order in which transitions are explored
+  (complementary to -DREVERSE from 5.1.4 and an alternative to -DRANDOMIZE)
+- added directive -DSCHED to enforce a context switch restriction (see pan -L)
+- added directive -DZAPH in bitstate mode, resets the hash array to empty each time it becomes half full
+- see online references for usage of all new directives
+  http://spinroot.com/spin/Man/Pan.html
+- directive -DRANDOMIZE can now take an optional random-seed value, as in -DRANDOMIZE=4347
+- added pan runtime option -x to prevent overwriting existing trail files
+- added pan runtime option -L to set a max for context switches (in combination with -DSCHED)
+- pan runtime option -r can take an argument, specifying the trailfile to use
+- pan runtime option -S replays a trail while printing only user-defined printfs
+- omitted references to obsolete directives OHASH, JHASH, HYBRIDHASH, COVEST, NOCOVEST, BCOMP
+- added directive -DPUTPID to include the process pid into each trailfile name
+- better check for inline parameter replacement, to prevent infinite recursion
+  when the formal parameter contains the replacement text
+- increased maximum size of a line for internal macro replacement to 2K
+- other small fixes, e.g., in verbose output, cleaned up multi-core usage detail
+
+==== Version 5.1.6 - 9 May 2008 ====
+
+- the bug fix from 5.1.4 for Schwoon & Esparza's shortcut in combination with fairness
+  did not go far enough. an example by Hirofumi Watanabe showed that the shortcut is
+  not compatible with the fairness algorithm at all. the result was the possible
+  generation of invalid accept cycles. the short-cut is no longer used when fairness
+  is enabled. no other changes in this version.
+
+==== Version 5.1.7 - 23 December 2008 ====
+
+- fixed bug in generation of code for a d_step that contains a random receive
+  operations -- caused a core dump. it's an unusual statement to use in a d_step,
+  but not invalid
+- fixed bug in stack cycling option -- wrongly calculated high-water marks
+- a few small fixes to appease a static analyzer -- leaving many others for another day.
+  (every fix brings a risk of introducing a bug, so these changes must be done cautiously)
+
+==== Version 5.2.0 - 8 May 2009 ====
+
+- added an optimization option -o5 to enable case caching in the generation of
+  the pan.c file. this can significantly reduce the size of the source files
+  (specifically pan.m) and thus reduce pan.c compilation times, but it also
+  affects the accuracy of reachability reports (since identical transitions
+  are now mapped to the same case in the big case switch). It was on by
+  default in 5.1.7 -- it is off by default now.
+
+- added -DP_RAND for randomized process scheduling, and renamed -DRANDOMIZE
+  to -DT_RAND for symmetry.
+  this completes the set of reversed and randomized explorations for transitions
+  (intra-process actions) and process scheduling (inter-process).
+  we now have:
+	-DT_REVERSE (reverse transition exploration order)
+	-DT_RAND    (randomize transition exploration order)
+  and the complementary set:
+	-DREVERSE (reverse process exploration order)
+	-DP_RAND  (randomize process exploration order)
+  like T_RAND, P_RAND can be given a value, that is then used to seed the
+  random number generator -- by default, the seed is 123
+  (e.g., -DT_RAND=87658 or -DP_RAND=938245 )
+  there's only one random number generator -- so if both are used, the option
+  that appears last will be the one that matters.
+
+- added a new runtime option to pan for when randomization is used (-DP_RAND, -DT_RAND,
+  or the older -DRANDSTOR) to set the seed for the random number generator at runtime.
+  invoking pan with parameter -RS829182 will initialize the random number generator
+  with the value that follows the -RS part (don't forget the S -- a flag of -RN will
+  have a different effect -- see pan -- for the details).
+  this options is used by the new version of swarm 2.0 (coming soon at spinroot.com/swarm)
+
+- increased the number of hash-functions that can be selected with -h? from 10 to 100.
+
+- added a compiler directive -DPUTPID that inserts the name of the pan process id
+  into the name of any trailfile generated (used by swarm 2.0).
+
+- changed the working of -DSVDUMP a little, to make it easier to measure things
+
+- added support for defining a user defined function, with a macro C_EXIT,
+  that is called just before pan exits; compile as follows:
+  gcc "-DC_EXIT=fct()" -o pan pan.c fct.c # use the quotes to protect the () part
+
+- fixed a bug in clearing of memory when doing multiple runs (-R flag) with a
+  user-defined memory size in bitstate hashing (pan -M or -G flag).
+  courtesy Peter Dillinger 3/09.
+
+- revised the implementation of -DSCHED (introduced in 5.1.5) and renamed it -DBCS
+  to support a new bounded context switching scheduling algorithm as a restricted
+  form of search. the new implementation is a better match of the algorithm from
+    Musuvathi & Qadeer, PDLI 2008, Fair stateless model checking.
+  cf also
+    Qadeer&Rehof, Context bounded model checking, Tacas 2005, LNCS 3440, pp. 93-107.
+
+  the basic method is that we count every context switch *except* those that are
+  forced (MQ08) because the currently executing process blocks.
+  We also exempt any execution that is consistent with partial order reduction.
+  (The latter can be disabled by simpy disabling po reduction with -DNOREDUCE).
+  This makes the current implementation compatible with all search modes, except
+  of course breadth-first search (-DBFS).
+  Process scheduling in this mode is done in two phases -- in the first phase we try to
+  execute the same process that executed in the previous step. if this fails, a
+  context switch is forced, and not counted against the limit. if it succeeds,
+  other processes can still move, but only if the bound on context switches is
+  not exceeded (the context switch itself is now counted).
+  the maximum number of context switches is 0 by default, and can be set to
+  any value 0..32767 with the -L argument to pan.  Low values seem to work best.
+  Surprisingly, even 0 often turns out to be a useful restriction.
+
+==== Version 5.2.1 - 6 September 2009 ====
+
+- removed support for -DSCHED, which is now completely replaced with -DBCS
+
+- thoroughly revised the implementation of bounded contex switching (-DBCS)
+  and added support for both partial order reduction and bitstate hashing.
+  it now works for all search modes except breadth-first search (-DBFS), and
+  of course except modes that directly conflict with it such as randomized
+  process scheduling (-DP_RAND)
+  the new implementation and algorithm will be documented in more detail in
+  a technical report. The context bound is now defined with a number in
+  the range 0..255, with the reasons explained in the report.
+  thanks to Mihai Florian for help developing and testing the new version
+  of the algorithm
+
+- improved error messages, especially for arrays with one element, which
+  normally are indistinguishable from scalars.
+
+- renamed the variable j1, used for the model checking code, into j1_spin
+  to avoid a nameclash with symbols defined in <math.h>.
+
+- fixed a bug in bitstate/fullstack mode where successor states located within
+  the search stack where not always recognized correctly
+
+- fixed bug in SVDUMP mode, to consistently use correct hash-values
+
+- fixed bug in implementation of pan -e mode, which didn't always work as advertised
+
+- use malloc rather than sbrk when spin is compiled for use on Windows PCs
+
+- added warning that sorted send and random receive operations on xr channels
+  violate po reduction rules; similarly, use of -m (message loss) isn't compatible.
+
+==== Version 5.2.2 - 7 September 2009 ====
+
+- fixed small glitch with the new BCS code. in combination with po reduction
+  the glitch could cause the search to remain incomplete for bounds larger than zero.
+
+==== Version 5.2.3 - 25 November 2009 ====
+
+- some extra protections against unexpectedly long filenames in guided.c
+
+- new option -k that allows the name of a trailfile to be specified, which
+  will be opened instead of the default modelname.trail used with spin -t
+  (e.g., spin -v -p -k foo.trail model.pml )
+
+- fixed an obscure bug in the verifier that is triggered if you try to do
+  something like: a[a[1]] = x, where a[1] has the value 1....
+  (courtesy Ed Gamble, who wrote a model that actually did this...)
+
+- gcc v3 or v4 no longer seems to treat sizeof(void *) as a compile-time constant
+  it was used to figure out the wordsize in pan.h; now it's done by spin
+  (so one more reasong to use spin compiled for a 64-bit platform if you want
+  to use it on a 64-bit machine)
+
+- a few more fixes to please static analyzers and more picky verisons of gcc
+
+- fixed a curious bug reported by Kees Pronk, where an unless escape clause
+  contained a break statement on a do-loop in the main clause; it now works,
+  although probably it should be considered a syntax error...
+
+- new version of xspin, xspin523.tcl, that deals better with newer versions of gcc
+  (the earlier versions of xspin could not locate gcc if it was linked to gcc-3
+  or gcc-4 in /usr/bin)
+
+==== Version 5.2.4 - 2 December 2009 ====
+
+- fixed small snafu introduced in 5.2.3 that could cause an occassional
+  false invalid endstate report for depth-limited search (i.e., when the
+  depth limit is set below the maximum search depth with the -m flag)
+
+- added support for embedding general expressions inside LTL formula,
+  to avoid having to introduce macro definitions for special symbols
+  like p, q, r, etc. as we needed to do so far.
+  embedded expressions are placed in curly braces:
+  example: spin -f '[]<> ( {a>b+12} U {c == 18} )'
+
+==== Version 5.2.5 - 17 April 2010 ====
+
+- added description of new option -k in spin help output (spin -?)
+  (the new option was introduced in 5.2.3)
+- the failure of a precondition on a c_expr can now be ignored, so
+  that verification can continue after the first such error (the
+  path itself where the error occurs is of course not continued)
+  for instance in:  "[ptr != NULL] c_expr { ptr->y > 0 }" when
+  the value of ptr == NULL, a counter-example is generated, but
+  the search can still continue (e.g., using pan -cN with the right
+  value of N)
+- fix of the lexer; when an unterminated comment appears a model
+  spin will now not hang, trying to get to the end of the comment
+- better treatment of unless escapes in replay of counter-examples
+  when the escape order was reversed with -J
+- when an endstate in a claim was reached, you could get two
+  errors reports (claim violated and end-state of claim reached)
+  this is now just one
+- randomization of transitions orders (-DT_RAND) did not work correctly
+  when unless statements were used (reported by Theo Ruys); now fixed
+  (used by Swarm)
+- bug in the implementation of trace assertions (reported by Zhe Chen)
+  fixed
+- correction of the algorithm for bounded context switching (-DBCS)
+  in part to facilitate the proof of correctness given in an upcoming
+  paper
+- fewer compiler complaints on the use of format specifiers in printfs
+  (printing a long with %d instead of %ld)
+- fixed a longer standing issue that caused the generation of 'stack
+  incomplete' warnings (reported by Ed Gamble)
+- slightly better behavior when pan -Q parameters are used to set an
+  uppberbound on the execution time. since the cutoff is linked to
+  snapshot reports on progress, the accuracy will also depend on
+  how frequently these are generated (-DFREQ=N directive).
