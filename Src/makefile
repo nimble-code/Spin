@@ -1,4 +1,4 @@
-# SPIN - Verification Software - Version 6.4 - December 2018
+# SPIN - Verification Software - Version 6.5 - July 2019
 #
 # This file is part of the public release of Spin. It is subject to the
 # terms in the LICENSE file that is included in this source directory.

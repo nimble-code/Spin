@@ -905,17 +905,26 @@ Smaller changes:
 - corrected an (unlikely) initialization problem for local variables in inlines
 
 
-==== Version 6.5.0 -- March 2019
+==== Version 6.5.0 -- 1 July 2019 ====
 
-- source code distribution of Spin and a couple of related tools has now
+- source code distribution of Spin and a couple of related tools
   moved to GitHub (www.github.com/nimble-code)
-- the lgtm scans of the Spin sources on github have prompted a couple of
-  further code cleanup efforts, to get closer to a squeaky clean scan.
-  some of the lgtm/semmle alerts are somewhat cosmetic, e.g., including
-  warnings about short global variable names like 'run' or 'rdy'. in
-  6.5.0 many of these are replaced with slightly longer names. the small
-  changes have touched almost all files.
+- the lgtm scans of the Spin sources on github prompted some more
+  code cleanup efforts, to get closer to a squeaky clean scan.
+  some of the lgtm/semmle alerts are cosmetic, e.g., warning
+  about short global variable names like 'run' or 'rdy'. in
+  6.5.0 many of these are replaced with longer names. these small
+  cosmetic changes have touched many files.
 - some further standardazation of the makefile (courtesy Tom Lee)
-- note that you can now install spin on Debian/Ubuntu systems with a straight
-  apt-get update; apt-get install spin
-  
+- you can now install spin on Debian/Ubuntu systems with a straight
+  apt-get update; apt-get install spin (also courtesy Tom Lee)
+- update to make it possible to convert arbitrary length ltl formula
+  (i.e., long texts of the formula -- but complex formula could of course
+  still require too much computation to convert efficiently)
+- better use of quotes in preprocessing command
+- corrected scope issue found by coverity
+- increased sizes of some buffers to avoid overflow
+- removed a check that prevented mtype definitions on structure elements
+- removed unused variables and unused labels
+- made the count for errors an insigned long, instead of signed int
+- moved a few more extern declarations to the top of each file
