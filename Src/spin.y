@@ -1054,6 +1054,10 @@ recursive(FILE *fd, Lextok *n)
 	}
 }
 
+#ifdef __MINGW32__
+extern ssize_t getline(char **, size_t *, FILE *); /* see main.c */
+#endif
+
 static Lextok *
 ltl_to_string(Lextok *n)
 {	Lextok *m = nn(ZN, 0, ZN, ZN);

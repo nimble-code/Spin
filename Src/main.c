@@ -864,6 +864,24 @@ add_runtime(char *s)
 	pan_runtime = tmp;
 }
 
+#ifdef __MINGW32__
+	/* mingw on PCs doesn't have a definition of getline
+	 * so we fall back on using a fixed size buffer, to
+	 * avoid having to reimplement getline here·..
+	 */
+ssize_t
+getline(char **lineptr, size_t *n, FILE *stream)
+{	static char buffer[8192];
+
+	lineptr = (char **) &buffer;
+
+	if (!fgets(buffer, sizeof(buffer), stream))
+	{	return 0;
+	}
+	return 1;
+}
+#endif
+
 int
 main(int argc, char *argv[])
 {	Symbol *s;
