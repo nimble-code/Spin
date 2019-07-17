@@ -873,7 +873,7 @@ ssize_t
 getline(char **lineptr, size_t *n, FILE *stream)
 {	static char buffer[8192];
 
-	lineptr = (char **) &buffer;
+	*lineptr = (char *) &buffer;
 
 	if (!fgets(buffer, sizeof(buffer), stream))
 	{	return 0;

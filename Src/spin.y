@@ -1095,7 +1095,9 @@ ltl_to_string(Lextok *n)
 	if (1) printf("ltl %s: %s\n", ltl_name, ltl_formula);
 
 	m->sym = lookup(ltl_formula);
+#ifndef __MINGW32__
 	free(ltl_formula);
+#endif
 	return m;
 }
 

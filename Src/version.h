@@ -6,4 +6,4 @@
  * Tool documentation is available at http://spinroot.com
  */
 
-#define SpinVersion	"Spin Version 6.5.0 -- 1 July 2019"
+#define SpinVersion	"Spin Version 6.5.0 -- 17 July 2019"
