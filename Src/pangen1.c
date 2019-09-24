@@ -1102,7 +1102,7 @@ multi_init(void)
 			  fprintf(fd_tc, "\t\tsrc_claim = src_ln%d;\n", p->tn);
 			  fprintf(fd_tc, "#ifndef BFS\n");
 			  fprintf(fd_tc, "\t\tif (whichclaim == -1 && claimname == NULL)\n");
-			  fprintf(fd_tc, "\t\t\tprintf(\"pan: ltl fomula %s\\n\");\n",
+			  fprintf(fd_tc, "\t\t\tprintf(\"pan: ltl formula %s\\n\");\n",
 				p->n->name);
 			  fprintf(fd_tc, "#endif\n");
 			}
