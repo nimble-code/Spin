@@ -141,10 +141,10 @@ qsend(Lextok *n)
 	if (whichq < MAXQ && whichq >= 0 && ltab[whichq])
 	{	ltab[whichq]->setat = depth;
 		if (ltab[whichq]->nslots > 0)
-			return a_snd(ltab[whichq], n);
-		else
-			return s_snd(ltab[whichq], n);
-	}
+		{	return a_snd(ltab[whichq], n);;
+		} else
+		{	return s_snd(ltab[whichq], n);
+	}	}
 	return 0;
 }
 
@@ -308,10 +308,12 @@ a_snd(Queue *q, Lextok *n)
 	int j = 0;			/* q field# */
 
 	if (q->nslots > 0 && q->qlen >= q->nslots)
-		return m_loss;	/* q is full */
+	{	return m_loss;	/* q is full */
+	}
 
-	if (TstOnly) return 1;
-
+	if (TstOnly)
+	{	return 1;
+	}
 	if (n->val) i = sa_snd(q, n);	/* sorted insert */
 
 	q->stepnr[i/q->nflds] = depth;
@@ -323,23 +325,24 @@ a_snd(Queue *q, Lextok *n)
 		if (q->fld_width[i+j] == MTYPE)
 		{	mtype_ck(q->mtp[i+j], m->lft);	/* 6.4.8 */
 		}
-
 		if ((verbose&16) && depth >= jumpsteps)
-			sr_talk(n, New, "Send ", "->", i+j, q);
-
+		{	sr_talk(n, New, "Send ", "->", j, q); // XXX j was i+j in 6.4.8
+		}
 		typ_ck(q->fld_width[i+j], Sym_typ(m->lft), "send");
 	}
 
 	if ((verbose&16) && depth >= jumpsteps)
 	{	for (i = j; i < q->nflds; i++)
-			sr_talk(n, 0, "Send ", "->", i, q);
+		{	sr_talk(n, 0, "Send ", "->", i, q);
+		}
 		if (j < q->nflds)
-			printf("%3d: warning: missing params in send\n",
+		{	printf("%3d: warning: missing params in send\n",
 				depth);
+		}
 		if (m)
-			printf("%3d: warning: too many params in send\n",
+		{	printf("%3d: warning: too many params in send\n",
 				depth);
-	}
+	}	}
 	q->qlen++;
 	return 1;
 }
@@ -646,7 +649,8 @@ sr_talk(Lextok *n, int v, char *tr, char *a, int j, Queue *q)
 				snm, n->ln, s);
 		}
 	} else
-		printf(",");
+	{	printf(",");
+	}
 	sr_mesg(stdout, v, q->fld_width[j] == MTYPE, q->mtp[j]);
 
 	if (j == q->nflds - 1)
