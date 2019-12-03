@@ -234,7 +234,7 @@ static const char *Head1[] = {
 
 static const char *Addp0[] = {
 	/* addproc(....parlist... */ ")",
-	"{	int j, h = now._nr_pr;",
+	"{	int j = 0, h = now._nr_pr;",
 	"#ifndef NOCOMP",
 	"	int k;",
 	"#endif",
@@ -1169,9 +1169,9 @@ static const char *Proto[] = {
 	"#ifndef XUSAFE",
 	"	int q_S_check(int, int);",
 	"	int q_R_check(int, int);",
-	"	extern uchar q_claim[MAXQ+1];",
-	"	extern char *q_name[MAXQ+1];",
-	"	extern char *p_name[MAXPROC+1];",
+	"	uchar q_claim[MAXQ+1];",
+	"	char *q_name[MAXQ+1];",
+	"	char *p_name[MAXPROC+1];",
 	"#endif",
 	"",
 	"#ifndef NO_V_PROVISO",

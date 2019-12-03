@@ -487,12 +487,6 @@ doless:
 	fprintf(fd_tc, "short q_max[NQS+1];\n");
 	fprintf(fd_tc, "#endif\n");
 
-	fprintf(fd_tc, "#ifndef XUSAFE\n");
-	fprintf(fd_tc, "uchar q_claim[MAXQ+1];\n");
-	fprintf(fd_tc, "char *q_name[MAXQ+1];\n");
-	fprintf(fd_tc, "char *p_name[MAXPROC+1];\n");
-	fprintf(fd_tc, "#endif\n");
-
 	plunk_c_fcts(fd_tc);	/* State can be used in fcts */
 
 	if (separate != 2)
