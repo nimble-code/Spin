@@ -928,3 +928,12 @@ Smaller changes:
 - removed unused variables and unused labels
 - made the count for errors an insigned long, instead of signed int
 - moved a few more extern declarations to the top of each file
+
+==== Version 6.5.1 -- 3 December 2019 ====
+
+- small updates to prevent warnings from static analyzers, e.g.
+  of format specifiers in print statements
+- corrected bug reported by Hakan Erdogmus and Zmago Brezocnik
+  in the simulation output, introduced in version 6.4.8 - fixed in
+  mesg.c line 327 where a wrong parameter was passed. this
+  caused lines printed to be truncated in some cases
