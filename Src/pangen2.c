@@ -2709,7 +2709,12 @@ putstmnt(FILE *fd, Lextok *now, int m)
 						putstmnt(fd, v->lft, m);
 					} else if (v->lft->ntyp == EVAL)
 					{	fprintf(fd, ", 1, ");
-						putstmnt(fd, v->lft->lft, m);
+	
+						if (v->lft->lft->ntyp == ',')	// usertype1
+						{	putstmnt(fd, v->lft->lft->lft, m);
+						} else
+						{	putstmnt(fd, v->lft->lft, m);
+						}
 					} else
 					{	fprintf(fd, ", 0, 0");
 				}	}
@@ -2791,7 +2796,12 @@ putstmnt(FILE *fd, Lextok *now, int m)
 					putstmnt(fd, v->lft, m);
 				} else if (v->lft->ntyp == EVAL)
 				{	fprintf(fd, ", 1, ");
-					putstmnt(fd, v->lft->lft, m);
+
+					if (v->lft->lft->ntyp == ',')	// usertype2
+					{	putstmnt(fd, v->lft->lft->lft, m);
+					} else
+					{	putstmnt(fd, v->lft->lft, m);
+					}
 				} else
 				{	fprintf(fd, ", 0, 0");
 			}	}
@@ -2934,8 +2944,11 @@ putstmnt(FILE *fd, Lextok *now, int m)
 		{	if (v->lft->ntyp != EVAL)
 			{ cat3("\t\tsprintf(simtmp, \"%%d\", ", v->lft, "); strcat(simvals, simtmp);");
 			} else
-			{ cat3("\t\tsprintf(simtmp, \"%%d\", ", v->lft->lft, "); strcat(simvals, simtmp);");
-			}
+			{	if (v->lft->lft->ntyp == ',')	// usertyp4
+				{  cat3("\t\tsprintf(simtmp, \"%%d\", ", v->lft->lft->lft, "); strcat(simvals, simtmp);");
+				} else
+				{  cat3("\t\tsprintf(simtmp, \"%%d\", ", v->lft->lft, "); strcat(simvals, simtmp);");
+			}	}
 			if (v->rgt)
 			fprintf(fd, "\t\tstrcat(simvals, \",\");\n");
 		}
@@ -3011,7 +3024,12 @@ putstmnt(FILE *fd, Lextok *now, int m)
 					putstmnt(fd, v->lft, m);
 				} else if (v->lft->ntyp == EVAL)
 				{	fprintf(fd, ", 1, ");
-					putstmnt(fd, v->lft->lft, m);
+
+					if (v->lft->lft->ntyp == ',')	// usertype3
+					{	putstmnt(fd, v->lft->lft->lft, m);
+					} else
+					{	putstmnt(fd, v->lft->lft, m);
+					}
 				} else
 					fprintf(fd, ", 0, 0");
 			}	
