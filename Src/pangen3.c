@@ -412,7 +412,11 @@ comwork(FILE *fd, Lextok *now, int m)
 			}
 			break;
 
-	case EVAL:	Cat3("eval(", now->lft, ")");
+	case EVAL:	if (now->lft->ntyp == ',')
+			{	Cat3("eval(", now->lft->lft, ")");
+			} else
+			{	Cat3("eval(", now->lft, ")");
+			}
 			break;
 
 	case NONPROGRESS:

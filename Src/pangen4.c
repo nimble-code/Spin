@@ -97,9 +97,14 @@ undostmnt(Lextok *now, int m)
 					putname(fd_tb, "(", now->lft, m, ", XX-1, ");
 					fprintf(fd_tb, "%d, ", i);
 					if (v->lft->ntyp == EVAL)
-						undostmnt(v->lft->lft, m);
-					else
-						undostmnt(v->lft, m);
+					{	if (v->lft->lft->ntyp == ',')
+						{	undostmnt(v->lft->lft->lft, m);
+						} else
+						{	undostmnt(v->lft->lft, m);
+						}
+					} else
+					{	undostmnt(v->lft, m);
+					}
 					fprintf(fd_tb, ", %d);\n\t\t", (i==0)?1:0);
 					break;
 				default:

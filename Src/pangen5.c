@@ -672,12 +672,16 @@ ana_stmnt(FSM_trans *t, Lextok *now, int usage)
 		ana_stmnt(t, now->lft, RVAL);
 		for (v = now->rgt; v; v = v->rgt)
 		{	if (v->lft->ntyp == EVAL)
-				ana_stmnt(t, v->lft->lft, RVAL);
-			else
-			if (v->lft->ntyp != CONST
-			&&  now->ntyp != 'R')		/* was v->lft->ntyp */
-				ana_stmnt(t, v->lft, LVAL);
-		}
+			{	if (v->lft->lft->ntyp == ',')
+				{	ana_stmnt(t, v->lft->lft->lft, RVAL);
+				} else
+				{	ana_stmnt(t, v->lft->lft, RVAL);
+				}
+			} else
+			{	if (v->lft->ntyp != CONST
+				&&  now->ntyp != 'R')		/* was v->lft->ntyp */
+				{	ana_stmnt(t, v->lft, LVAL);
+		}	}	}
 		break;
 
 	case '?':

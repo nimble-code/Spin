@@ -194,8 +194,15 @@ def_use(Lextok *now, int code)
 	case SET_P:
 	case GET_P:
 	case ASSERT:
-	case EVAL:
 		def_use(now->lft, USE|code);
+		break;
+
+	case EVAL:
+		if (now->lft->ntyp == ',')
+		{	def_use(now->lft->lft, USE|code);
+		} else
+		{	def_use(now->lft, USE|code);
+		}
 		break;
 
 	case LEN:
@@ -257,18 +264,25 @@ def_use(Lextok *now, int code)
 		def_use(now->lft, DEREF_DEF|DEREF_USE|USE|code);
 		for (v = now->rgt; v; v = v->rgt)
 		{	if (v->lft->ntyp == EVAL)
-				def_use(v->lft, code);	/* will add USE */
-			else if (v->lft->ntyp != CONST)
-				def_use(v->lft, DEF|code);
-		}
+			{	if (v->lft->ntyp == ',')
+				{	def_use(v->lft->lft, code);	/* will add USE */
+				} else
+				{	def_use(v->lft, code);	/* will add USE */
+				}
+			} else if (v->lft->ntyp != CONST)
+			{	def_use(v->lft, DEF|code);
+		}	}
 		break;
 
 	case 'R':
 		def_use(now->lft, DEREF_USE|USE|code);
 		for (v = now->rgt; v; v = v->rgt)
 		{	if (v->lft->ntyp == EVAL)
-				def_use(v->lft, code); /* will add USE */
-		}
+			{	if (v->lft->ntyp == ',')
+				{	def_use(v->lft->lft, code); /* will add USE */
+				} else
+				{	def_use(v->lft, code); /* will add USE */
+		}	}	}
 		break;
 
 	case '?':
@@ -1060,7 +1074,11 @@ AST_track(Lextok *now, int code)	/* called from main.c */
 		break;
 
 	case EVAL:
-		AST_track(now->lft, USE|(code&(~DEF)));
+		if (now->lft->ntyp == ',')
+		{	AST_track(now->lft->lft, USE|(code&(~DEF)));
+		} else
+		{	AST_track(now->lft, USE|(code&(~DEF)));
+		}
 		break;
 
 	case NAME:

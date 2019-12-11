@@ -408,7 +408,11 @@ eval(Lextok *now)
 	case GET_P: return get_priority(now->lft);
 	case SET_P: set_priority(now->lft->lft, now->lft->rgt); return 1;
 
-	case    EVAL: return eval(now->lft);
+	case    EVAL:	if (now->lft->ntyp == '.')
+			{	return eval(now->lft->lft);	// usertype6
+			}
+			return eval(now->lft);
+
 	case  PC_VAL: return pc_value(now->lft);
 	case NONPROGRESS: return nonprogress();
 	case    NAME: return getval(now);
