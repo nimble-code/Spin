@@ -475,7 +475,7 @@ jump_etc(C_Added *r)
 	if (strchr(p, '[')
 	&& (!r->ival
 	||  !r->ival->name
-	||  !strchr(r->ival->name, '{')))	// was !strchr(p, '{'))
+	||  !strchr(r->ival->name, '{')))	/* was !strchr(p, '{')) */
 	{	non_fatal("array initialization error, c_state (%s)", p);
 		p = (char *) 0;
 	}
@@ -1473,7 +1473,7 @@ lex(void)
 {	int c;
 again:
 	c = Getchar();
-// more:
+/* more: */
 	yytext[0] = (char) c;
 	yytext[1] = '\0';
 	switch (c) {
@@ -1580,7 +1580,7 @@ again:
 		if (!in_comment)
 		{	c = check_name(yytext);
 
-// replace timeout with (timeout)
+/* replace timeout with (timeout) */
 			if (c == TIMEOUT
 			&&  Inlining < 0
 			&&  last_token != '(')
@@ -1588,7 +1588,7 @@ again:
 				last_token = '(';
 				return '(';
 			}
-// end
+/* end */
 
 #ifdef EXPAND_SELECT
 			if (c == SELECT && Inlining < 0)

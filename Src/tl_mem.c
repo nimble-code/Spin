@@ -82,7 +82,7 @@ tl_emalloc(int U)
 	return rp;
 }
 
-// could be more efficient, but not a bottleneck
+/* could be more efficient, but not a bottleneck */
 void*
 tl_erealloc(void *v, int U, int old_size)
 {	void* tmp = tl_emalloc(U);

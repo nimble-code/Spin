@@ -194,10 +194,10 @@ undostmnt(Lextok *now, int m)
 		break;
 
 	case ',':
-		if (now->lft)	// eval usertype5
+		if (now->lft)	/* eval usertype5 */
 		{	undostmnt(now->lft, m);
 			break;
-		} // else fall thru
+		} /* else fall thru */
 	default:
 		printf("spin: bad node type %d (.b)\n", now->ntyp);
 		alldone(1);

@@ -7,6 +7,7 @@
  */
 
 #include <stdlib.h>
+#include <assert.h>
 #include "spin.h"
 #include "y.tab.h"
 
@@ -326,7 +327,7 @@ a_snd(Queue *q, Lextok *n)
 		{	mtype_ck(q->mtp[i+j], m->lft);	/* 6.4.8 */
 		}
 		if ((verbose&16) && depth >= jumpsteps)
-		{	sr_talk(n, New, "Send ", "->", j, q); // XXX j was i+j in 6.4.8
+		{	sr_talk(n, New, "Send ", "->", j, q); /* XXX j was i+j in 6.4.8 */
 		}
 		typ_ck(q->fld_width[i+j], Sym_typ(m->lft), "send");
 	}
@@ -364,16 +365,45 @@ try_slot:
 		{	mtype_ck(q->mtp[i*q->nflds+j], m->lft);	/* 6.4.8 */
 		}
 
-		if ((m->lft->ntyp == CONST
-		   && q->contents[i*q->nflds+j] != m->lft->val)
-		||  (m->lft->ntyp == EVAL
-		   && q->contents[i*q->nflds+j] != eval(m->lft->lft)))
-		{	if (n->val == 0		/* fifo recv */
+		if (m->lft->ntyp == CONST
+		&&  q->contents[i*q->nflds+j] != m->lft->val)
+		{
+			if (n->val == 0		/* fifo recv */
 			||  n->val == 2		/* fifo poll */
 			|| ++i >= q->qlen)	/* last slot */
-				return 0;	/* no match  */
-			goto try_slot;
-	}	}
+			{	return 0;	/* no match  */
+			}
+			goto try_slot;		/* random recv */
+		}
+
+		if (m->lft->ntyp == EVAL)
+		{	Lextok *fix = m->lft->lft;
+
+			if (fix->ntyp == ',')	/* new, usertype7 */
+			{	do {
+					assert(j < q->nflds);
+					if (q->contents[i*q->nflds+j] != eval(fix->lft))
+					{	if (n->val == 0
+						||  n->val == 2
+						||  ++i >= q->qlen)
+						{	return 0;
+						}
+						goto try_slot;	/* random recv */
+					}
+					j++;
+					fix = fix->rgt;
+				} while (fix && fix->ntyp == ',');
+				j--;
+			} else
+			{	if (q->contents[i*q->nflds+j] != eval(fix))
+				{	if (n->val == 0		/* fifo recv */
+					||  n->val == 2		/* fifo poll */
+					|| ++i >= q->qlen)	/* last slot */
+					{	return 0;	/* no match  */
+					}
+					goto try_slot;		/* random recv */
+		}	}	}
+	}
 
 	if (TstOnly) return 1;
 

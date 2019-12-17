@@ -2368,6 +2368,23 @@ Bailout(FILE *fd, char *str)
 #define cat3(x,y,z)	fprintf(fd,x); putstmnt(fd,y,m); fprintf(fd,z)
 #define cat30(x,y,z)	fprintf(fd,x,0); putstmnt(fd,y,m); fprintf(fd,z)
 
+extern void explain(int);
+void
+dump_tree(const char *s, Lextok *p)
+{	char z[64];
+
+	if (!p) return;
+
+	printf("\n%s:\t%2d:\t%3d (", s, p->ln, p->ntyp);
+	explain(p->ntyp);
+	if (p->ntyp == 315) printf(": %s", p->sym->name);
+	if (p->ntyp == 312) printf(": %d", p->val);
+	printf(")");
+
+	if (p->lft) { sprintf(z, "%sL", s); dump_tree(z, p->lft); }
+	if (p->rgt) { sprintf(z, "%sR", s); dump_tree(z, p->rgt); }
+}
+
 void
 putstmnt(FILE *fd, Lextok *now, int m)
 {	Lextok *v;
@@ -2708,18 +2725,24 @@ putstmnt(FILE *fd, Lextok *now, int m)
 					{	fprintf(fd, ", 1, ");
 						putstmnt(fd, v->lft, m);
 					} else if (v->lft->ntyp == EVAL)
-					{	fprintf(fd, ", 1, ");
-	
-						if (v->lft->lft->ntyp == ',')	// usertype1
-						{	putstmnt(fd, v->lft->lft->lft, m);
+					{	if (v->lft->lft->ntyp == ',')	/* usertype1 */
+						{	if (0) { dump_tree("1", v->lft->lft); }
+							Lextok *fix = v->lft->lft;
+							do {	i++;
+								fprintf(fd, ", 1, ");
+								putstmnt(fd, fix->lft, m);
+								fix = fix->rgt;
+							} while (fix && fix->ntyp == ',');
 						} else
-						{	putstmnt(fd, v->lft->lft, m);
+						{	fprintf(fd, ", 1, ");
+							putstmnt(fd, v->lft->lft, m);
 						}
 					} else
 					{	fprintf(fd, ", 0, 0");
 				}	}
 				for ( ; i < Mpars; i++)
-					fprintf(fd, ", 0, 0");
+				{	fprintf(fd, ", 0, 0");
+				}
 				fprintf(fd, ")");
 			}
 			fprintf(fd, ")");
@@ -2767,8 +2790,9 @@ putstmnt(FILE *fd, Lextok *now, int m)
 		for (v = now->rgt, j=0; v; v = v->rgt)
 		{	if (v->lft->ntyp != CONST
 			&&  v->lft->ntyp != EVAL)
-				j++;	/* count settables */
-		}
+			{	j++;	/* count settables */
+		}	}
+
 		fprintf(fd, ";\n\n\t\tXX=1");
 /* test */	if (now->val == 0 || now->val == 2)
 		{	for (v = now->rgt, i=0; v; v = v->rgt, i++)
@@ -2795,25 +2819,32 @@ putstmnt(FILE *fd, Lextok *now, int m)
 				{	fprintf(fd, ", 1, ");
 					putstmnt(fd, v->lft, m);
 				} else if (v->lft->ntyp == EVAL)
-				{	fprintf(fd, ", 1, ");
-
-					if (v->lft->lft->ntyp == ',')	// usertype2
-					{	putstmnt(fd, v->lft->lft->lft, m);
+				{	if (v->lft->lft->ntyp == ',')	/* usertype2 */
+					{	if (0) { dump_tree("2", v->lft->lft); }
+						Lextok *fix = v->lft->lft;
+						do {	i++;
+							fprintf(fd, ", 1, ");
+							putstmnt(fd, fix->lft, m);
+							fix = fix->rgt;
+						} while (fix && fix->ntyp == ',');
 					} else
-					{	putstmnt(fd, v->lft->lft, m);
+					{	fprintf(fd, ", 1, ");
+						putstmnt(fd, v->lft->lft, m);
 					}
 				} else
 				{	fprintf(fd, ", 0, 0");
 			}	}
 			for ( ; i < Mpars; i++)
-				fprintf(fd, ", 0, 0");
+			{	fprintf(fd, ", 0, 0");
+			}
 			fprintf(fd, "))) ");
 			Bailout(fd, "");
 
 			if (has_enabled || has_priority)
-				fprintf(fd, ";\n\t\tif (TstOnly) return 1 /* T2 */");
-			if (!GenCode) {
-				fprintf(fd, ";\n\t\t");
+			{	fprintf(fd, ";\n\t\tif (TstOnly) return 1 /* T2 */");
+			}
+			if (!GenCode)
+			{	fprintf(fd, ";\n\t\t");
 				if (multi_oval)
 				{	check_needed();
 					fprintf(fd, "(trpt+1)->bup.ovals[%d] = ",
@@ -2894,9 +2925,22 @@ putstmnt(FILE *fd, Lextok *now, int m)
 			}	}		}
 		}
 /* set */	for (v = now->rgt, i = 0; v; v = v->rgt, i++)
-		{	if ((v->lft->ntyp == CONST
-			||   v->lft->ntyp == EVAL) && v->rgt)
-				continue;
+		{
+			if (v->lft->ntyp == CONST && v->rgt)
+			{	continue;
+			}
+
+			if (v->lft->ntyp == EVAL)
+			{	Lextok *fix = v->lft->lft;
+				while (fix && fix->ntyp == ',')	/* usertype9 */
+				{	i++;
+					fix = fix->rgt;
+				}
+				i--;
+				if (v->rgt)
+				{	continue;
+				}
+			}
 			fprintf(fd, ";\n\t\t");
 
 			if (v->lft->ntyp != CONST
@@ -2910,6 +2954,7 @@ putstmnt(FILE *fd, Lextok *now, int m)
 				nocast=0;
 				fprintf(fd, " = ");
 			}
+
 			putname(fd, "qrecv(", now->lft, m, ", ");
 			fprintf(fd, "XX-1, %d, ", i);
 			fprintf(fd, "%d)", (v->rgt || now->val >= 2)?0:1);
@@ -2942,18 +2987,23 @@ putstmnt(FILE *fd, Lextok *now, int m)
 		_isok++;
 		for (v = now->rgt, i = 0; v; v = v->rgt, i++)
 		{	if (v->lft->ntyp != EVAL)
-			{ cat3("\t\tsprintf(simtmp, \"%%d\", ", v->lft, "); strcat(simvals, simtmp);");
+			{	cat3("\t\t\tsprintf(simtmp, \"%%d\", ", v->lft, "); strcat(simvals, simtmp);");
 			} else
-			{	if (v->lft->lft->ntyp == ',')	// usertyp4
-				{  cat3("\t\tsprintf(simtmp, \"%%d\", ", v->lft->lft->lft, "); strcat(simvals, simtmp);");
+			{	if (v->lft->lft->ntyp == ',')	/* usertype4 */
+				{	if (0) { dump_tree("4", v->lft->lft); }
+					Lextok *fix = v->lft->lft;
+					do { i++;
+					   cat3("\n\t\t\tsprintf(simtmp, \"%%d,\", ", fix->lft, "); strcat(simvals, simtmp);");
+					   fix = fix->rgt;
+					} while (fix && fix->ntyp == ',');
 				} else
-				{  cat3("\t\tsprintf(simtmp, \"%%d\", ", v->lft->lft, "); strcat(simvals, simtmp);");
+				{  cat3("\n\t\t\tsprintf(simtmp, \"%%d\", ", v->lft->lft, "); strcat(simvals, simtmp);");
 			}	}
 			if (v->rgt)
-			fprintf(fd, "\t\tstrcat(simvals, \",\");\n");
-		}
+			{	fprintf(fd, "\n\t\t\tstrcat(simvals, \",\");\n");
+		}	}
 		_isok--;
-		fprintf(fd, "\t\t}\n");
+		fprintf(fd, "\n\t\t}\n");
 		fprintf(fd, "#endif\n\t\t");
 
 		if (u_sync)
@@ -3011,9 +3061,19 @@ putstmnt(FILE *fd, Lextok *now, int m)
 				putname(fd, "", now->lft, m, ", ");
 				fprintf(fd, "0, %d, 0) == ", i);
 				if (v->lft->ntyp == CONST)
-					putstmnt(fd, v->lft, m);
-				else /* EVAL */
-					putstmnt(fd, v->lft->lft, m);
+				{	putstmnt(fd, v->lft, m);
+				} else /* EVAL */
+				{	if (v->lft->lft->ntyp == ',')	/* usertype2 */
+					{	if (0) { dump_tree("8", v->lft->lft); }
+						Lextok *fix = v->lft->lft;
+						do {	i++;
+							putstmnt(fd, fix->lft, m);
+							fix = fix->rgt;
+						} while (fix && fix->ntyp == ',');
+					} else
+					{	putstmnt(fd, v->lft->lft, m);
+					}
+				}
 			}
 			fprintf(fd, ")");
 		} else
@@ -3023,18 +3083,24 @@ putstmnt(FILE *fd, Lextok *now, int m)
 				{	fprintf(fd, ", 1, ");
 					putstmnt(fd, v->lft, m);
 				} else if (v->lft->ntyp == EVAL)
-				{	fprintf(fd, ", 1, ");
-
-					if (v->lft->lft->ntyp == ',')	// usertype3
-					{	putstmnt(fd, v->lft->lft->lft, m);
+				{	if (v->lft->lft->ntyp == ',')	/* usertype3 */
+					{	if (0) { dump_tree("3", v->lft->lft); }
+						Lextok *fix = v->lft->lft;
+						do {	i++;
+							fprintf(fd, ", 1, ");
+							putstmnt(fd, fix->lft, m);
+							fix = fix->rgt;
+						} while (fix && fix->ntyp == ',');
 					} else
-					{	putstmnt(fd, v->lft->lft, m);
+					{	fprintf(fd, ", 1, ");
+						putstmnt(fd, v->lft->lft, m);
 					}
 				} else
 					fprintf(fd, ", 0, 0");
 			}	
 			for ( ; i < Mpars; i++)
-				fprintf(fd, ", 0, 0");
+			{	fprintf(fd, ", 0, 0");
+			}
 			fprintf(fd, ")");
 		}
 		break;

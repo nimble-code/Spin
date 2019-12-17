@@ -408,8 +408,15 @@ eval(Lextok *now)
 	case GET_P: return get_priority(now->lft);
 	case SET_P: set_priority(now->lft->lft, now->lft->rgt); return 1;
 
-	case    EVAL:	if (now->lft->ntyp == '.')
-			{	return eval(now->lft->lft);	// usertype6
+	case    EVAL:	if (now->lft->ntyp == ',')
+			{	Lextok *fix = now->lft;
+				do {					/* new */
+					if (eval(fix->lft) == 0)	/* usertype6 */
+					{	return 0;
+					}
+					fix = fix->rgt;
+				} while (fix && fix->ntyp == ',');
+				return 1;
 			}
 			return eval(now->lft);
 
