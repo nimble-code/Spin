@@ -1088,7 +1088,7 @@ ltl_to_string(Lextok *n)
 	(void) unlink(TMP_FILE1);
 
 	if (!retval)
-	{	printf("%ld\n", retval);
+	{	printf("%ld\n", (long int) retval);
 		fatal("could not translate ltl ltl_formula", 0);
 	}
 
