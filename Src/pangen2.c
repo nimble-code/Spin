@@ -2932,11 +2932,14 @@ putstmnt(FILE *fd, Lextok *now, int m)
 
 			if (v->lft->ntyp == EVAL)
 			{	Lextok *fix = v->lft->lft;
+				int old_i = i;
 				while (fix && fix->ntyp == ',')	/* usertype9 */
 				{	i++;
 					fix = fix->rgt;
 				}
-				i--;
+				if (i > old_i)
+				{	i--;	/* next increment handles it */
+				}
 				if (v->rgt)
 				{	continue;
 				}
