@@ -172,7 +172,10 @@ getword(int first, int (*tst)(int))
 
 	yytext[i++]= (char) first;
 	while (tst(c = Getchar()))
-	{	yytext[i++] = (char) c;
+	{	if (c == EOF)
+		{	break;
+		}
+		yytext[i++] = (char) c;
 		if (c == '\\')
 		{	c = Getchar();
 			yytext[i++] = (char) c;	/* no tst */
