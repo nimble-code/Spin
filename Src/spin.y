@@ -776,8 +776,18 @@ const_expr:	CONST			{ $$ = $1; }
 	| const_expr '+' const_expr	{ $$ = $1; $$->val = $1->val + $3->val; }
 	| const_expr '-' const_expr	{ $$ = $1; $$->val = $1->val - $3->val; }
 	| const_expr '*' const_expr	{ $$ = $1; $$->val = $1->val * $3->val; }
-	| const_expr '/' const_expr	{ $$ = $1; $$->val = $1->val / $3->val; }
-	| const_expr '%' const_expr	{ $$ = $1; $$->val = $1->val % $3->val; }
+	| const_expr '/' const_expr	{ $$ = $1;
+					  if ($3->val == 0)
+					  { fatal("division by zero", (char *) 0);
+					  }
+					  $$->val = $1->val / $3->val;
+					}
+	| const_expr '%' const_expr	{ $$ = $1;
+					  if ($3->val == 0)
+					  { fatal("attempt to take modulo of zero", (char *) 0);
+					  }
+					  $$->val = $1->val % $3->val;
+					}
 	;
 
 expr    : l_par expr r_par		{ $$ = $2; }

@@ -109,7 +109,9 @@ Getchar(void)
 		return c;	/* expanded select statement */
 	}
 	if (Inlining<0)
-	{	c = getc(yyin);
+	{	do {	c = getc(yyin);
+		} while (c == 0);	// ignore null chars
+		// eventually there will always be an EOF
 	} else
 	{	c = getinline();
 	}

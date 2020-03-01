@@ -358,7 +358,8 @@ nonprogress(void)	/* np_ */
 
 int
 eval(Lextok *now)
-{
+{	int temp;
+
 	if (now) {
 	lineno = now->ln;
 	Fname  = now->fn;
@@ -373,11 +374,19 @@ eval(Lextok *now)
 	case  UMIN: return -eval(now->lft);
 	case   '~': return ~eval(now->lft);
 
-	case   '/': return (eval(now->lft) / eval(now->rgt));
+	case   '/': temp = eval(now->rgt);
+		    if (temp == 0)
+		    {	fatal("division by zero", (char *) 0);
+		    }
+		    return (eval(now->lft) / temp);
 	case   '*': return (eval(now->lft) * eval(now->rgt));
 	case   '-': return (eval(now->lft) - eval(now->rgt));
 	case   '+': return (eval(now->lft) + eval(now->rgt));
-	case   '%': return (eval(now->lft) % eval(now->rgt));
+	case   '%': temp = eval(now->rgt);
+		    if (temp == 0)
+		    {	fatal("taking modulo of zero", (char *) 0);
+		    }
+		    return (eval(now->lft) % temp);
 	case    LT: return (eval(now->lft) <  eval(now->rgt));
 	case    GT: return (eval(now->lft) >  eval(now->rgt));
 	case   '&': return (eval(now->lft) &  eval(now->rgt));
