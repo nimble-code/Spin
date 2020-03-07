@@ -911,7 +911,11 @@ scan_tree(Lextok *t, char *mn, char *mx)
 	lineno = t->ln;
 
 	if (t->ntyp == NAME)
-	{	strcat(mn, t->sym->name);
+	{	if (strlen(t->sym->name) + strlen(mn) > 256) // conservative
+		{	fatal("name too long", t->sym->name);
+		}
+
+		strcat(mn, t->sym->name);
 		strcat(mx, t->sym->name);
 		if (t->lft)		/* array index */
 		{	strcat(mn, "[]");

@@ -7,11 +7,12 @@
 CC?=gcc
 CFLAGS?=-O2 -DNXT -Wall -pedantic
 	# on some systems add: -I/usr/include
-	# on a PC:    make CFLAGS=-O2 -DNXT -DPC
-	# on Solaris: make CFLAGS=-O2 -DNXT -DSOLARIS
-	# on a Mac:   make CFLAGS=-O2 -DNXT -DMAC
-	# on HP-UX:   make CFLAGS=-O2 -DNXT -Aa
-	# debugging:  make CFLAGS=-pg -g -DNXT
+	# on a PC:    make CFLAGS="-O2 -DNXT -DPC"
+	# on Solaris: make CFLAGS="-O2 -DNXT -DSOLARIS"
+	# on a Mac:   make CFLAGS="-O2 -DNXT -DMAC"
+	# on HP-UX:   make CFLAGS="-O2 -DNXT -Aa"
+	# debugging:  make CFLAGS="-pg -g -DNXT"
+	# or:         make CC=clang CFLAGS="-fsanitize=address -g"
 
 # for a more picky compilation use gcc-4 and add:
 PICKY=-std=c99 -Wstrict-prototypes -pedantic -fno-strength-reduce \

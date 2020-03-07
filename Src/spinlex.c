@@ -1433,8 +1433,8 @@ new_select(void)
 	tmp_has = 0;
 }
 
-int
-scan_to(int stop, int (*tst)(int), char *buf)
+static int
+scan_to(int stop, int (*tst)(int), char *buf, int bufsz)
 {	int c, i = 0;
 
 	do {	c = Getchar();
@@ -1443,8 +1443,11 @@ scan_to(int stop, int (*tst)(int), char *buf)
 		}
 		if (c == '\n')
 		{	lineno++;
-		} else if (buf)
+		} else if (buf && i < bufsz-1)
 		{	buf[i++] = c;
+		} else if (buf && i >= bufsz-1)
+		{	buf[bufsz-1] = '\0';
+			fatal("name too long", buf);
 		}
 		if (tst && !tst(c) && c != ' ' && c != '\t')
 		{	break;
@@ -1452,7 +1455,10 @@ scan_to(int stop, int (*tst)(int), char *buf)
 	} while (c != stop && c != EOF);
 
 	if (buf)
-	{	buf[i-1] = '\0';
+	{	if (i <= 0)
+		{	fatal("input error", (char *) 0);
+		}
+		buf[i-1] = '\0';
 	}
 
 	if (c != stop)
@@ -1600,11 +1606,11 @@ again:
 			{	char name[64], from[32], upto[32];
 				int i, a, b;
 				new_select();
-				if (!scan_to('(', 0, 0)
-				||  !scan_to(':', isalnum, name)
-				||  !scan_to('.', isdigit, from)
-				||  !scan_to('.', 0, 0)
-				||  !scan_to(')', isdigit, upto))
+				if (!scan_to('(', 0, 0, 0)
+				||  !scan_to(':', isalnum, name, sizeof(name))
+				||  !scan_to('.', isdigit, from, sizeof(from))
+				||  !scan_to('.', 0, 0, 0)
+				||  !scan_to(')', isdigit, upto, sizeof(upto)))
 				{	goto not_expanded;
 				}
 				a = atoi(from);
@@ -1860,8 +1866,9 @@ check_name(char *s)
 
 			/* check for occurrence of param as field of struct */
 			{ char *ptr = Inline_stub[Inlining]->anms[i];
+				char *optr = ptr;
 				while ((ptr = strstr(ptr, s)) != NULL)
-				{	if (*(ptr-1) == '.'
+				{	if ((ptr > optr && *(ptr-1) == '.')
 					||  *(ptr+strlen(s)) == '.')
 					{	fatal("formal par of %s used in structure name",
 						Inline_stub[Inlining]->nm->name);

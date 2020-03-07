@@ -239,12 +239,18 @@ Cnt_flds(Lextok *m)
 {	Lextok *fp, *tl, *n;
 	int cnt = 0;
 
+	if (!m)
+	{	return 0;
+	}
+
 	if (m->ntyp == ',')
 	{	n = m;
 		goto is_lst;
 	}
-	if (!m->sym || m->ntyp != STRUCT)
-		return 1;
+	if (!m->sym
+	||  m->ntyp != STRUCT)
+	{	return 1;
+	}
 
 	n = getuname(m->sym);
 is_lst:
@@ -409,12 +415,13 @@ walk2_struct(char *s, Symbol *z)
 	char eprefix[128];
 	int ix;
 
+	memset(eprefix, 0, sizeof(eprefix));
 	ini_struct(z);
 	if (z->nel == 1 && z->isarray == 0)
-		sprintf(eprefix, "%s%s.", s, z->name);
+		snprintf(eprefix, sizeof(eprefix)-1, "%s%s.", s, z->name);
 	for (ix = 0; ix < z->nel; ix++)
 	{	if (z->nel > 1 || z->isarray == 1)
-			sprintf(eprefix, "%s%s[%d].", s, z->name, ix);
+			snprintf(eprefix, sizeof(eprefix)-1, "%s%s[%d].", s, z->name, ix);
 		for (fp = z->Sval[ix]; fp; fp = fp->rgt)
 		for (tl = fp->lft; tl; tl = tl->rgt)
 		{	if (tl->sym->type == STRUCT)
@@ -430,12 +437,13 @@ walk_struct(FILE *ofd, int dowhat, char *s, Symbol *z, char *a, char *b, char *c
 	char eprefix[128];
 	int ix;
 
+	memset(eprefix, 0, sizeof(eprefix));
 	ini_struct(z);
 	if (z->nel == 1 && z->isarray == 0)
-		sprintf(eprefix, "%s%s.", s, z->name);
+		snprintf(eprefix, sizeof(eprefix)-1, "%s%s.", s, z->name);
 	for (ix = 0; ix < z->nel; ix++)
 	{	if (z->nel > 1 || z->isarray == 1)
-			sprintf(eprefix, "%s%s[%d].", s, z->name, ix);
+			snprintf(eprefix, sizeof(eprefix)-1, "%s%s[%d].", s, z->name, ix);
 		for (fp = z->Sval[ix]; fp; fp = fp->rgt)
 		for (tl = fp->lft; tl; tl = tl->rgt)
 		{	if (tl->sym->type == STRUCT)
