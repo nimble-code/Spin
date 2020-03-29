@@ -1018,12 +1018,22 @@ for_index(Lextok *a3, Lextok *a5)
 		in_for = 1;
 		return z3;
 	} else
-	{	if (a5->sym->isarray == 0
-		||  a5->sym->nel <= 0)
-		{	fatal("bad arrayname %s", a5->sym->name);
+	{	Lextok *leaf = a5;
+		if (leaf->sym->type == STRUCT)	// find leaf node, which should be an array
+		{	while (leaf->rgt
+			&&     leaf->rgt->ntyp == '.')
+			{	leaf = leaf->rgt;
+			}
+			leaf = leaf->lft;
+			// printf("%s %d\n", leaf->sym->name, leaf->sym->isarray);
+		}
+
+		if (leaf->sym->isarray == 0
+		||  leaf->sym->nel <= 0)
+		{	fatal("bad arrayname %s", leaf->sym->name);
 		}
 		z1 = nn(ZN, CONST, ZN, ZN); z1->val = 0;
-		z2 = nn(ZN, CONST, ZN, ZN); z2->val = a5->sym->nel - 1;
+		z2 = nn(ZN, CONST, ZN, ZN); z2->val = leaf->sym->nel - 1;
 		for_setup(a3, z1, z2);
 		return a3;
 	}
