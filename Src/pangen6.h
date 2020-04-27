@@ -457,7 +457,7 @@ static const char *Code2c[] = { /* multi-core option - Spin 5.0 and later */
 	"	volatile sh_Allocater *nxt_pool;",
 	"	/*",
 	"	 * mark all shared memory segments for removal ",
-	"	 * the actual removes wont happen intil last process dies or detaches",
+	"	 * the actual removes won't happen intil last process dies or detaches",
 	"	 * the shmctl calls can return -1 if not all procs have detached yet",
 	"	 */",
 	"	for (m = 0; m < NR_QS; m++)	/* +1 for global q */",
@@ -1598,7 +1598,7 @@ static const char *Code2c[] = { /* multi-core option - Spin 5.0 and later */
 	"		{	if (m_workq[NCORE][*grfree].m_vsize != 0)",
 	"			{	/* can happen if reader is slow emptying slot */",
 	"				*gr_readmiss++;",
-	"				goto out; /* dont wait: release lock and return */",
+	"				goto out; /* don't wait: release lock and return */",
 	"			}",
 	"			lrfree = *grfree;	/* Get_Free_Frame use lrfree in this mode */",
 	"			*grfree = (*grfree + 1) %% GN_FRAMES;",	/* next process looks at next slot */
@@ -1607,7 +1607,7 @@ static const char *Code2c[] = { /* multi-core option - Spin 5.0 and later */
 	"			leave_critical(GQ_WR);	/* for short lock duration */",
 	"			gq_hasroom++;",
 	"			mem_put(NCORE);		/* copy state into reserved slot */",
-	"			rval = 1;		/* successfull handoff */",
+	"			rval = 1;		/* successful handoff */",
 	"		} else",
 	"		{	gq_hasnoroom++;",
 	"out:			leave_critical(GQ_WR);",	/* should be rare */

@@ -418,7 +418,7 @@ doless:
 	fprintf(fd_th, "#if !defined(HAS_LAST) && defined(BCS)\n");
 	fprintf(fd_th, "	#define HAS_LAST	1 /* use it, but */\n");
 	fprintf(fd_th, "	#ifndef STORE_LAST\n"); /* unless the user insists */
-	fprintf(fd_th, "		#define NO_LAST	1 /* dont store it */\n");
+	fprintf(fd_th, "		#define NO_LAST	1 /* don't store it */\n");
 	fprintf(fd_th, "	#endif\n");
 	fprintf(fd_th, "#endif\n");
 
@@ -3432,7 +3432,7 @@ putname(FILE *fd, char *pre, Lextok *n, int m, char *suff) /* varref */
 			{	/* attempt to catch arrays that are indexed with an array element in the same array
 				 * this causes trouble in the verifier in the backtracking
 				 * e.g., restoring a[?] in the assignment: a [a[1]] = x where a[1] == 1
-				 * but it is hard when the array is inside a structure, so the names dont match
+				 * but it is hard when the array is inside a structure, so the names don't match
 				 */
 #if 0
 				if (n->lft->ntyp == NAME)
