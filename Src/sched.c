@@ -126,7 +126,7 @@ check_mtypes(Lextok *pnm, Lextok *args)	/* proctype name, actual params */
 	}
 
 	for (fp  = p->p, at = args; fp; fp = fp->rgt)
-	for (fpt = fp->lft; fpt; fpt = fpt->rgt, at = at->rgt)
+	for (fpt = fp->lft; at && fpt; fpt = fpt->rgt, at = at->rgt)
 	{
 		if (fp->lft->val != MTYPE)
 		{	continue;

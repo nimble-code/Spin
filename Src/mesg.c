@@ -579,7 +579,7 @@ difcolumns(Lextok *n, char *tr, int v, int j, Queue *q)
 	if (j == q->nflds - 1)
 	{	int cnr;
 		if (s_trail)
-		{	cnr = prno;
+		{	cnr = prno - Have_claim;
 		} else
 		{	cnr = X_lst?X_lst->pid - Have_claim:0;
 		}

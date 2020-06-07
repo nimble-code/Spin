@@ -513,12 +513,13 @@ vardcl  : NAME  		{ $1->sym->nel = 1; $$ = $1; }
 					$$ = nn(ZN, CONST, ZN, ZN);
 					fprintf(stderr, "spin: %s:%d, warning: '%s' in array bound ",
 						$1->fn->name, $1->ln, $3->sym->name);
-					if ($3->sym->ini->val > 0)
+					if ($3->sym->ini
+					&&  $3->sym->ini->val > 0)
 					{	fprintf(stderr, "evaluated as %d\n", $3->sym->ini->val);
 						$$->val = $3->sym->ini->val;
 					} else
-					{	fprintf(stderr, "evaluated as 8 by default (to avoid zero)\n");
-						$$->val = 8;
+					{	fprintf(stderr, "evaluated as 1 by default (to avoid zero)\n");
+						$$->val = 1;
 					}
 					$1->sym->nel = $$->val;
 					$1->sym->isarray = 1;

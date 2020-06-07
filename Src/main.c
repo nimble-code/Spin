@@ -1293,7 +1293,13 @@ emalloc(size_t n)
 
 void
 trapwonly(Lextok *n /* , char *unused */)
-{	short i = (n->sym)?n->sym->type:0;
+{	short i;
+
+	if (!n)
+	{	fatal("unexpected error,", (char *) 0);
+	}
+
+	i = (n->sym)?n->sym->type:0;
 
 	/* printf("%s	realread %d type %d\n", n->sym?n->sym->name:"--", realread, i); */
 
