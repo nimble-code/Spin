@@ -535,7 +535,7 @@ static const char *Code2a[] = { /* the tail of procedure run() */
 	"FILE *",
 	"findtrail(void)",
 	"{	FILE *fd;",
-	"	char fnm[512], *q;",
+	"	char fnm[1024], *q;",
 	"	char MyFile[512];",	/* avoid using a non-writable string */
 	"	char MySuffix[16];",
 	"	int  try_core;",
@@ -962,7 +962,7 @@ static const char *Code2a[] = { /* the tail of procedure run() */
 	"ulong TMODE = 0666; /* file permission bits for trail files */",
 	"",
 	"int trcnt=1;",
-	"char snap[64], fnm[512];",
+	"char snap[64], fnm[1024];",
 	"",
 	"int",
 	"make_trail(void)",
