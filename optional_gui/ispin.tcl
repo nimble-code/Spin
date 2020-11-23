@@ -16,7 +16,7 @@ set version "Spin Version unknown";   # updated below
 set Unix 1;                           # updated below
 
 ### Tools
-	set SPIN    C:\Users\MBM info\Documents\Insat\spin.exe\spin.exe   ;# essential
+	set SPIN    C:\Users\MBM info\Documents\Insat\spin.exe\spin   ;# essential
 	set CC      gcc    ;# essential
 	set DOT     dot    ;# recommended, for automata view
 #	set DOT     "C:/Program\ Files\ \(x86\)/Graphviz2.36/bin/dot"
