@@ -3,7 +3,7 @@
 exec wish "$0" -- $*
 
 ## iSpin GUI -- http::/spinroot.com/
-## (c) 2010-2014 All Rights Reserved
+## (c) 2010-2021 All Rights Reserved
 ## This software is for educational purposes only.
 ## No guarantee whatsoever is expressed or implied
 ## by the distribution of this code.
@@ -11,7 +11,7 @@ exec wish "$0" -- $*
 wm title . "ispin"
 wm geometry . 1200x600+20+20
 
-set xversion "iSpin Version 1.1.4 -- 27 November 2014"
+set xversion "iSpin Version 1.1.5 -- 28 May 2021"
 set version "Spin Version unknown";   # updated below
 set Unix 1;                           # updated below
 
@@ -4052,6 +4052,14 @@ proc swarm_gen { t } {
 	} else {
 		catch { set fd [open "|sh ./$sFname*.swarm" r] } errmsg
 	}
+	if {$fd == -1} {
+		# in case the shell fails to expand the * properly, as reported
+		# try again, assuming the file extension was .pml
+		if {[string first "C:" $sFname] >= 0 || [string first "/" $sFname] == 0} {
+			catch { set fd [open "|sh $sFname.pml.swarm" r] } errmsg
+		} else {
+			catch { set fd [open "|sh ./$sFname.pml.swarm" r] } errmsg
+	}	}
 	if {$fd == -1} {
 		$so insert end "error: $errmsg"
 		return
