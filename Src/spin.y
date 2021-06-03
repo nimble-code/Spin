@@ -531,7 +531,7 @@ varref	: cmpnd			{ $$ = mk_explicit($1, Expand_Ok, NAME); }
 	;
 
 pfld	: NAME			{ $$ = nn($1, NAME, ZN, ZN);
-				  if ($1->sym->isarray && !in_for)
+				  if ($1->sym->isarray && !in_for && !IArgs)
 				  {	non_fatal("missing array index for '%s'",
 						$1->sym->name);
 				  }
