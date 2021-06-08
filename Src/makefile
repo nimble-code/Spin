@@ -27,6 +27,7 @@ YACC?=yacc		# on Solaris: /usr/ccs/bin/yacc
 YFLAGS=-v -d 		# creates y.output and y.tab.h
 DESTDIR?=/usr/local
 INSTALL?=cp		# on linux: install -D
+MKDIR=mkdir
 
 SPIN_OS= spinlex.o sym.o vars.o main.o msc_tcl.o \
 	mesg.o flow.o sched.o run.o pangen1.o pangen2.o \
@@ -41,6 +42,7 @@ spin:	makefile $(SPIN_OS) $(TL_OS) spin.o
 
 install: spin
 	$(INSTALL) spin $(DESTDIR)/bin/spin
+	$(MKDIR) $(DESTDIR)/share/man/man1
 	$(INSTALL) ../Man/spin.1 $(DESTDIR)/share/man/man1/spin.1
 
 spin.o:	makefile spin.y
