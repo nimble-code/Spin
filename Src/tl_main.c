@@ -136,7 +136,7 @@ tl_main(int argc, char *argv[])
 						argv[1][i] = ' ';
 				}
 				size_t len = strlen(argv[1]);
-                uform = tl_emalloc(len + 1);
+                		uform = tl_emalloc(len + 1);
 				strcpy(uform, argv[1]);
 				hasuform = (int) len;
 				break;

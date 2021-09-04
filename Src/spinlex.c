@@ -1667,6 +1667,8 @@ not_expanded:
 	{	switch (c) {
 		case '-': c = follow('>', IMPLIES,    '-'); break;
 		case '[': c = follow(']', ALWAYS,     '['); break;
+		case '/': c = follow('\\', AND, '/'); break;
+		case '\\': c = follow('/', OR, '\\'); break;
 		case '<': c = follow('>', EVENTUALLY, '<');
 			  if (c == '<')
 			  {	c = Getchar();
