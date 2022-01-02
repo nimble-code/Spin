@@ -51,7 +51,7 @@ extern int	implied_semis, ltl_mode, in_seq, par_cnt;
 
 short	has_stack = 0;
 int	lineno  = 1;
-int	scope_seq[128], scope_level = 0;
+int	scope_seq[256], scope_level = 0;
 char	CurScope[MAXSCOPESZ];
 char	yytext[2048];
 FILE	*yyin, *yyout;
