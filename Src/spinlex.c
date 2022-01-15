@@ -1704,8 +1704,16 @@ not_expanded:
 	case '|': c = follow('|', OR, '|'); break;
 	case ';': c = SEMI; break;
 	case '.': c = follow('.', DOTDOT, '.'); break;
-	case '{': scope_seq[scope_level++]++; set_cur_scope(); break;
-	case '}': scope_level--; set_cur_scope(); break;
+	case '{':
+		assert(scope_level < sizeof(scope_seq)-1);
+		scope_seq[scope_level++]++;
+		set_cur_scope();
+		break;
+	case '}':
+		assert(scope_level > 0);
+		scope_level--;
+		set_cur_scope();
+		break;
 	default : break;
 	}
 	ValToken(0, c)
