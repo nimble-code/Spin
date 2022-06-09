@@ -389,7 +389,8 @@ osubt	: /* empty */		{ $$ = ZN; }
 	| ':' NAME		{ $$ = $2; }
 	;
 
-one_decl: vis TYPE osubt var_list { setptype($3, $4, $2->val, $1);
+one_decl: vis TYPE osubt var_list {
+				  setptype($3, $4, $2->val, $1);
 				  $4->val = $2->val;
 				  $$ = $4;
 				}
@@ -473,7 +474,10 @@ ivar    : vardcl           	{ $$ = $1;
 				  {	Lextok *zx = nn(ZN, NAME, ZN, ZN);
 					zx->sym = $1->sym;
 					add_seq(nn(zx, ASGN, zx, $3));
+#if 0
+					/* causes anomolous behavior see V6.Updates 6.5.2 */
 					$1->sym->ini = 0;	/* Patrick Trentlin */
+#endif
 				  }
 				}
 	| vardcl ASGN ch_init	{ $1->sym->ini = $3;	/* channel declaration */
