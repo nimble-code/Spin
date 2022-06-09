@@ -904,7 +904,6 @@ Smaller changes:
 - improved treatment of missing semi-colons slightly
 - corrected an (unlikely) initialization problem for local variables in inlines
 
-
 ==== Version 6.5.0 -- 1 July 2019 ====
 
 - source code distribution of Spin and a couple of related tools
@@ -937,3 +936,17 @@ Smaller changes:
   in the simulation output, introduced in version 6.4.8 - fixed in
   mesg.c line 327 where a wrong parameter was passed. this
   caused lines printed to be truncated in some cases
+
+==== Version 6.5.2 -- 9 June 2022 ====
+
+
+- undoing a change made in 6.4.9 (last line of the notes above)
+  that causes anomalous behavior for a test case reported by
+  topdeckwin on github. a short version of the test-case is:
+	init {
+	  bool A[2] = true;
+	  true;  // adding or deleting this line changes the result
+	  bool B[2] = true;
+	  assert(B[1]);
+	}
+  the explicit removal of the initialization value is now removed.
