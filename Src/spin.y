@@ -471,14 +471,16 @@ ivar    : vardcl           	{ $$ = $1;
 				  nochan_manip($1, $3, 0);
 				  no_internals($1);
 				  if (!initialization_ok)
-				  {	Lextok *zx = nn(ZN, NAME, ZN, ZN);
-					zx->sym = $1->sym;
-					add_seq(nn(zx, ASGN, zx, $3));
-#if 0
-					/* causes anomolous behavior see V6.Updates 6.5.2 */
-					$1->sym->ini = 0;	/* Patrick Trentlin */
-#endif
-				  }
+				  {	if ($1->sym->isarray)
+					{	fprintf(stderr, "warning: initialization of %s[] ",
+							$1->sym->name);
+						fprintf(stderr, "could fail if placed here\n");
+					} else
+					{	Lextok *zx = nn(ZN, NAME, ZN, ZN);
+						zx->sym = $1->sym;
+						add_seq(nn(zx, ASGN, zx, $3));
+						$1->sym->ini = 0;	/* Patrick Trentlin */
+				  }	}
 				}
 	| vardcl ASGN ch_init	{ $1->sym->ini = $3;	/* channel declaration */
 				  $$ = $1; has_ini = 1;
