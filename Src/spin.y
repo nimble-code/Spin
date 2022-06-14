@@ -472,7 +472,8 @@ ivar    : vardcl           	{ $$ = $1;
 				  no_internals($1);
 				  if (!initialization_ok)
 				  {	if ($1->sym->isarray)
-					{	fprintf(stderr, "warning: initialization of %s[] ",
+					{	fprintf(stderr, "warning: %s:%d initialization of %s[] ",
+							$1->fn->name, $1->ln,
 							$1->sym->name);
 						fprintf(stderr, "could fail if placed here\n");
 					} else
