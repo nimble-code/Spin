@@ -1076,7 +1076,7 @@ samecase:			if (buzzed != 0)
 		strcpy(out1, "pan.pre");
 
 		if (add_ltl || nvr_file)
-		{	assert(strlen(argv[1]) < sizeof(out2));
+		{	assert((strlen(argv[1]) + 4) < sizeof(out2));
 			sprintf(out2, "%s.nvr", argv[1]);
 			if ((fd = fopen(out2, MFLAGS)) == NULL)
 			{	printf("spin: cannot create tmp file %s\n",
