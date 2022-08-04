@@ -90,33 +90,32 @@ char	**trailfilename;	/* new option 'k' */
 
 void	explain(int);
 
-#ifndef CPP
-	/* to use visual C++:
-		#define CPP	"cl -E/E"
-	   or call spin as:	spin -P"CL -E/E"
 
-	   on OS2:
-		#define CPP	"icc -E/Pd+ -E/Q+"
-	   or call spin as:	spin -P"icc -E/Pd+ -E/Q+"
-	   make sure the -E arg is always at the end,
-	   in each case, because the command line
-	   can later be truncated at that point
-	*/
- #if 1
-	#define CPP	"gcc -std=gnu99 -Wformat-overflow=0 -E -x c"
-	/* if gcc-4 is available, this setting is modified below */
- #else
-	#if defined(PC) || defined(MAC)
+/* 
+	on OS2:
+	#define CPP	"icc -E/Pd+ -E/Q+"
+	or call spin as:	spin -P"icc -E/Pd+ -E/Q+"
+	make sure the -E arg is always at the end,
+	in each case, because the command line
+	can later be truncated at that point
+*/
+
+#ifndef CPP
+	#if __APPLE__
 		#define CPP	"gcc -std=gnu99 -E -x c"
-	#else
-		#ifdef SOLARIS
-			#define CPP	"/usr/ccs/lib/cpp"
-		#else
-			#define CPP	"cpp"	/* sometimes: "/lib/cpp" */
-		#endif
+	#elif defined(SOLARIS)
+		#define CPP	"/usr/ccs/lib/cpp"
+	#elif __linux__
+		#define CPP	"gcc -std=gnu99 -Wformat-overflow=0 -E -x c"
+	#elif defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
+		/* to use visual C++ */
+		#define CPP	"cl -E/E"
+	#else 
+		#warning "Unknown platform"
+		#define CPP	"cpp"
 	#endif
- #endif
 #endif
+
 
 static char	PreProc[512];
 extern int	depth; /* at least some steps were made */
@@ -1575,5 +1574,3 @@ explain(int n)
 	case UNLESS:	fprintf(fd, "%sunless",	Keyword); break;
 	}
 }
-
-

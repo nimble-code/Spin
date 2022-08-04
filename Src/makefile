@@ -28,16 +28,18 @@ YFLAGS=-v -d 		# creates y.output and y.tab.h
 DESTDIR?=/usr/local
 INSTALL?=cp		# on linux: install -D
 
-SPIN_OS= spinlex.o sym.o vars.o main.o msc_tcl.o \
-	mesg.o flow.o sched.o run.o pangen1.o pangen2.o \
-	pangen3.o pangen4.o pangen5.o guided.o dstep.o \
-	structs.o pangen6.o pangen7.o reprosrc.o
+SRCS = spinlex.c sym.c vars.c main.c msc_tcl.c \
+	mesg.c flow.c sched.c run.c pangen1.c pangen2.c \
+	pangen3.c pangen4.c pangen5.c guided.c dstep.c \
+	structs.c pangen6.c pangen7.c reprosrc.c \
+	tl_parse.c tl_lex.c tl_main.c tl_trans.c \
+	tl_buchi.c tl_mem.c tl_rewrt.c tl_cache.c
 
-TL_OS=	tl_parse.o tl_lex.o tl_main.o tl_trans.o tl_buchi.o \
-	tl_mem.o tl_rewrt.o tl_cache.o
+OBJS = $(patsubst %, %.o, $(SRCS))
+DEPS = $(patsubst %, %.d, $(SRCS))
 
-spin:	makefile $(SPIN_OS) $(TL_OS) spin.o
-	$(CC) $(CFLAGS) -o spin spin.o $(SPIN_OS) $(TL_OS) $(LDFLAGS)
+spin: makefile spin.o $(OBJS)
+	$(CC) $(CFLAGS) -o spin spin.o $(OBJS) $(LDFLAGS)
 
 install: spin
 	$(INSTALL) spin $(DESTDIR)/bin/spin
@@ -49,16 +51,11 @@ spin.o:	makefile spin.y
 	rm -f y?tab.c
 	mv y?tab.o spin.o
 
-$(SPIN_OS): makefile spin.h spin.o
-
-$(TL_OS): makefile tl.h spin.o
-
-main.o pangen2.o msc_tcl.o: version.h
-pangen1.o: pangen1.h pangen3.h pangen6.h
-pangen2.o: pangen2.h pangen4.h pangen5.h pangen7.h
+%.c.o: %.c
+	$(CC) $(CFLAGS) -o $@ -c $< -MMD
 
 clean:
-	rm -f spin *.o y?tab.[ch] y.output y.debug
+	rm -f spin *.o *.d y?tab.[ch] y.output y.debug
 	rm -f pan.[chmotb] a.out core *stackdump
 
 .PHONY: clean install
