@@ -103,7 +103,7 @@ void	explain(int);
 	   can later be truncated at that point
 	*/
  #if 1
-	#define CPP	"gcc -std=gnu99 -Wformat-overflow=0 -E -x c"
+	#define CPP	"gcc -std=gnu99 -Wno-unknown-warning-option -Wformat-overflow=0 -E -x c"
 	/* if gcc-4 is available, this setting is modified below */
  #else
 	#if defined(PC) || defined(MAC)
@@ -587,9 +587,9 @@ preprocess(char *a, char *b, int a_tmp)
 	 */
 	if (strncmp(PreProc, "gcc ", strlen("gcc ")) == 0)
 	{	if (e_system(0, "gcc-4 --version > pan.pre 2>&1") == 0)
-		{	strcpy(PreProc, "gcc-4 -std=gnu99 -Wformat-overflow=0 -E -x c");
+		{	strcpy(PreProc, "gcc-4 -std=gnu99 -Wno-unknown-warning-option -Wformat-overflow=0 -E -x c");
 		} else if (e_system(0, "gcc-3 --version > pan.pre 2>&1") == 0)
-		{	strcpy(PreProc, "gcc-3 -std=gnu99 -Wformat-overflow=0 -E -x c");
+		{	strcpy(PreProc, "gcc-3 -std=gnu99 -Wno-unknown-warning-option -Wformat-overflow=0 -E -x c");
 	}	}
 #endif
 
@@ -1076,7 +1076,7 @@ samecase:			if (buzzed != 0)
 		strcpy(out1, "pan.pre");
 
 		if (add_ltl || nvr_file)
-		{	assert((strlen(argv[1]) + 4) < sizeof(out2));
+		{	assert(strlen(argv[1])+6 < sizeof(out2));
 			sprintf(out2, "%s.nvr", argv[1]);
 			if ((fd = fopen(out2, MFLAGS)) == NULL)
 			{	printf("spin: cannot create tmp file %s\n",
