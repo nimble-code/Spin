@@ -441,6 +441,7 @@ if_seq(Lextok *n)
 	e->sub = s;
 	for (z = s; z; z = z->nxt)
 		add_el(t, z->this);	/* append target */
+
 	if (tok == DO)
 	{	add_el(t, cur_s->this); /* target upfront */
 		t = new_el(nn(n, BREAK, ZN, ZN)); /* break target */
@@ -1027,7 +1028,9 @@ for_index(Lextok *a3, Lextok *a5)
 			leaf = leaf->lft;
 			// printf("%s %d\n", leaf->sym->name, leaf->sym->isarray);
 		}
-
+		if (!leaf)
+		{	fatal("unexpected type of for-loop", (char *) 0);
+		}
 		if (leaf->sym->isarray == 0
 		||  leaf->sym->nel <= 0)
 		{	fatal("bad arrayname %s", leaf->sym->name);
