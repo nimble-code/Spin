@@ -49,7 +49,7 @@ newer(char *f1, char *f2)
 
 	if (stat(f1, (struct stat *)&x) < 0) return 0;
 	if (stat(f2, (struct stat *)&y) < 0) return 1;
-	if (x.st_mtime < y.st_mtime) return 0;
+	if (x.st_mtime <= y.st_mtime) return 0;
 	
 	return 1;
 }
