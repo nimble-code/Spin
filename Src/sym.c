@@ -119,7 +119,6 @@ lookup(char *s)
 		&&  samename(sp->owner, owner))
 		{	return sp;		/* global */
 	}	}
-
 	sp = (Symbol *) emalloc(sizeof(Symbol));
 	sp->name = (char *) emalloc(strlen(s) + 1);
 	strcpy(sp->name, s);
@@ -434,7 +433,6 @@ setmtype(Lextok *mtype_name, Lextok *m)
 		||   n->lft->ntyp != NAME
 		||   n->lft->lft)	/* indexed variable */
 			fatal("bad mtype definition", (char *)0);
-
 		/* label the name */
 		if (n->lft->sym->type != MTYPE)
 		{	n->lft->sym->hidden |= 128;	/* is used */

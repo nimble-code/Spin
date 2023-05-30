@@ -702,7 +702,8 @@ c_add_loc(FILE *fd, char *s)	/* state vector entries for proctype s */
 	for (r = c_added; r; r = r->nxt)	/* pickup local decls */
 	{	if (strncmp(r->t->name, " Local", strlen(" Local")) == 0)
 		{	p = r->t->name + strlen(" Local");
-fprintf(fd, "/* XXX p=<%s>, s=<%s>, buf=<%s> r->s->name=<%s>XXX */\n", p, s, buf, r->s->name);
+			fprintf(fd, "/* XXX p=<%s>, s=<%s>, buf=<%s> r->s->name=<%s>XXX */\n",
+				p, s, buf, r->s->name);
 			while (*p == ' ' || *p == '\t')
 			{	p++;
 			}

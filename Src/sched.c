@@ -854,7 +854,6 @@ addsymbol(RunList *r, Symbol  *s)
 		&& (old_scope_rules
 		 || strcmp((const char *)t->bscp, (const char *)s->bscp) == 0))
 			return;		/* it's already there */
-
 	t = (Symbol *) emalloc(sizeof(Symbol));
 	t->name = s->name;
 	t->type = s->type;

@@ -323,13 +323,15 @@ a_snd(Queue *q, Lextok *n)
 	{	int New = eval(m->lft);
 		q->contents[i+j] = cast_val(q->fld_width[j], New, 0);
 
-		if (q->fld_width[i+j] == MTYPE)
-		{	mtype_ck(q->mtp[i+j], m->lft);	/* 6.4.8 */
+		if (q->fld_width[j] == MTYPE)		/* may 30, 2023: i+j -> j */
+		{	mtype_ck(q->mtp[j], m->lft);	/* 6.4.8 - may 30: same change */
 		}
 		if ((verbose&16) && depth >= jumpsteps)
 		{	sr_talk(n, New, "Send ", "->", j, q); /* XXX j was i+j in 6.4.8 */
 		}
-		typ_ck(q->fld_width[i+j], Sym_typ(m->lft), "send");
+
+		/* may 30, 2023: the field types are 0..nflds, not i+0..nflds */
+		typ_ck(q->fld_width[j], Sym_typ(m->lft), "send");
 	}
 
 	if ((verbose&16) && depth >= jumpsteps)
@@ -361,8 +363,8 @@ try_slot:
 	/* test executability */
 	for (m = n->rgt, j=0; m && j < q->nflds; m = m->rgt, j++)
 	{
-		if (q->fld_width[i*q->nflds+j] == MTYPE)
-		{	mtype_ck(q->mtp[i*q->nflds+j], m->lft);	/* 6.4.8 */
+		if (q->fld_width[j] == MTYPE)	/* may 30, 2023: i*q->nflds+j -> j */
+		{	mtype_ck(q->mtp[j], m->lft);	/* 6.4.8 -- may 30, same change */
 		}
 
 		if (m->lft->ntyp == CONST

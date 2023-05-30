@@ -706,7 +706,7 @@ c_var(FILE *fd, char *pref, Symbol *sp)
 					buf, ptr, pref, sp->name);
 			}
 		} else
-		{	fprintf(fd, "\t{\tint l_in;\n");
+		{	fprintf(fd, "\t{\tint l_in; /* 1 */\n");
 			fprintf(fd, "\t\tfor (l_in = 0; l_in < %d; l_in++)\n", sp->nel);
 			fprintf(fd, "\t\t{\n");
 			fprintf(fd, "\t\t\tprintf(\"\t%s %s[%%d]:\t%%d\\n\", l_in, %s%s[l_in]);\n",
@@ -892,7 +892,6 @@ do_var(FILE *ofd, int dowhat, char *s, Symbol *sp,
 	switch(dowhat) {
 	case PUTV:
 		if (sp->hidden&1) break;
-
 		typ2c(sp);
 		break;
 
@@ -950,7 +949,7 @@ do_var(FILE *ofd, int dowhat, char *s, Symbol *sp,
 						fprintf(ofd, "%s", ter);
 					}
 				} else
-				{	fprintf(ofd, "\t{\tint l_in;\n");
+				{	fprintf(ofd, "\t{\tint l_in; /* 2 */\n");
 					fprintf(ofd, "\t\tfor (l_in = 0; l_in < %d; l_in++)\n",
 						sp->nel);
 					fprintf(ofd, "\t\t{\n");
