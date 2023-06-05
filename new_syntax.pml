@@ -1,44 +1,52 @@
-mtype = {s1, s2, s3};
-int count = 0;
-/* now define a normal chan */
-chan a = [1] of { short };
-/* now define a chan with 30% loss value */
-chan [loss = 30%] b = [1] of { short };
-/* now define a chan with 70% rely
-value (or 30% loss) */
-chan [rely = 70%] c = [1] of { short };
+int tt = 80;
+int pp = 45;
 
-int pp = 70;
+init {
+	atomic {
+	run receiver();
+	}
+}
 
-active proctype main() {
-  mtype state = s1;
-  count = pp - 10;
-  /* send to a normal chan */
-  a ! 1
-  /* send to a 30% loss chan */
-  b ! count;
-  /* send to a chan with re-defined 10%
-  loss */
-  c ! [loss = 10%] 3;
-  /* send to a chan with 70% reliability */
-  c ! 2;
-  /* send to a chan with re-defined 99% 
-  reliability */
-  c ! [rely = 99%] 4;
-  /* send to a chan with re-defined loss 
-  with count value */
-  b ! [loss = count ] 1;
+proctype receiver() {
+  int type = -1;
+  int t = -1;
+  int count = 10;
+  int pp56 = 0;
+  int pp10 = 0;
+
+  do
+  ::(count > 0) -> {
+  pp = 20;
   if
-    :: true -> state = s2; 
-    /* 10% prob transition */ 
-    :: [prob = 10%] true -> state = s3;
-    /* dynamic prob transition */ 
-    :: [prob = pp] true -> state = s3;
-    /* for the others prob will be
-       calculated as 100% - all
-       specified probs */
-    :: true -> state = s2; 
-    :: true -> state = s3; 
-  fi
-  printf ("state = %d", state);
+    :: true -> {
+        type = 0;
+        pp = 56;
+        pp56++;
+        if
+            :: true -> t = 11
+            :: [prob = 35%] true -> t = 22
+            :: [prob = pp] true -> t = 33
+        fi;
+        printf("now t is = %d", t);
+    }
+    :: [prob = 10%] true -> {type = 1; pp10++;}
+    :: [prob = pp] true -> type = 2
+    :: true -> type = 3
+  fi;
+
+
+   if
+      :: true -> type = 11
+      :: [prob = 35%] true -> type = 22
+      :: [prob = pp] true -> type = 33
+  fi;
+
+  printf("now pp is = %d\n", pp);
+  printf("now state is = %d\n", type);
+  count = count - 1;
+  }
+  ::else -> break;
+  od;
+  printf("Total : pp10 = %d  pp56 = %d\n", pp10, pp56);
+
 }

@@ -27,6 +27,15 @@ init {
 	bar.x = 978;
 	bar.c = a[6];
 	a[3]!bar;
+
+    int state = 1;
+    if
+    :: true -> state = 2
+    :: true -> state = 3
+    :: true -> state = 4
+    fi;
+
+    printf("now our state = %d\n", state);
 /*
  * make sure to leave a space after the ..
  * or else the preprocessor will not see the N

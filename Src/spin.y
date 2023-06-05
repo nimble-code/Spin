@@ -655,6 +655,8 @@ margs            { Expand_Ok--; has_io++;
 				}
 	| IF options FI 	{
                   $$ = nn($1, IF, ZN, ZN);
+                  end_if_cond($$);
+
                   $$->sl = $2->sl;
 				  $$->ln = $1->ln;
 				  $$->fn = $1->fn;
@@ -796,27 +798,40 @@ Stmnt	: varref ASGN full_expr	{ $$ = nn($1, ASGN, $1, $3);	/* assignment */
 	| RETURN full_expr	{ $$ = return_statement($2); }	
 	;
 
-options : option		{ $$->sl = seqlist($1->sq, 0); printf("option \n p=%p", $1); }
-	| option options	{ $$->sl = seqlist($1->sq, $2->sl); }
+options : option {
+		$$->sl = seqlist($1->sq, 0);
+	}
+	| option options	{
+		$$->sl = seqlist($1->sq, $2->sl);
+	}
 	;
 
-option  : SEP           { open_seq(0); }
-prob
-sequence OS        { $$ = nn(ZN,0,ZN,ZN);
+option  : SEP {
+		open_seq(0);
+	}
+prob	{
+		$$ = $3;
+	}
+sequence OS   {
+    $$ = nn(ZN,0,ZN,ZN);
     $$->sq = close_seq(6);
     $$->ln = $1->ln;
     $$->fn = $1->fn;
 }
 ;
 
-prob    :/* empty */
-| '[' PROB ASGN const_expr '%' ']' {
-    printf("I caught probability with val = %d!!\n", $4->val);
-}
-| '[' PROB ASGN expr ']' {
-    printf("I caught probability with expression!!\n", $4->val);
-}
-;
+prob    : /* empty */
+    | '[' PROB ASGN const_expr '%' ']' {
+	    $$ = $4;
+	    $$->probVal = $4->val;
+	    add_sequence_prob($4, 0);
+    	}
+    | '[' PROB ASGN expr ']' {
+	    $$ = $4;
+	    $$->probVal = -1;
+	    add_sequence_prob($4, 1);
+    }
+    ;
 
 OS	: /* empty */
 	| semi			{ /* redundant semi at end of sequence */ }

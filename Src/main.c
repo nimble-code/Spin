@@ -85,6 +85,22 @@ static FILE	*fd_ltl = (FILE *) 0;
 static char	*PreArg[64];
 static int	PreCnt = 0;
 static char	out1[64];
+extern void add_sequence_prob(Lextok *, int);
+extern LextokArray* create_lex_arr();
+extern void destroy_lex_arr(LextokArray *);
+extern void remove_elem(LextokArray *, int);
+extern void resize_lex_arr(LextokArray *, int);
+extern void add_elem_to_lex_arr(LextokArray *, ProbabilityLex);
+extern void init_lex();
+extern void destroy_lex();
+
+extern ConditionArray * create_cond_arr();
+extern void destroy_cond_arr(ConditionArray*);
+extern void add_elem_to_cond(ConditionArray*, LextokArray*);
+extern void remove_element_from_cond(ConditionArray*, int);
+extern void end_if_cond(Lextok *);
+LextokArray* probabilityArray = NULL;
+ConditionArray* conditionsArray = NULL;
 
 char	**trailfilename;	/* new option 'k' */
 
@@ -1552,4 +1568,193 @@ explain(int n)
 	}
 }
 
+LextokArray* create_lex_arr() {
+    LextokArray *array = malloc(sizeof(LextokArray));
+    if (array == NULL) {
+        fprintf(stderr, "Failed to allocate memory for array\n");
+        exit(1);
+    }
 
+    array->elements = NULL;
+    array->size = 0;
+    array->capacity = 0;
+
+    return array;
+}
+
+void destroy_lex_arr(LextokArray *array) {
+    free(array->elements);
+    free(array);
+}
+
+void resize_lex_arr(LextokArray *array, int newCapacity) {
+    Lextok *newElements = realloc(array->elements, newCapacity * sizeof(ProbabilityLex));
+    if (newElements == NULL) {
+        fprintf(stderr, "Failed to reallocate memory for array\n");
+        exit(1);
+    }
+
+    array->elements = newElements;
+    array->capacity = newCapacity;
+}
+
+void add_elem_to_lex_arr(LextokArray *array, ProbabilityLex element) {
+    if (array->size == array->capacity) {
+        int newCapacity = (array->capacity == 0) ? 1 : array->capacity * 2;
+        resize_lex_arr(array, newCapacity);
+    }
+
+    array->elements[array->size] = element;
+    array->size++;
+}
+
+void remove_elem(LextokArray *array, int index) {
+    if (index < 0 || index >= array->size) {
+        fprintf(stderr, "Invalid index for element removal\n");
+        exit(1);
+    }
+
+    for (int i = index + 1; i < array->size; i++) {
+        array->elements[i - 1] = array->elements[i];
+    }
+
+    array->size--;
+
+    // Resize the array if necessary to save memory
+    int newCapacity = (array->size > 0 && array->size == array->capacity / 4) ? array->capacity / 2 : array->capacity;
+    if (newCapacity != array->capacity) {
+        resize_lex_arr(array, newCapacity);
+    }
+}
+
+void add_sequence_prob(Lextok *lextok, int isExpr) {
+    if (probabilityArray == NULL) {
+        probabilityArray = create_lex_arr();
+    }
+    ProbabilityLex temp;
+    temp.isExpr = isExpr;
+    temp.lex = lextok;
+    temp.probVal = isExpr == 1 ? -1 : lextok->val;
+    add_elem_to_lex_arr(probabilityArray, temp);
+}
+
+void destroy_lex() {
+    printf("destroy_lex\n");
+    if (probabilityArray != NULL) {
+        destroy_lex_arr(probabilityArray);
+    }
+}
+
+void init_lex() {
+    if (probabilityArray == NULL) {
+        probabilityArray = create_lex_arr();
+    }
+};
+
+ConditionArray * create_cond_arr() {
+    int default_size = 4;
+    ConditionArray* array = malloc(sizeof(ConditionArray));
+    if (array == NULL) {
+        fprintf(stderr, "Failed to allocate memory for ConditionArray\n");
+        exit(1);
+    }
+
+    array->data = malloc(default_size * sizeof(LextokArray *));
+    if (array->data == NULL) {
+        fprintf(stderr, "Failed to allocate memory for ConditionArray data\n");
+        exit(1);
+    }
+
+    array->size = 0;
+    array->capacity = default_size;
+
+    return array;
+}
+
+void destroy_cond_arr(ConditionArray* array) {
+    if (array == NULL) {
+        return;
+    }
+
+    if (array->data != NULL) {
+        for (int i = 0; i < array->size; i++) {
+            if (array->data[i] != NULL) {
+                if (array->data[i]->elements != NULL) {
+                    free(array->data[i]->elements);
+                }
+                free(array->data[i]);
+            }
+        }
+        free(array->data);
+    }
+
+    free(array);
+}
+void add_elem_to_cond(ConditionArray* conditionArr, LextokArray* lextokArray) {
+    if (conditionArr->size == conditionArr->capacity) {
+        conditionArr->capacity *= 2;
+        LextokArray** newData = realloc(conditionArr->data, conditionArr->capacity * sizeof(LextokArray *));
+        if (newData == NULL) {
+            fprintf(stderr, "Failed to reallocate memory for ConditionArray data\n");
+            exit(1);
+        }
+        conditionArr->data = newData;
+    }
+
+    conditionArr->data[conditionArr->size++] = lextokArray;
+}
+
+void remove_element_from_cond(ConditionArray* conditionArr, int index) {
+    if (index < 0 || index >= conditionArr->size) {
+        fprintf(stderr, "Invalid index\n");
+        exit(1);
+    }
+
+    LextokArray* lextokArray = conditionArr->data[index];
+    if (lextokArray != NULL) {
+        if (lextokArray->elements != NULL) {
+            free(lextokArray->elements);
+        }
+        free(lextokArray);
+    }
+
+    for (int i = index; i < conditionArr->size - 1; i++) {
+        conditionArr->data[i] = conditionArr->data[i + 1];
+    }
+
+    conditionArr->size--;
+}
+
+void end_if_cond(Lextok* lextok) {
+    if (lextok->ntyp != IF) return;
+
+    if (conditionsArray == NULL) {
+        conditionsArray = create_cond_arr();
+    }
+
+    if (probabilityArray != NULL) {
+        probabilityArray->line = lextok->ln;
+        add_elem_to_cond(conditionsArray, probabilityArray);
+        probabilityArray = NULL;
+    }
+}
+
+void print_element(Lextok *lextok, int show_header) {
+    if (show_header != 0) {
+        printf("-------------Lextok Print Start ---------\n");
+    }
+    printf("uiid = %d, nodeType = %d, line = %d, val = %d, probVal = %d\n", lextok->uiid, lextok->ntyp, lextok->ln, lextok->val, lextok->probVal);
+    if (lextok->lft != NULL) {
+        printf("left children: \n");
+        print_element(lextok->lft, 0);
+    }
+
+    if (lextok->rgt != NULL) {
+        printf("right children: \n");
+        print_element(lextok->rgt, 0);
+    }
+
+    if (show_header != 0) {
+        printf("-------------Lextok Print End---------\n");
+    }
+}

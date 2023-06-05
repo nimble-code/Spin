@@ -26,6 +26,7 @@ typedef struct Lextok {
 	unsigned short	ntyp;	/* node type */
 	short	ismtyp;		/* CONST derived from MTYP */
 	int	val;		/* value attribute */
+	int probVal;
 	int	ln;		/* line number */
 	int	indstep;	/* part of d_step sequence */
 	int	uiid;		/* inline id, if non-zero */
@@ -212,6 +213,31 @@ typedef struct QH {
 	int	n;
 	struct	QH *nxt;
 } QH;
+
+typedef struct ProbabilityLex {
+	Lextok* lex;
+	int probVal;
+	int isExpr;
+} ProbabilityLex;
+
+typedef struct LextokArray {
+	ProbabilityLex *elements;
+	int size;
+	int capacity;
+
+	int line;
+} LextokArray;
+
+typedef struct ConditionArray {
+    LextokArray** data;
+    int size;
+    int capacity;
+} ConditionArray;
+
+typedef struct IfBranch {
+	int probVal;
+	int ln;
+} IfBranch;
 
 typedef	Lextok *Lexptr;
 
@@ -444,6 +470,20 @@ void	unskip(int);
 void	whoruns(int);
 void	wrapup(int);
 void	yyerror(char *, ...);
+void	print_element(Lextok *, int);
+void    add_sequence_prob(Lextok *, int);
+LextokArray* create_lex_arr();
+void destroy_lex_arr(LextokArray *);
+void remove_elem(LextokArray *, int);
+void resize_lex_arr(LextokArray *, int);
+void add_elem_to_lex_arr(LextokArray *, ProbabilityLex );
+void init_lex();
+void destroy_lex();
+ConditionArray * create_cond_arr();
+void destroy_cond_arr(ConditionArray*);
+void add_elem_to_cond(ConditionArray*, LextokArray*);
+void remove_element_from_cond(ConditionArray*, int);
+void end_if_cond(Lextok *);
 
 extern	int unlink(const char *);
 

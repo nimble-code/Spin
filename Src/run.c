@@ -9,7 +9,7 @@
 #include <stdlib.h>
 #include "spin.h"
 #include "y.tab.h"
-
+#include <math.h>
 extern RunList	*X_lst, *run_lst;
 extern Symbol	*Fname;
 extern Element	*LastStep;
@@ -17,16 +17,19 @@ extern int	Rvous, lineno, Tval, interactive, MadeChoice, Priority_Sum;
 extern int	TstOnly, verbose, s_trail, xspin, jumpsteps, depth;
 extern int	analyze, nproc, nstop, no_print, like_java, old_priority_rules;
 extern short	Have_claim;
-
 static long	Seed = 1;
 static int	E_Check = 0, Escape_Check = 0;
+extern LextokArray* probabilityArray;
+extern ConditionArray* conditionsArray;
 
 static int	eval_sync(Element *);
 static int	pc_enabled(Lextok *n);
 static int	get_priority(Lextok *n);
 static void	set_priority(Lextok *n, Lextok *m);
 extern void	sr_buf(int, int, const char *);
-
+int probability_process_pick(int, Element* );
+int verify_branches(Element*);
+int get_branch_index_by_ln(LextokArray* lex_arr, int ln);
 void
 Srand(unsigned int s)
 {	Seed = s;
@@ -170,8 +173,10 @@ eval_sub(Element *e)
 		} else
 		{	if (e->n && e->n->indstep >= 0)
 				k = 0;	/* select 1st executable guard */
-			else
-				k = Rand()%j;	/* nondeterminism */
+			else {
+                //k = Rand()%j;	/* nondeterminism */
+                k = probability_process_pick(j, e);
+            }
 		}
 
 		has_else = ZE;
@@ -750,4 +755,119 @@ set_priority(Lextok *n, Lextok *p)
 				Y->n->name,
 				Y->priority);
 	}	}
+}
+
+int verify_branches(Element* element) {
+    int result = 0;
+
+
+    return result;
+}
+
+int get_branch_index_by_ln(LextokArray* lex_arr, int ln) {
+    int result = -1;
+    if (lex_arr->size != 0) {
+        for (int i = 0; i < lex_arr->size; i++) {
+            ProbabilityLex cur = lex_arr->elements[i];
+
+            if (cur.lex->ln == ln) {
+                result = i;
+                break;
+            }
+        }
+    }
+
+    return result;
+}
+
+
+int selectIndex(IfBranch *branches, int size)
+{
+    double randValue = (double)Rand() / RAND_MAX; // Случайное число от 0 до 1
+    double cumulativeProbability = 0.0;
+
+    for (int i = 0; i < size; i++) {
+        cumulativeProbability += (branches[i].probVal / 100.00);
+
+        if (randValue <= cumulativeProbability)
+            return i;
+    }
+
+    // Если сумма вероятностей не равна 1, вернуть последний индекс
+    return size - 1;
+}
+
+
+int probability_process_pick(int number_process, Element* elements) {
+    int picked_process_index = Rand() % number_process;
+    if (conditionsArray->size == 0) {
+        // no have prob branch
+        // then pick random process
+        return picked_process_index;
+    }
+
+    // are we in if operator
+    if (elements->n != NULL && elements->n->ntyp == IF) {
+
+        // get current if operator with him branches
+        int actual_if_index = -1;
+        for (int i = 0; i < conditionsArray->size; i++) {
+            LextokArray* cond = conditionsArray->data[i];
+
+            if (cond->line == elements->n->ln) {
+                actual_if_index = i;
+                break;
+            }
+        }
+
+        if (actual_if_index != -1) {
+            LextokArray* cur_if = conditionsArray->data[actual_if_index];
+
+            // then pick conditions lines
+            struct IfBranch *branches = malloc(number_process * sizeof(struct IfBranch));
+            int i = 0;
+
+            SeqList* linkedList = elements->n->sl;
+            int probabilities_sum = 0;
+            while (linkedList != NULL) {
+                IfBranch temp;
+                temp.ln = linkedList->this->extent->n->ln;
+                temp.probVal = -1;
+                int actual_if_index = get_branch_index_by_ln(cur_if, temp.ln);
+                if (actual_if_index != -1) {
+                    ProbabilityLex probLex = cur_if->elements[actual_if_index];
+                    temp.probVal = probLex.isExpr == 1 ? eval(probLex.lex) : probLex.probVal;
+                    probabilities_sum += temp.probVal;
+                }
+                branches[i++] = temp;
+                linkedList = linkedList->nxt;
+            }
+
+            if (probabilities_sum > 100) {
+                printf("Error probability setting in if operator. ");
+                exit(1);
+            }
+            int percents = 100;
+            percents -= probabilities_sum;
+
+            int divider = number_process - cur_if->size;
+
+            // improve
+            int probability_of_another_branches = percents / divider;
+
+            for (int i = 0; i < number_process; i++) {
+                IfBranch temp = branches[i];
+
+                if (temp.probVal == -1) {
+                    temp.probVal = probability_of_another_branches;
+                }
+                branches[i] = temp;
+            }
+
+            picked_process_index = selectIndex(branches, number_process);
+
+        }
+    }
+
+    return picked_process_index;
 }
