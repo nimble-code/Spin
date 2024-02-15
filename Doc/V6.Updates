@@ -950,3 +950,5 @@ Smaller changes:
 	  assert(B[1]);
 	}
   the explicit removal of the initialization value is now removed.
+- february 2024: minor update, full(q) now returns false for a
+  rendez-vous channel (it used to return true)
