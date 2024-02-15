@@ -107,8 +107,12 @@ int
 qfull(Lextok *n)
 {	int whichq = eval(n->lft)-1;
 
-	if (whichq < MAXQ && whichq >= 0 && ltab[whichq])
-		return (ltab[whichq]->qlen >= ltab[whichq]->nslots);
+	if (whichq < MAXQ
+	&&  whichq >= 0			// valid qid
+	&&  ltab[whichq]		// q exists
+	&&  ltab[whichq]->nslots > 0)	// !q_is_sync added 02/24
+	{	return (ltab[whichq]->qlen >= ltab[whichq]->nslots);
+	}
 	return 0;
 }
 
