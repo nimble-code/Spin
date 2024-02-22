@@ -18,8 +18,8 @@ set Unix 1;                           # updated below
 ### Tools
 	set SPIN    spin   ;# essential
 	set CC      gcc    ;# essential
-	set DOT     dot    ;# recommended, for automata view
-#	set DOT     "C:/Program\ Files\ \(x86\)/Graphviz2.36/bin/dot"
+#	set DOT     dot    ;# recommended, for automata view
+ 	set DOT     "C:\Users\MBM info\Documents\Insat\Graphviz\bin\dot"
 	set SWARM   swarm  ;# optional, for swarm verification panel
 	set CURL    curl   ;# optional, for version check information
 
