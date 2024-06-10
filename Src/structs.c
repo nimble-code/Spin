@@ -412,7 +412,7 @@ struct_name(Lextok *n, Symbol *v, int xinit, char *buf)
 void
 walk2_struct(char *s, Symbol *z)
 {	Lextok *fp, *tl;
-	char eprefix[128];
+	char eprefix[512];
 	int ix;
 
 	memset(eprefix, 0, sizeof(eprefix));
@@ -434,7 +434,7 @@ walk2_struct(char *s, Symbol *z)
 void
 walk_struct(FILE *ofd, int dowhat, char *s, Symbol *z, char *a, char *b, char *c)
 {	Lextok *fp, *tl;
-	char eprefix[128];
+	char eprefix[512];
 	int ix;
 
 	memset(eprefix, 0, sizeof(eprefix));
@@ -456,7 +456,7 @@ walk_struct(FILE *ofd, int dowhat, char *s, Symbol *z, char *a, char *b, char *c
 void
 c_struct(FILE *fd, char *ipref, Symbol *z)
 {	Lextok *fp, *tl;
-	char pref[256], eprefix[300];
+	char pref[512], eprefix[300];
 	int ix;
 
 	ini_struct(z);
@@ -483,7 +483,7 @@ c_struct(FILE *fd, char *ipref, Symbol *z)
 void
 dump_struct(Symbol *z, char *prefix, RunList *r)
 {	Lextok *fp, *tl;
-	char eprefix[256];
+	char eprefix[512];
 	int ix, jx;
 
 	ini_struct(z);
