@@ -26,6 +26,8 @@ static int	pc_enabled(Lextok *n);
 static int	get_priority(Lextok *n);
 static void	set_priority(Lextok *n, Lextok *m);
 extern void	sr_buf(int, int, const char *);
+extern char 	*which_mtype(const char *);
+extern char 	*which_mtype_val(const int);
 
 void
 Srand(unsigned int s)
@@ -518,61 +520,61 @@ interprint(FILE *fd, Lextok *n)
 
 	GBuf[0] = '\0';
 	if (!no_print)
-	if (!s_trail || depth >= jumpsteps) {
-	for (i = 0; i < (int) strlen(s); i++)
-		switch (s[i]) {
-		case '\"': break; /* ignore */
-		case '\\':
-			 switch(s[++i]) {
-			 case 't': strcat(GBuf, "\t"); break;
-			 case 'n': strcat(GBuf, "\n"); break;
-			 default:  goto onechar;
-			 }
-			 break;
-		case  '%':
-			 if ((c = s[++i]) == '%')
-			 {	strcat(GBuf, "%"); /* literal */
-				break;
-			 }
-			 if (!tmp)
-			 {	non_fatal("too few print args %s", s);
-				break;
-			 }
-			 j = eval(tmp->lft);
-
-			 if (c == 'e'
-			 &&  tmp->lft
-			 &&  tmp->lft->sym
-			 &&  tmp->lft->sym->mtype_name)
-			 {	t = tmp->lft->sym->mtype_name->name;
-			 }
-
-			 tmp = tmp->rgt;
-			 switch(c) {
-			 case 'c': sprintf(lbuf, "%c", j); break;
-			 case 'd': sprintf(lbuf, "%d", j); break;
-
-			 case 'e': strcpy(tBuf, GBuf);	/* event name */
-				   GBuf[0] = '\0';
-
-				   sr_buf(j, 1, t);
-
-				   strcpy(lbuf, GBuf);
-				   strcpy(GBuf, tBuf);
-				   break;
-
-			 case 'o': sprintf(lbuf, "%o", j); break;
-			 case 'u': sprintf(lbuf, "%u", (unsigned) j); break;
-			 case 'x': sprintf(lbuf, "%x", j); break;
-			 default:  non_fatal("bad print cmd: '%s'", &s[i-1]);
-				   lbuf[0] = '\0'; break;
-			 }
-			 goto append;
-		default:
-onechar:		 lbuf[0] = s[i]; lbuf[1] = '\0';
-append:			 strcat(GBuf, lbuf);
-			 break;
-		}
+	if (!s_trail || depth >= jumpsteps)
+	{	for (i = 0; i < (int) strlen(s); i++)
+		{	switch (s[i]) {
+			case '\"': break; /* ignore */
+			case '\\':
+				 switch(s[++i]) {
+				 case 't': strcat(GBuf, "\t"); break;
+				 case 'n': strcat(GBuf, "\n"); break;
+				 default:  goto onechar;
+				 }
+				 break;
+			case  '%':
+				 if ((c = s[++i]) == '%')
+				 {	strcat(GBuf, "%"); /* literal */
+					break;
+				 }
+				 if (!tmp)
+				 {	non_fatal("too few print args %s", s);
+					break;
+				 }
+				 j = eval(tmp->lft);
+				 if (c == 'e'
+				 &&  tmp->lft)
+				 {	if (tmp->lft->sym)
+				 	{	if (tmp->lft->sym->mtype_name)
+						{	t = tmp->lft->sym->mtype_name->name;
+						}
+					} else if (tmp->lft->ntyp == CONST)
+					{	t = which_mtype_val(tmp->lft->val);
+				 }	}
+	
+				 tmp = tmp->rgt;
+				 switch(c) {
+				 case 'c': sprintf(lbuf, "%c", j); break;
+				 case 'd': sprintf(lbuf, "%d", j); break;
+	
+				 case 'e': strcpy(tBuf, GBuf);	/* event name */
+					   GBuf[0] = '\0';
+					   sr_buf(j, 1, t);
+					   strcpy(lbuf, GBuf);
+					   strcpy(GBuf, tBuf);
+					   break;
+	
+				 case 'o': sprintf(lbuf, "%o", j); break;
+				 case 'u': sprintf(lbuf, "%u", (unsigned) j); break;
+				 case 'x': sprintf(lbuf, "%x", j); break;
+				 default:  non_fatal("bad print cmd: '%s'", &s[i-1]);
+					   lbuf[0] = '\0'; break;
+				 }
+				 goto append;
+			default:
+onechar:			 lbuf[0] = s[i]; lbuf[1] = '\0';
+append:				 strcat(GBuf, lbuf);
+				 break;
+		}	}
 		dotag(fd, GBuf);
 	}
 	if (strlen(GBuf) >= 4096) fatal("printf string too long", 0);

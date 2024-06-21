@@ -860,6 +860,7 @@ make_atomic(Sequence *s, int added)
 #if 0
 static int depth = 0;
 void dump_sym(Symbol *, char *);
+void explain(int);
 
 void
 dump_lex(Lextok *t, char *s)
@@ -870,7 +871,7 @@ dump_lex(Lextok *t, char *s)
 	for (i = 0; i < depth; i++)
 		printf("\t");
 	explain(t->ntyp);
-	if (t->ntyp == NAME) printf(" %s ", t->sym->name);
+	if (t->ntyp == NAME || t->ntyp == TYPE) printf(" '%s' ", t->sym->name);
 	if (t->ntyp == CONST) printf(" %d ", t->val);
 	if (t->ntyp == STRUCT)
 	{	dump_sym(t->sym, "\n:Z:");
@@ -886,7 +887,7 @@ dump_lex(Lextok *t, char *s)
 void
 dump_sym(Symbol *z, char *s)
 {	int i;
-	char txt[64];
+//	char txt[64];
 	depth++;
 	printf(s);
 	for (i = 0; i < depth; i++)
@@ -898,11 +899,11 @@ dump_sym(Symbol *z, char *s)
 			if (z->ini->rgt->rgt
 			|| !z->ini->rgt->sym)
 			fatal("chan %s in for should have only one field (a typedef)", z->name);
-			printf(" -- %s %p -- ", z->ini->rgt->sym->name, z->ini->rgt->sym);
+			printf(" -- %s %p -- ", z->ini->rgt->sym->name, (void *) z->ini->rgt->sym);
 		}
 	} else if (z->type == STRUCT)
 	{	if (z->Snm)
-			printf(" == %s %p == ", z->Snm->name, z->Snm);
+			printf(" == %s %p == ", z->Snm->name, (void *) z->Snm);
 		else
 		{	if (z->Slst)
 				dump_lex(z->Slst, "\n:X:");
