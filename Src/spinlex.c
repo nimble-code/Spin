@@ -13,7 +13,7 @@
 #include "spin.h"
 #include "y.tab.h"
 
-#define MAXINL	16	/* max recursion depth inline fcts */
+#define MAXINL	32	/* max recursion depth inline fcts */
 #define MAXPAR	32	/* max params to an inline call */
 #define MAXLEN	512	/* max len of an actual parameter text */
 
