@@ -856,7 +856,7 @@ typedef struct BaseName {
 
 static BaseName *bsn;
 
-void
+static void
 newbasename(char *s)
 {	BaseName *b;
 
@@ -874,7 +874,7 @@ newbasename(char *s)
 	bsn = b;
 }
 
-void
+static void
 delbasename(char *s)
 {	BaseName *b, *prv = (BaseName *) 0;
 
@@ -892,7 +892,7 @@ delbasename(char *s)
 	}	}
 }
 
-void
+static void
 checkindex(char *s, char *t)
 {	BaseName *b;
 
@@ -906,7 +906,7 @@ checkindex(char *s, char *t)
 	}	}
 }
 
-void
+static void
 scan_tree(Lextok *t, char *mn, char *mx)
 {	char sv[512];
 	char tmp[32];
@@ -917,14 +917,17 @@ scan_tree(Lextok *t, char *mn, char *mx)
 	lineno = t->ln;
 
 	if (t->ntyp == NAME)
-	{	if (strlen(t->sym->name) + strlen(mn) > 256) // conservative
+	{	if (strlen(t->sym->name) + strlen(mn) > 512)
 		{	fatal("name too long", t->sym->name);
 		}
 
 		strcat(mn, t->sym->name);
-		strcat(mx, t->sym->name);
+
 		if (t->lft)		/* array index */
-		{	strcat(mn, "[]");
+		{	if(strlen(t->sym->name) + strlen("[]") > 512)
+            {	fatal("name too long", t->sym->name);
+            }
+            strcat(mn, "[]");
 			newbasename(mn);
 				strcpy(sv, mn);		/* save */
 				strcpy(mn, "");		/* clear */
@@ -953,7 +956,7 @@ scan_tree(Lextok *t, char *mn, char *mx)
 	lineno = oln;
 }
 
-void
+static void
 no_nested_array_refs(Lextok *n)	/* a [ a[1] ] with a[1] = 1, causes trouble in pan.b */
 {	char mn[512];
 	char mx[512];
