@@ -1,3 +1,4 @@
+// clang-format off
 /***** spin: main.c *****/
 
 /*
@@ -21,6 +22,8 @@
 #endif
 #include "y.tab.h"
 
+#include <argp.h>
+
 extern int	DstepStart, lineno, tl_terse;
 extern FILE	*yyin, *yyout, *tl_out;
 extern Symbol	*context;
@@ -37,6 +40,10 @@ static void	add_comptime(char *);
 static void	add_runtime(char *);
 
 Symbol	*Fname, *oFname;
+
+static char doc[] = "Spin Version 6.5.2 -- 15 February 2024";
+// The arguments that get printed after the program, ex: `spin [OPTIONS...] ARGUMENTS`
+static char args_doc[] = "FILE";
 
 int	Etimeouts;	/* nr timeouts in program */
 int	Ntimeouts;	/* nr timeouts in never claim */
@@ -613,99 +620,120 @@ preprocess(char *a, char *b, int a_tmp)
 	if (a_tmp) (void) unlink((const char *) a);
 }
 
-void
-usage(void)
-{
-	printf("use: spin [-option] ... [-option] file\n");
-	printf("\tNote: file must always be the last argument\n");
-	printf("\t-A apply slicing algorithm\n");
-	printf("\t-a generate a verifier in pan.c\n");
-	printf("\t-B no final state details in simulations\n");
-	printf("\t-b don't execute printfs in simulation\n");
-	printf("\t-C print channel access info (combine with -g etc.)\n");
-	printf("\t-c columnated -s -r simulation output\n");
-	printf("\t-d produce symbol-table information\n");
-	printf("\t-Dyyy pass -Dyyy to the preprocessor\n");
-	printf("\t-Eyyy pass yyy to the preprocessor\n");
-	printf("\t-e compute synchronous product of multiple never claims (modified by -L)\n");
-	printf("\t-f \"..formula..\"  translate LTL ");
-	printf("into never claim\n");
-	printf("\t-F file  like -f, but with the LTL formula stored in a 1-line file\n");
-	printf("\t-g print all global variables\n");
-	printf("\t-h at end of run, print value of seed for random nr generator used\n");
-	printf("\t-i interactive (random simulation)\n");
-	printf("\t-I show result of inlining and preprocessing\n");
-	printf("\t-J reverse eval order of nested unlesses\n");
-	printf("\t-jN skip the first N steps ");
-	printf("in simulation trail\n");
-	printf("\t-k fname use the trailfile stored in file fname, see also -t\n");
-	printf("\t-L when using -e, use strict language intersection\n");
-	printf("\t-l print all local variables\n");
-	printf("\t-M generate msc-flow in tcl/tk format\n");
-	printf("\t-m lose msgs sent to full queues\n");
-	printf("\t-N fname use never claim stored in file fname\n");
-	printf("\t-nN seed for random nr generator\n");
-	printf("\t-O use old scope rules (pre 5.3.0)\n");
-	printf("\t-o1 turn off dataflow-optimizations in verifier\n");
-	printf("\t-o2 don't hide write-only variables in verifier\n");
-	printf("\t-o3 turn off statement merging in verifier\n");
-	printf("\t-o4 turn on rendezvous optiomizations in verifier\n");
-	printf("\t-o5 turn on case caching (reduces size of pan.m, but affects reachability reports)\n");
-	printf("\t-o6 revert to the old rules for interpreting priority tags (pre version 6.2)\n");
-	printf("\t-o7 revert to the old rules for semi-colon usage (pre version 6.3)\n");
-	printf("\t-Pxxx use xxx for preprocessing\n");
-	printf("\t-p print all statements\n");
-	printf("\t-pp pretty-print (reformat) stdin, write stdout\n");
-	printf("\t-qN suppress io for queue N in printouts\n");
-	printf("\t-r print receive events\n");
-	printf("\t-replay  replay an error trail-file found earlier\n");
-	printf("\t	if the model contains embedded c-code, the ./pan executable is used\n");
-	printf("\t	otherwise spin itself is used to replay the trailfile\n");
-	printf("\t	note that pan recognizes different runtime options than spin itself\n");
-	printf("\t-run  (or -search) generate a verifier, and compile and run it\n");
-	printf("\t      options before -search are interpreted by spin to parse the input\n");
-	printf("\t      options following a -search are used to compile and run the verifier pan\n");
-	printf("\t	    valid options that can follow a -search argument include:\n");
-	printf("\t	    -bfs	perform a breadth-first search\n");
-	printf("\t	    -bfspar	perform a parallel breadth-first search\n");
-	printf("\t	    -dfspar	perform a parallel depth-first search, same as -DNCORE=4\n");
-	printf("\t	    -bcs	use the bounded-context-switching algorithm\n");
-	printf("\t	    -bitstate	or -bit, use bitstate storage\n");
-	printf("\t	    -biterateN,M use bitstate with iterative search refinement (-w18..-w35)\n");
-	printf("\t			perform N randomized runs and increment -w every M runs\n");
-	printf("\t			default value for N is 10, default for M is 1\n");
-	printf("\t			(use N,N to keep -w fixed for all runs)\n");
-	printf("\t			(add -w to see which commands will be executed)\n");
-	printf("\t			(add -W if ./pan exists and need not be recompiled)\n");
-	printf("\t	    -swarmN,M like -biterate, but running all iterations in parallel\n");
-	printf("\t	    -link file.c  link executable pan to file.c\n");
-	printf("\t	    -collapse	use collapse state compression\n");
-	printf("\t	    -noreduce	do not use partial order reduction\n");
-	printf("\t	    -hc  	use hash-compact storage\n");
-	printf("\t	    -noclaim	ignore all ltl and never claims\n");
-	printf("\t	    -p_permute	use process scheduling order random permutation\n");
-	printf("\t	    -p_rotateN	use process scheduling order rotation by N\n");
-	printf("\t	    -p_reverse	use process scheduling order reversal\n");
-	printf("\t	    -rhash      randomly pick one of the -p_... options\n");
-	printf("\t	    -ltl p	verify the ltl property named p\n");
-	printf("\t	    -safety	compile for safety properties only\n");
-	printf("\t	    -i	    	use the dfs iterative shortening algorithm\n");
-	printf("\t	    -a	    	search for acceptance cycles\n");
-	printf("\t	    -l	    	search for non-progress cycles\n");
-	printf("\t	similarly, a -D... parameter can be specified to modify the compilation\n");
-	printf("\t	and any valid runtime pan argument can be specified for the verification\n");
-	printf("\t-S1 and -S2 separate pan source for claim and model\n");
-	printf("\t-s print send events\n");
-	printf("\t-T do not indent printf output\n");
-	printf("\t-t[N] follow [Nth] simulation trail, see also -k\n");
-	printf("\t-Uyyy pass -Uyyy to the preprocessor\n");
-	printf("\t-uN stop a simulation run after N steps\n");
-	printf("\t-v verbose, more warnings\n");
-	printf("\t-w very verbose (when combined with -l or -g)\n");
-	printf("\t-[XYZ] reserved for use by xspin interface\n");
-	printf("\t-V print version number and exit\n");
-	alldone(1);
-}
+
+// The format for each `argp_option` struct is as follows:
+// 1. The name of the option's long option
+// 2. The option's key when passed into the parser, or the short option
+// 3. The name printed for the argument, for cases such as -output <FILE>
+// 4. Flags for the argument
+// 5. A documentation string for the option
+static struct argp_option options[] = {
+  {0, 'A', 0, 0, "apply slicing algorithm"},
+  {0, 'a', 0, 0, "generate a verifier in pan.c"},
+  {0, 'B', 0, 0, "no final state details in simulations"},
+  {0, 'b', 0, 0, "don't execute printfs in simulation"},
+  {0, 'C', 0, 0, "print channel access info (combine with -g etc."},
+	{0, 'c', 0, 0, "columnated -s -r simulation output"},
+	{0, 'd', 0, 0, "produce symbol-table information"},
+	{0, 'D', 0, 0, "pass -Dyyy to the preprocessor"},
+	{0, 'E', 0, 0, "pass yyy to the preprocessor"},
+	{0, 'e', 0, 0, "compute synchronous product of multiple never claims (modified by -L)"},
+	{0, 'f', 0, 0, "\"..formula..\"  translate LTL "},
+
+  {0, 0, 0, OPTION_DOC, "into never claim"},
+	{0, 'F', 0, 0, "file  like -f, but with the LTL formula stored in a 1-line file"},
+	{0, 'g', 0, 0, "print all global variables"},
+	{0, 'h', 0, 0, "at end of run, print value of seed for random nr generator used"},
+	{0, 'i', 0, 0, "interactive (random simulation)"},
+	{0, 'I', 0, 0, "show result of inlining and preprocessing"},
+	{0, 'J', 0, 0, "reverse eval order of nested unlesses"},
+	{"jN", 0, 0, 0, "skip the first N steps "},
+
+  {0, 0, 0, OPTION_DOC, "in simulation trail"},
+	{0, 'k', 0, 0, "fname use the trailfile stored in file fname, see also -t"},
+	{0, 'L', 0, 0, "when using -e, use strict language intersection\n"},
+	{0, 'l', 0, 0, "print all local variables\n"},
+	{0, 'M', 0, 0, "generate msc-flow in tcl/tk format\n"},
+	{0, 'm', 0, 0, "lose msgs sent to full queues\n"},
+	{0, 'N', 0, 0, "fname use never claim stored in file fname\n"},
+	{"nN", 0, 0, 0, "seed for random nr generator\n"},
+	{0, 'O', 0, 0, "use old scope rules (pre 5.3.0)\n"},
+	{"o1", 0, 0, 0, "turn off dataflow-optimizations in verifier\n"},
+	{"o2", 0, 0, 0, "don't hide write-only variables in verifier\n"},
+	{"o3", 0, 0, 0, "turn off statement merging in verifier\n"},
+	{"o4", 0, 0, 0, "turn on rendezvous optiomizations in verifier\n"},
+	{"o5", 0, 0, 0, "turn on case caching (reduces size of pan.m, but affects reachability reports)\n"},
+	{"o6", 0, 0, 0, "revert to the old rules for interpreting priority tags (pre version 6.2)\n"},
+	{"o7", 0, 0, 0, "revert to the old rules for semi-colon usage (pre version 6.3)\n"},
+
+	{0, 'P', 0, 0, "use xxx for preprocessing\n"},
+	{0, 'p', 0, 0, "print all statements\n"},
+	{"pp", OPT_PRETTY_PRINT, 0, 0, "pretty-print (reformat) stdin, write stdout\n"},
+	{0, 'q', 0, 0, "suppress io for queue N in printouts\n"},
+	{0, 'r', 0, 0, "print receive events\n"},
+
+	// printf("\t-replay  replay an error trail-file found earlier\n");
+	// printf("\t	if the model contains embedded c-code, the ./pan executable is used\n");
+	// printf("\t	otherwise spin itself is used to replay the trailfile\n");
+	// printf("\t	note that pan recognizes different runtime options than spin itself\n");
+
+	// printf("\t-run  (or -search) generate a verifier, and compile and run it\n");
+	// printf("\t      options before -search are interpreted by spin to parse the input\n");
+	// printf("\t      options following a -search are used to compile and run the verifier pan\n");
+	// printf("\t	    valid options that can follow a -search argument include:\n");
+	// printf("\t	    -bfs	perform a breadth-first search\n");
+	// printf("\t	    -bfspar	perform a parallel breadth-first search\n");
+	// printf("\t	    -dfspar	perform a parallel depth-first search, same as -DNCORE=4\n");
+	// printf("\t	    -bcs	use the bounded-context-switching algorithm\n");
+	// printf("\t	    -bitstate	or -bit, use bitstate storage\n");
+	// printf("\t	    -biterateN,M use bitstate with iterative search refinement (-w18..-w35)\n");
+	// printf("\t			perform N randomized runs and increment -w every M runs\n");
+	// printf("\t			default value for N is 10, default for M is 1\n");
+	// printf("\t			(use N,N to keep -w fixed for all runs)\n");
+	// printf("\t			(add -w to see which commands will be executed)\n");
+	// printf("\t			(add -W if ./pan exists and need not be recompiled)\n");
+	// printf("\t	    -swarmN,M like -biterate, but running all iterations in parallel\n");
+	// printf("\t	    -link file.c  link executable pan to file.c\n");
+	// printf("\t	    -collapse	use collapse state compression\n");
+	// printf("\t	    -noreduce	do not use partial order reduction\n");
+	// printf("\t	    -hc  	use hash-compact storage\n");
+	// printf("\t	    -noclaim	ignore all ltl and never claims\n");
+	// printf("\t	    -p_permute	use process scheduling order random permutation\n");
+	// printf("\t	    -p_rotateN	use process scheduling order rotation by N\n");
+	// printf("\t	    -p_reverse	use process scheduling order reversal\n");
+	// printf("\t	    -rhash      randomly pick one of the -p_... options\n");
+	// printf("\t	    -ltl p	verify the ltl property named p\n");
+	// printf("\t	    -safety	compile for safety properties only\n");
+	// printf("\t	    -i	    	use the dfs iterative shortening algorithm\n");
+	// printf("\t	    -a	    	search for acceptance cycles\n");
+	// printf("\t	    -l	    	search for non-progress cycles\n");
+	// printf("\t	similarly, a -D... parameter can be specified to modify the compilation\n");
+	// printf("\t	and any valid runtime pan argument can be specified for the verification\n");
+
+	// printf("\t-S1 and -S2 separate pan source for claim and model\n");
+	// printf("\t-s print send events\n");
+	// printf("\t-T do not indent printf output\n");
+	// printf("\t-t[N] follow [Nth] simulation trail, see also -k\n");
+	// printf("\t-Uyyy pass -Uyyy to the preprocessor\n");
+	// printf("\t-uN stop a simulation run after N steps\n");
+	// printf("\t-v verbose, more warnings\n");
+	// printf("\t-w very verbose (when combined with -l or -g)\n");
+	// printf("\t-[XYZ] reserved for use by xspin interface\n");
+	// printf("\t-V print version number and exit\n");
+
+  // argp: An options vector should be terminated by an option with all fields zero
+  {0},
+};
+
+enum opt_level {
+  OPT_LEVEL_DATAFLOW,
+  OPT_LEVEL_DEAD_VARIABLE_ELIM,
+  OPT_LEVEL_STATEMENT_MERGING,
+  OPT_LEVEL_RV_MERGING,
+  OPT_LEVEL_CASE_CACHING,
+  OPT_OLD_PRIO_RULES,
+  OPT_NO_IMPLIES_SEMIS,
+};
 
 int
 optimizations(int nr)
@@ -758,7 +786,7 @@ optimizations(int nr)
 		return 0; /* no break */
 	default:
 		printf("spin: bad or missing parameter on -o\n");
-		usage();
+		// usage();
 		break;
 	}
 	return 1;
@@ -882,6 +910,190 @@ getline(char **lineptr, size_t *n, FILE *stream)
 }
 #endif
 
+#define OPT_KEY_RUN 1
+#define OPT_KEY_PRETTY_PRINT 2
+#define OPT_KEY_LTL 3
+#define OPT_KEY_LINK 4
+#define OPT_KEY_REPLAY 5
+#define OPT_KEY_SIMULATE 6
+#define OPT_KEY_SEARCH 7
+
+struct cli_args {
+  int export_ast;
+  int analyze;
+  int no_wrapup;
+  int no_print;
+  int Caccess;
+  int columns;
+  int dumptab;
+  int product;
+  char* ltl_file;
+  char* add_ltl;
+  int verbose;
+  int seedy;
+  int interactive;
+  int inlineonly;
+  int like_java;
+  // TODO: Validate the types of these variables
+  int jumpsteps;
+  int s_trail;
+  char* trailfilename;
+  int Strict;
+  int m_loss;
+  int T;
+  char* nvr_file;
+  int old_scope_rules;
+  int tl_terse;
+  int usedopts;
+  int buzzed;
+  int norecompile;
+  int replay;
+  int separate;
+  int notabs;
+  int ntrail;
+  int cutoff;
+  char* pan_runtime;
+  int xspin;
+  int limited_vis;
+  int preprocessonly;
+};
+
+static error_t parse_opt(int key, char *arg, struct argp_state *state) {
+  struct cli_args *args = state->input;
+
+  switch (key) {
+		case 'A': args->export_ast = 1; break;
+		case 'a': args->analyze = 1; break;
+		case 'B': args->no_wrapup = 1; break;
+		case 'b': args->no_print = 1; break;
+		case 'C': args->Caccess = 1; break;
+		case 'c': args->columns = 1; break;
+    case 'D': PreArg[++PreCnt] = arg; break;
+		case 'd': args->dumptab = 1; break;
+    case 'E': PreArg[++PreCnt] = arg; break;
+		case 'e': args->product++; break; /* see also 'L' */
+		case 'F': args->ltl_file = arg; break;
+		case 'f': args->add_ltl = arg; break;
+		case 'g': args->verbose +=  1; break;
+		case 'h': args->seedy = 1; break;
+		case 'i': args->interactive = 1; break;
+		case 'I': args->inlineonly = 1; break;
+		case 'J': args->like_java = 1; break;
+		case 'j': jumpsteps = atoi(arg); break;
+    case 'k': args->s_trail = 1; args->trailfilename = arg; break;
+    case 'L': args->Strict++; break; /* modified -e */
+    case 'l': args->verbose += 2; break;
+    case 'M': args->columns = 2; break;
+    case 'm': args->m_loss = 1; break;
+    case 'N': args->nvr_file = arg; break;
+    case 'n': args->T = atoi(arg); args->tl_terse = 1; break;
+    case 'O': args->old_scope_rules = 1; break;
+    case 'o': args->usedopts += optimizations(atoi(arg));
+    case 'P': {
+      assert(strlen(arg) < sizeof(PreProc));
+      strcpy(PreProc, arg);
+      break;
+    }
+    case 'p': args->verbose += 4; break;
+    case OPT_KEY_PRETTY_PRINT: pretty_print(); break;
+    case 'q': {
+      if (isdigit(arg[0])) {
+        qhide(atoi(arg));
+      }
+    }
+    case OPT_KEY_RUN: {
+      Srand((unsigned int) args->T);
+      if (args->buzzed != 0) {
+        fatal("cannot combine -x with -run -replay or -search", (char *)0);
+      }
+
+      buzzed = 2;
+      analyze = 1;
+
+      // TODO: Parse run args here
+      break;
+    }
+    case OPT_KEY_REPLAY: {
+      args->replay = 1;
+      break;
+    }
+    case 'r': args->verbose += 8; break;
+    case 'S': args->separate = atoi(arg); args->analyze = 1; break;
+    case OPT_KEY_SIMULATE: break; // ignore
+    case OPT_KEY_SEARCH: break; // samecase
+    case 's': args->verbose += 16; break;
+    case 'T': args->notabs = 1; break;
+    case 't': {
+      args->s_trail = 1;
+      if (isdigit(arg[0])) {
+        args->ntrail = atoi(arg);
+      }
+      break;
+    }
+    case 'U': PreArg[++PreCnt] = arg; break;
+    case 'u': args->cutoff = atoi(arg); break;
+    case 'v': args->verbose += 32; break;
+    case 'V': printf("%s\n", SpinVersion); break;
+    case 'w': args->verbose += 64; break;
+    case 'W': args->norecompile = 1; break; /* 6.4.7: for swarm/biterate */
+    case 'x': { /* internal - reserved use */
+      if (buzzed != 0) {
+        fatal("cannot combine -x with -run -search or -replay", (char *)0);
+      }
+      args->buzzed = 1; /* implies also -a -o3 */
+      args->pan_runtime = "-d";
+      args->analyze = 1;
+      args->usedopts += optimizations('3');
+      break;
+    }
+    case 'X': {
+      args->xspin = args->notabs = 1;
+#ifndef PC
+    signal(SIGPIPE, alldone); /* not posix */
+#endif
+      break;
+    }
+    case 'Y': args->limited_vis = 1; break; /* used by xspin */
+    case 'Z': args->preprocessonly = 1; break; /* used by xspin */
+    default:
+      return ARGP_ERR_UNKNOWN;
+  }
+
+  return 0;
+}
+
+static error_t parse_run_opt(int key, char *arg, struct argp_state *state) {
+  struct cli_args *args = state->input;
+
+  switch (key) {
+    case 'D':
+    case 'O':
+    case 'U': add_comptime(arg); break;
+    case 'W': args->norecompile = 1; break;
+    case OPT_KEY_LTL: add_runtime("-N"); add_runtime("ltl"); break;
+    case OPT_KEY_LINK: add_comptime("link"); break;
+    default: add_runtime(arg);
+  }
+
+  return 0;
+}
+
+static int validate_args(const struct cli_args *args) {
+  return 1;
+};
+
+static struct argp_child arg_children[] = {
+  { 0 },
+};
+
+static struct argp argp = { 
+  .options = options, 
+  .parser = parse_opt,
+  .args_doc = args_doc, 
+  .doc = doc,
+  .children = arg_children,
+};
+
 int
 main(int argc, char *argv[])
 {	Symbol *s;
@@ -896,155 +1108,9 @@ main(int argc, char *argv[])
 	assert(strlen(CPP) < sizeof(PreProc));
 	strcpy(PreProc, CPP);
 
-	/* unused flags: y, z, G, L, Q, R, W */
-	while (argc > 1 && argv[1][0] == '-')
-	{	switch (argv[1][1]) {
-		case 'A': export_ast = 1; break;
-		case 'a': analyze = 1; break;
-		case 'B': no_wrapup = 1; break;
-		case 'b': no_print = 1; break;
-		case 'C': Caccess = 1; break;
-		case 'c': columns = 1; break;
-		case 'D': PreArg[++PreCnt] = (char *) &argv[1][0];
-			  break;	/* define */
-		case 'd': dumptab =  1; break;
-		case 'E': PreArg[++PreCnt] = (char *) &argv[1][2];
-			  break;
-		case 'e': product++; break; /* see also 'L' */
-		case 'F': ltl_file = (char **) (argv+2);
-			  argc--; argv++; break;
-		case 'f': add_ltl = (char **) argv;
-			  argc--; argv++; break;
-		case 'g': verbose +=  1; break;
-		case 'h': seedy = 1; break;
-		case 'i': interactive = 1; break;
-		case 'I': inlineonly = 1; break;
-		case 'J': like_java = 1; break;
-		case 'j': jumpsteps = atoi(&argv[1][2]); break;
-		case 'k': s_trail = 1;
-			  trailfilename = (char **) (argv+2);
-			  argc--; argv++; break;
-		case 'L': Strict++; break; /* modified -e */
-		case 'l': verbose +=  2; break;
-		case 'M': columns = 2; break;
-		case 'm': m_loss   =  1; break;
-		case 'N': nvr_file = (char **) (argv+2);
-			  argc--; argv++; break;
-		case 'n': T = atoi(&argv[1][2]); tl_terse = 1; break;
-		case 'O': old_scope_rules = 1; break;
-		case 'o': usedopts += optimizations(argv[1][2]); break;
-		case 'P': assert(strlen((const char *) &argv[1][2]) < sizeof(PreProc));
-			  strcpy(PreProc, (const char *) &argv[1][2]);
-			  break;
-		case 'p': if (argv[1][2] == 'p')
-			  {	pretty_print();
-				alldone(0);
-			  }
-			  verbose +=  4; break;
-		case 'q': if (isdigit((int) argv[1][2]))
-				qhide(atoi(&argv[1][2]));
-			  break;
-		case 'r':
-			  if (strcmp(&argv[1][1], "run") == 0)
-			  {	Srand((unsigned int) T);
-samecase:			if (buzzed != 0)
-				{ fatal("cannot combine -x with -run -replay or -search", (char *)0);
-				}
-				buzzed  = 2;
-				analyze = 1;
-				argc--; argv++;
-				/* process all remaining arguments, except -w/-W, as relating to pan: */
-				while (argc > 1 && argv[1][0] == '-')
-				{ switch (argv[1][1]) {
-				  case 'D': /* eg -DNP */
-			/*	  case 'E': conflicts with runtime arg */
-				  case 'O': /* eg -O2 */
-				  case 'U': /* to undefine a macro */
-					add_comptime(argv[1]);
-					break;
-#if 0
-				  case 'w': /* conflicts with bitstate runtime arg */
-					verbose += 64; 
-					break;
-#endif
-				  case 'W':
-					norecompile = 1;
-					break;
-				  case 'l':
-					if (strcmp(&argv[1][1], "ltl") == 0)
-					{	add_runtime("-N");
-						argc--; argv++;
-						add_runtime(argv[1]); /* prop name */
-						break;
-					}
-					if (strcmp(&argv[1][1], "link") == 0)
-					{	argc--; argv++;
-						add_comptime(argv[1]);
-						break;
-					}
-					/* else fall through */
-				  default:
-					add_runtime(argv[1]); /* -bfs etc. */
-					break;
-				  }
-				  argc--; argv++;
-				}
-				argc++; argv--;
-			  } else if (strcmp(&argv[1][1], "replay") == 0)
-			  {	replay = 1;
-				add_runtime("-r");
-				goto samecase;
-			  } else
-			  {	verbose +=  8;
-			  }
-			  break;
-		case 'S': separate = atoi(&argv[1][2]); /* S1 or S2 */
-			  /* generate code for separate compilation */
-			  analyze = 1; break;
-		case 's': 
-			  if (strcmp(&argv[1][1], "simulate") == 0)
-			  {	break; /* ignore */
-			  }
-			  if (strcmp(&argv[1][1], "search") == 0)
-			  {	goto samecase;
-			  }
-			  verbose += 16; break;
-		case 'T': notabs = 1; break;
-		case 't': s_trail  =  1;
-			  if (isdigit((int)argv[1][2]))
-			  {	ntrail = atoi(&argv[1][2]);
-			  }
-			  break;
-		case 'U': PreArg[++PreCnt] = (char *) &argv[1][0];
-			  break;	/* undefine */
-		case 'u': cutoff = atoi(&argv[1][2]); break;
-		case 'v': verbose += 32; break;
-		case 'V': printf("%s\n", SpinVersion);
-			  alldone(0);
-			  break;
-		case 'w': verbose += 64; break;
-		case 'W': norecompile = 1; break;	/* 6.4.7: for swarm/biterate */
-		case 'x': /* internal - reserved use */
-			  if (buzzed != 0)
-			  {	fatal("cannot combine -x with -run -search or -replay", (char *)0);
-			  }
-			  buzzed = 1;	/* implies also -a -o3 */
-			  pan_runtime = "-d";
-			  analyze = 1; 
-			  usedopts += optimizations('3');
-			  break;
-		case 'X': xspin = notabs = 1;
-#ifndef PC
-			  signal(SIGPIPE, alldone); /* not posix... */
-#endif
-			  break;
-		case 'Y': limited_vis = 1; break;	/* used by xspin */
-		case 'Z': preprocessonly = 1; break;	/* used by xspin */
+  struct cli_args arguments = { 0 };
 
-		default : usage(); break;
-		}
-		argc--; argv++;
-	}
+  argp_parse(&argp, argc, argv, 0, 0, &arguments);
 
 	if (columns == 2 && !cutoff)
 	{	cutoff = 1024;
@@ -1575,5 +1641,3 @@ explain(int n)
 	case UNLESS:	fprintf(fd, "%sunless",	Keyword); break;
 	}
 }
-
-
