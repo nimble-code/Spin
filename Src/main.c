@@ -41,7 +41,7 @@ static void	add_runtime(char *);
 
 Symbol	*Fname, *oFname;
 
-static char doc[] = "Spin Version 6.5.2 -- 15 February 2024";
+static char doc[] = SpinVersion;
 // The arguments that get printed after the program, ex: `spin [OPTIONS...] ARGUMENTS`
 static char args_doc[] = "FILE";
 
@@ -620,6 +620,13 @@ preprocess(char *a, char *b, int a_tmp)
 	if (a_tmp) (void) unlink((const char *) a);
 }
 
+#define OPT_KEY_RUN 1
+#define OPT_KEY_PRETTY_PRINT 2
+#define OPT_KEY_LTL 3
+#define OPT_KEY_LINK 4
+#define OPT_KEY_REPLAY 5
+#define OPT_KEY_SIMULATE 6
+#define OPT_KEY_SEARCH 7
 
 // The format for each `argp_option` struct is as follows:
 // 1. The name of the option's long option
@@ -635,93 +642,97 @@ static struct argp_option options[] = {
   {0, 'C', 0, 0, "print channel access info (combine with -g etc."},
 	{0, 'c', 0, 0, "columnated -s -r simulation output"},
 	{0, 'd', 0, 0, "produce symbol-table information"},
-	{0, 'D', 0, 0, "pass -Dyyy to the preprocessor"},
-	{0, 'E', 0, 0, "pass yyy to the preprocessor"},
+	{0, 'D', "yyy", 0, "pass -Dyyy to the preprocessor"},
+	{0, 'E', "yyy", 0, "pass yyy to the preprocessor"},
 	{0, 'e', 0, 0, "compute synchronous product of multiple never claims (modified by -L)"},
 	{0, 'f', 0, 0, "\"..formula..\"  translate LTL "},
 
-  {0, 0, 0, OPTION_DOC, "into never claim"},
+  {0, 0, 0, OPTION_DOC, "Into never claim:"},
 	{0, 'F', 0, 0, "file  like -f, but with the LTL formula stored in a 1-line file"},
 	{0, 'g', 0, 0, "print all global variables"},
 	{0, 'h', 0, 0, "at end of run, print value of seed for random nr generator used"},
 	{0, 'i', 0, 0, "interactive (random simulation)"},
 	{0, 'I', 0, 0, "show result of inlining and preprocessing"},
 	{0, 'J', 0, 0, "reverse eval order of nested unlesses"},
-	{"jN", 0, 0, 0, "skip the first N steps "},
+	{0, 'j', "N", 0, "skip the first N steps "},
 
-  {0, 0, 0, OPTION_DOC, "in simulation trail"},
+  {0, 0, 0, OPTION_DOC, "In simulation trail:"},
 	{0, 'k', 0, 0, "fname use the trailfile stored in file fname, see also -t"},
-	{0, 'L', 0, 0, "when using -e, use strict language intersection\n"},
-	{0, 'l', 0, 0, "print all local variables\n"},
-	{0, 'M', 0, 0, "generate msc-flow in tcl/tk format\n"},
-	{0, 'm', 0, 0, "lose msgs sent to full queues\n"},
-	{0, 'N', 0, 0, "fname use never claim stored in file fname\n"},
-	{"nN", 0, 0, 0, "seed for random nr generator\n"},
-	{0, 'O', 0, 0, "use old scope rules (pre 5.3.0)\n"},
-	{"o1", 0, 0, 0, "turn off dataflow-optimizations in verifier\n"},
-	{"o2", 0, 0, 0, "don't hide write-only variables in verifier\n"},
-	{"o3", 0, 0, 0, "turn off statement merging in verifier\n"},
-	{"o4", 0, 0, 0, "turn on rendezvous optiomizations in verifier\n"},
-	{"o5", 0, 0, 0, "turn on case caching (reduces size of pan.m, but affects reachability reports)\n"},
-	{"o6", 0, 0, 0, "revert to the old rules for interpreting priority tags (pre version 6.2)\n"},
-	{"o7", 0, 0, 0, "revert to the old rules for semi-colon usage (pre version 6.3)\n"},
+	{0, 'L', 0, 0, "when using -e, use strict language intersection"},
+	{0, 'l', 0, 0, "print all local variables"},
+	{0, 'M', 0, 0, "generate msc-flow in tcl/tk format"},
+	{0, 'm', 0, 0, "lose msgs sent to full queues"},
+	{0, 'N', 0, 0, "fname use never claim stored in file fname"},
+	{0, 'n', "N", 0, "seed for random nr generator"},
+	{0, 'O', 0, 0, "use old scope rules (pre 5.3.0)"},
+  {0, 'o', "NUM", 0, "\nSet optimization level for the program:\n\
+1. Turn off dataflow-optimizations in verifier\n\
+2. Don't hide write-only variables in verifier\n\
+3. Turn off statement merging in verifier\n\
+4. Turn on rendezvous optiomizations in verifier\n\
+5. Turn on case caching (reduces size of pan.m, but affects reachability reports)\n\
+6. Revert to the old rules for interpreting priority tags (pre version 6.2)\n\
+7. Revert to the old rules for semi-colon usage (pre version 6.3)\n"},
+	{0, 'P', "xxx", 0, "use xxx for preprocessing"},
+	{0, 'p', 0, 0, "print all statements"},
+	{"pp", OPT_KEY_PRETTY_PRINT, 0, 0, "pretty-print (reformat) stdin, write stdout"},
+	{0, 'q', 0, 0, "suppress io for queue N in printouts"},
+	{0, 'r', 0, 0, "print receive events"},
 
-	{0, 'P', 0, 0, "use xxx for preprocessing\n"},
-	{0, 'p', 0, 0, "print all statements\n"},
-	{"pp", OPT_PRETTY_PRINT, 0, 0, "pretty-print (reformat) stdin, write stdout\n"},
-	{0, 'q', 0, 0, "suppress io for queue N in printouts\n"},
-	{0, 'r', 0, 0, "print receive events\n"},
+  {"replay", OPT_KEY_REPLAY, 0, 0, "replay an error trail-file found earlier\n\
+if the model contains embedded c-code, the ./pan executable is used\n\
+otherwise spin itself is used to replay the trailfile\n\
+note that pan recognizes different runtime options than spin itself"},
 
-	// printf("\t-replay  replay an error trail-file found earlier\n");
-	// printf("\t	if the model contains embedded c-code, the ./pan executable is used\n");
-	// printf("\t	otherwise spin itself is used to replay the trailfile\n");
-	// printf("\t	note that pan recognizes different runtime options than spin itself\n");
+  {"run", OPT_KEY_RUN, 0, 0, "(or -search) generate a verifier, and compile and run it\n\
+options before -search are interpreted by spin to parse the input\n\
+options following a -search are used to compile and run the verifier pan\n\
+valid options that can follow a -search argument are in the following section.\n\
+Similarly, a -D... parameter can be specified to modify the compilation\n\
+and any valid runtime pan argument can be specified for the verification"},
+  {"search", OPT_KEY_SEARCH, 0, OPTION_ALIAS, 0},
 
-	// printf("\t-run  (or -search) generate a verifier, and compile and run it\n");
-	// printf("\t      options before -search are interpreted by spin to parse the input\n");
-	// printf("\t      options following a -search are used to compile and run the verifier pan\n");
-	// printf("\t	    valid options that can follow a -search argument include:\n");
-	// printf("\t	    -bfs	perform a breadth-first search\n");
-	// printf("\t	    -bfspar	perform a parallel breadth-first search\n");
-	// printf("\t	    -dfspar	perform a parallel depth-first search, same as -DNCORE=4\n");
-	// printf("\t	    -bcs	use the bounded-context-switching algorithm\n");
-	// printf("\t	    -bitstate	or -bit, use bitstate storage\n");
-	// printf("\t	    -biterateN,M use bitstate with iterative search refinement (-w18..-w35)\n");
-	// printf("\t			perform N randomized runs and increment -w every M runs\n");
-	// printf("\t			default value for N is 10, default for M is 1\n");
-	// printf("\t			(use N,N to keep -w fixed for all runs)\n");
-	// printf("\t			(add -w to see which commands will be executed)\n");
-	// printf("\t			(add -W if ./pan exists and need not be recompiled)\n");
-	// printf("\t	    -swarmN,M like -biterate, but running all iterations in parallel\n");
-	// printf("\t	    -link file.c  link executable pan to file.c\n");
-	// printf("\t	    -collapse	use collapse state compression\n");
-	// printf("\t	    -noreduce	do not use partial order reduction\n");
-	// printf("\t	    -hc  	use hash-compact storage\n");
-	// printf("\t	    -noclaim	ignore all ltl and never claims\n");
-	// printf("\t	    -p_permute	use process scheduling order random permutation\n");
-	// printf("\t	    -p_rotateN	use process scheduling order rotation by N\n");
-	// printf("\t	    -p_reverse	use process scheduling order reversal\n");
-	// printf("\t	    -rhash      randomly pick one of the -p_... options\n");
-	// printf("\t	    -ltl p	verify the ltl property named p\n");
-	// printf("\t	    -safety	compile for safety properties only\n");
-	// printf("\t	    -i	    	use the dfs iterative shortening algorithm\n");
-	// printf("\t	    -a	    	search for acceptance cycles\n");
-	// printf("\t	    -l	    	search for non-progress cycles\n");
-	// printf("\t	similarly, a -D... parameter can be specified to modify the compilation\n");
-	// printf("\t	and any valid runtime pan argument can be specified for the verification\n");
+  {0, 0, 0, OPTION_DOC, "Following a -search or -run argument:"},
+  {"bfs", 0, 0, 0, "perform a breadth-first search"},
+  {"bfspar", 0, 0, 0, "perform a parallel breadth-first search"},
+  {"dfspar", 0, 0, 0, "perform a parallel depth-first search, same as -DNCORE=4"},
+  {"bcs", 0, 0, 0, "use the bounded-context-switching algorithm"},
+  {"bitstate", 0, 0, 0, "or -bit, use bitstate storage"},
+  {"biterate", 0, "N,M", 0, "use bitstate with iterative search refinement (-w18..-w35)\n\
+perform N randomized runs and increment -w every M runs\n\
+default value for N is 10, default for M is 1\n\
+(use N,N to keep -w fixed for all runs)\n\
+(add -w to see which commands will be executed)\n\
+(add -W if ./pan exists and need not be recompiled)"},
+  {"swarm", 0, "N,M", 0, "like -biterate, but running all iterations in parallel"},
+  {"link", 0, 0, 0, "file.c link executable pan to file.c"},
+  {"collapse", 0, 0, 0, "use collapse state compression"},
+  {"noreduce", 0, 0, 0, "do not use partial order reduction"},
+  {"hc", 0, 0, 0, "use hash-compact storage"},
+  {"noclaim", 0, 0, 0, "ignore all ltl and never claims"},
+  {"p_permute", 0, 0, 0, "use process scheduling order random permutation"},
+  {"p_rotateN", 0, 0, 0, "use process scheduling order rotation by N"},
+  {"p_reverse", 0, 0, 0, "use process scheduling order reversal"},
+  {"rhash", 0, 0, 0, "randomly pick one of the -p_... options"},
+  {"ltl", 0, 0, 0, "p	verify the ltl property named p"},
+  {"safety", 0, 0, 0, "compile for safety properties only"},
+  {"i", 0, 0, 0, "use the dfs iterative shortening algorithm"},
+  {"a", 0, 0, 0, "search for acceptance cycles"},
+  {"l", 0, 0, 0, "search for non-progress cycles"},
 
 	// printf("\t-S1 and -S2 separate pan source for claim and model\n");
 	// printf("\t-s print send events\n");
-	// printf("\t-T do not indent printf output\n");
-	// printf("\t-t[N] follow [Nth] simulation trail, see also -k\n");
-	// printf("\t-Uyyy pass -Uyyy to the preprocessor\n");
-	// printf("\t-uN stop a simulation run after N steps\n");
-	// printf("\t-v verbose, more warnings\n");
-	// printf("\t-w very verbose (when combined with -l or -g)\n");
-	// printf("\t-[XYZ] reserved for use by xspin interface\n");
-	// printf("\t-V print version number and exit\n");
+  {0, 'T', 0, 0, "do not indent printf output"},
+  {0, 't', "[N]", 0, "follow [Nth] simulation trail, see also -k"},
+  {0, 'U', "yyy", 0, "pass -Uyyy to the preprocessor"},
+  {0, 'u', "N", 0, "stop a simulation run after N steps"},
+  {0, 'v', 0, 0, "verbose, more warnings"},
+  {0, 'w', 0, 0, "very verbose (when combined with -l or -g)"},
+  {0, 'X', 0, 0, "reserved for use by xspin interface"},
+  {0, 'Y', 0, OPTION_ALIAS, 0},
+  {0, 'Z', 0, OPTION_ALIAS, 0},
+  {0, 'V', 0, 0, "print version number and exit"},
 
-  // argp: An options vector should be terminated by an option with all fields zero
   {0},
 };
 
@@ -910,13 +921,6 @@ getline(char **lineptr, size_t *n, FILE *stream)
 }
 #endif
 
-#define OPT_KEY_RUN 1
-#define OPT_KEY_PRETTY_PRINT 2
-#define OPT_KEY_LTL 3
-#define OPT_KEY_LINK 4
-#define OPT_KEY_REPLAY 5
-#define OPT_KEY_SIMULATE 6
-#define OPT_KEY_SEARCH 7
 
 struct cli_args {
   int export_ast;
@@ -988,7 +992,7 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
     case 'N': args->nvr_file = arg; break;
     case 'n': args->T = atoi(arg); args->tl_terse = 1; break;
     case 'O': args->old_scope_rules = 1; break;
-    case 'o': args->usedopts += optimizations(atoi(arg));
+    case 'o': args->usedopts += optimizations(atoi(arg)); break;
     case 'P': {
       assert(strlen(arg) < sizeof(PreProc));
       strcpy(PreProc, arg);
@@ -1000,6 +1004,7 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
       if (isdigit(arg[0])) {
         qhide(atoi(arg));
       }
+      break;
     }
     case OPT_KEY_RUN: {
       Srand((unsigned int) args->T);
@@ -1062,36 +1067,11 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
   return 0;
 }
 
-static error_t parse_run_opt(int key, char *arg, struct argp_state *state) {
-  struct cli_args *args = state->input;
-
-  switch (key) {
-    case 'D':
-    case 'O':
-    case 'U': add_comptime(arg); break;
-    case 'W': args->norecompile = 1; break;
-    case OPT_KEY_LTL: add_runtime("-N"); add_runtime("ltl"); break;
-    case OPT_KEY_LINK: add_comptime("link"); break;
-    default: add_runtime(arg);
-  }
-
-  return 0;
-}
-
-static int validate_args(const struct cli_args *args) {
-  return 1;
-};
-
-static struct argp_child arg_children[] = {
-  { 0 },
-};
-
 static struct argp argp = { 
   .options = options, 
   .parser = parse_opt,
   .args_doc = args_doc, 
   .doc = doc,
-  .children = arg_children,
 };
 
 int
