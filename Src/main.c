@@ -627,6 +627,8 @@ preprocess(char *a, char *b, int a_tmp)
 #define OPT_KEY_REPLAY 5
 #define OPT_KEY_SIMULATE 6
 #define OPT_KEY_SEARCH 7
+#define OPT_KEY_S1 8
+#define OPT_KEY_S2 9
 
 // The format for each `argp_option` struct is as follows:
 // 1. The name of the option's long option
@@ -720,8 +722,9 @@ default value for N is 10, default for M is 1\n\
   {"a", 0, 0, 0, "search for acceptance cycles"},
   {"l", 0, 0, 0, "search for non-progress cycles"},
 
-	// printf("\t-S1 and -S2 separate pan source for claim and model\n");
-	// printf("\t-s print send events\n");
+  {"S1", OPT_KEY_S1, 0, 0, "separate pan source for claim and model"},
+  {"S2", OPT_KEY_S2, 0, OPTION_ALIAS, 0},
+  {0, 's', 0, 0, "print send events"},
   {0, 'T', 0, 0, "do not indent printf output"},
   {0, 't', "[N]", 0, "follow [Nth] simulation trail, see also -k"},
   {0, 'U', "yyy", 0, "pass -Uyyy to the preprocessor"},
@@ -983,7 +986,7 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
 		case 'i': args->interactive = 1; break;
 		case 'I': args->inlineonly = 1; break;
 		case 'J': args->like_java = 1; break;
-		case 'j': jumpsteps = atoi(arg); break;
+		case 'j': args->jumpsteps = atoi(arg); break;
     case 'k': args->s_trail = 1; args->trailfilename = arg; break;
     case 'L': args->Strict++; break; /* modified -e */
     case 'l': args->verbose += 2; break;
