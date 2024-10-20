@@ -1096,7 +1096,7 @@ main(int argc, char *argv[])
 
   struct cli_args arguments = { 0 };
 
-  argp_parse(&argp, argc, argv, 0, 0, &arguments);
+  argp_parse(&argp, argc, argv, ARGP_LONG_ONLY, 0, &arguments);
 
 	if (columns == 2 && !cutoff)
 	{	cutoff = 1024;
