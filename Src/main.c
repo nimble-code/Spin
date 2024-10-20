@@ -1009,7 +1009,14 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
       }
       break;
     }
+    case OPT_KEY_SEARCH:
+    case OPT_KEY_REPLAY:
     case OPT_KEY_RUN: {
+      if (key == OPT_KEY_REPLAY) {
+        args->replay = 1;
+        add_runtime("-r");
+      }
+
       Srand((unsigned int) args->T);
       if (args->buzzed != 0) {
         fatal("cannot combine -x with -run -replay or -search", (char *)0);
@@ -1021,14 +1028,10 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
       // TODO: Parse run args here
       break;
     }
-    case OPT_KEY_REPLAY: {
-      args->replay = 1;
-      break;
-    }
     case 'r': args->verbose += 8; break;
-    case 'S': args->separate = atoi(arg); args->analyze = 1; break;
+    case OPT_KEY_S1:
+    case OPT_KEY_S2: args->separate = atoi(arg); args->analyze = 1; break; /* S1 or S2 */
     case OPT_KEY_SIMULATE: break; // ignore
-    case OPT_KEY_SEARCH: break; // samecase
     case 's': args->verbose += 16; break;
     case 'T': args->notabs = 1; break;
     case 't': {
