@@ -933,44 +933,8 @@ getline(char **lineptr, size_t *n, FILE *stream)
 
 
 struct cli_args {
-  int export_ast;
-  int analyze;
-  int no_wrapup;
-  int no_print;
-  int Caccess;
-  int columns;
-  int dumptab;
-  int product;
-  char* ltl_file;
-  char* add_ltl;
-  int verbose;
-  int seedy;
-  int interactive;
-  int inlineonly;
-  int like_java;
-  // TODO: Validate the types of these variables
-  int jumpsteps;
-  int s_trail;
-  char* trailfilename;
-  int Strict;
-  int m_loss;
   int T;
-  char* nvr_file;
-  int old_scope_rules;
-  int tl_terse;
   int usedopts;
-  int buzzed;
-  int norecompile;
-  int replay;
-  int separate;
-  int notabs;
-  int ntrail;
-  int cutoff;
-  char* pan_runtime;
-  int xspin;
-  int limited_vis;
-  int preprocessonly;
-
   int parse_run; // Set when parsing the options to -run
 };
 
@@ -996,7 +960,7 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
       verbose += 64; 
       break;
 #endif
-      case 'W': args->norecompile = 1; break;
+      case 'W': norecompile = 1; break;
       case OPT_KEY_LTL: add_runtime("-N"); add_runtime("-ltl"); break; /* prop name */
       case OPT_KEY_LINK: add_comptime("-link");
       default: add_runtime(prepend_arg(key, arg)); break; /* -bfs etc. */
@@ -1006,40 +970,57 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
   }
 
   switch (key) {
-		case 'A': args->export_ast = 1; break;
-		case 'a': args->analyze = 1; break;
-		case 'B': args->no_wrapup = 1; break;
-		case 'b': args->no_print = 1; break;
-		case 'C': args->Caccess = 1; break;
-		case 'c': args->columns = 1; break;
+		case 'A': export_ast = 1; break;
+		case 'a': analyze = 1; break;
+		case 'B': no_wrapup = 1; break;
+		case 'b': no_print = 1; break;
+		case 'C': Caccess = 1; break;
+		case 'c': columns = 1; break;
     case 'D':
     case 'U': pre_arg_append(prepend_arg(key, arg)); break;
     case 'E': pre_arg_append(arg); break;
-		case 'd': args->dumptab = 1; break;
-		case 'e': args->product++; break; /* see also 'L' */
-		case 'F': args->ltl_file = arg; break;
-		case 'f': args->add_ltl = arg; break;
-		case 'g': args->verbose +=  1; break;
-		case 'h': args->seedy = 1; break;
-		case 'i': args->interactive = 1; break;
-		case 'I': args->inlineonly = 1; break;
-		case 'J': args->like_java = 1; break;
-		case 'j': args->jumpsteps = atoi(arg); break;
-    case 'k': args->s_trail = 1; args->trailfilename = arg; break;
-    case 'L': args->Strict++; break; /* modified -e */
-    case 'l': args->verbose += 2; break;
-    case 'M': args->columns = 2; break;
-    case 'm': args->m_loss = 1; break;
-    case 'N': args->nvr_file = arg; break;
-    case 'n': args->T = atoi(arg); args->tl_terse = 1; break;
-    case 'O': args->old_scope_rules = 1; break;
+    case 'd': dumptab = 1; break;
+    case 'e': product++; break; /* see also 'L' */
+    case 'F': {
+      ltl_file = &state->argv[state->next];
+      state->next = state->argc;
+      break;
+    }
+		case 'f': {
+      add_ltl = &state->argv[state->next];
+      state->next = state->argc;
+      break;
+    }
+    case 'g': verbose +=  1; break;
+    case 'h': seedy = 1; break;
+    case 'i': interactive = 1; break;
+    case 'I': inlineonly = 1; break;
+    case 'J': like_java = 1; break;
+    case 'j': jumpsteps = atoi(arg); break;
+    case 'k': {
+      s_trail = 1;
+      trailfilename = &state->argv[state->next];
+      state->next = state->argc;
+      break;
+    }
+    case 'L': Strict++; break; /* modified -e */
+    case 'l': verbose += 2; break;
+    case 'M': columns = 2; break;
+    case 'm': m_loss = 1; break;
+    case 'N': {
+      nvr_file = &state->argv[state->next];
+      state->next = state->argc;
+      break;
+    }
+    case 'n': args->T = atoi(arg); tl_terse = 1; break;
+    case 'O': old_scope_rules = 1; break;
     case 'o': args->usedopts += optimizations(atoi(arg)); break;
     case 'P': {
       assert(strlen(arg) < sizeof(PreProc));
       strcpy(PreProc, arg);
       break;
     }
-    case 'p': args->verbose += 4; break;
+    case 'p': verbose += 4; break;
     case OPT_KEY_PRETTY_PRINT: pretty_print(); break;
     case 'q': {
       if (isdigit(arg[0])) {
@@ -1055,61 +1036,61 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
           Srand((unsigned int) args->T);
         }
         case OPT_KEY_REPLAY: {
-          args->replay = 1;
+          replay = 1;
           add_runtime("-r");
         }
       }
 
-      if (args->buzzed != 0) {
+      if (buzzed != 0) {
         argp_failure(state, 1, 0, "cannot combine -x with -run -replay or -search");
         return EINVAL;
       }
 
-      args->buzzed = 2;
-      args->analyze = 1;
+      buzzed = 2;
+      analyze = 1;
 
       // Handle future args as passed into the run command
       args->parse_run = 1;
       break;
     }
-    case 'r': args->verbose += 8; break;
+    case 'r': verbose += 8; break;
     case OPT_KEY_S1:
-    case OPT_KEY_S2: args->separate = atoi(arg); args->analyze = 1; break; /* S1 or S2 */
+    case OPT_KEY_S2: separate = atoi(arg); analyze = 1; break; /* S1 or S2 */
     case OPT_KEY_SIMULATE: break; // ignore
-    case 's': args->verbose += 16; break;
-    case 'T': args->notabs = 1; break;
+    case 's': verbose += 16; break;
+    case 'T': notabs = 1; break;
     case 't': {
-      args->s_trail = 1;
+      s_trail = 1;
       if (isdigit(arg[0])) {
-        args->ntrail = atoi(arg);
+        ntrail = atoi(arg);
       }
       break;
     }
-    case 'u': args->cutoff = atoi(arg); break;
-    case 'v': args->verbose += 32; break;
-    case 'V': printf("%s\n", SpinVersion); break;
-    case 'w': args->verbose += 64; break;
-    case 'W': args->norecompile = 1; break; /* 6.4.7: for swarm/biterate */
+    case 'u': cutoff = atoi(arg); break;
+    case 'v': verbose += 32; break;
+    case 'V': printf("%s\n", SpinVersion); alldone(0); break;
+    case 'w': verbose += 64; break;
+    case 'W': norecompile = 1; break; /* 6.4.7: for swarm/biterate */
     case 'x': { /* internal - reserved use */
-      if (args->buzzed != 0) {
+      if (buzzed != 0) {
         argp_failure(state, 1, 0, "cannot combine -x with -run -search or -replay");
         return EINVAL;
       }
-      args->buzzed = 1; /* implies also -a -o3 */
-      args->pan_runtime = "-d";
-      args->analyze = 1;
+      buzzed = 1; /* implies also -a -o3 */
+      pan_runtime = "-d";
+      analyze = 1;
       args->usedopts += optimizations('3');
       break;
     }
     case 'X': {
-      args->xspin = args->notabs = 1;
+      xspin = notabs = 1;
 #ifndef PC
     signal(SIGPIPE, alldone); /* not posix */
 #endif
       break;
     }
-    case 'Y': args->limited_vis = 1; break; /* used by xspin */
-    case 'Z': args->preprocessonly = 1; break; /* used by xspin */
+    case 'Y': limited_vis = 1; break; /* used by xspin */
+    case 'Z': preprocessonly = 1; break; /* used by xspin */
     default:
       return ARGP_ERR_UNKNOWN;
   }
