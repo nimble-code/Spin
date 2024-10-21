@@ -1108,8 +1108,6 @@ static struct argp argp = {
 int
 main(int argc, char *argv[])
 {	Symbol *s;
-	int T = (int) time((time_t *)0);
-	int usedopts = 0;
 
 	yyin  = stdin;
 	yyout = stdout;
@@ -1119,9 +1117,16 @@ main(int argc, char *argv[])
 	assert(strlen(CPP) < sizeof(PreProc));
 	strcpy(PreProc, CPP);
 
-  struct cli_args arguments = { 0 };
+  struct cli_args arguments = {
+    .parse_run = 0,
+    .T = (int) time((time_t *)0),
+    .usedopts = 0,
+  };
 
   argp_parse(&argp, argc, argv, ARGP_LONG_ONLY, 0, &arguments);
+
+  int T = arguments.T;
+  int usedopts = arguments.usedopts;
 
 	if (columns == 2 && !cutoff)
 	{	cutoff = 1024;
