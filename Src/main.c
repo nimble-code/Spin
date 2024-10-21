@@ -796,9 +796,7 @@ optimizations(int nr)
 		printf("spin: no implied semi-colons (pre version 6.3)\n");
 		return 0; /* no break */
 	default:
-		printf("spin: bad or missing parameter on -o\n");
-		// usage();
-		break;
+    return -1;
 	}
 	return 1;
 }
@@ -1004,7 +1002,13 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
     }
     case 'n': args->T = atoi(arg); tl_terse = 1; break;
     case 'O': old_scope_rules = 1; break;
-    case 'o': args->usedopts += optimizations(atoi(arg)); break;
+    case 'o': {
+      args->usedopts += optimizations(arg[0]);
+      if (args->usedopts == -1) {
+        argp_failure(state, 0, 1, "bad or missing parameter on -o: %c", arg[0]);
+        return EINVAL;
+      }
+      break;
     case 'P': {
       assert(strlen(arg) < sizeof(PreProc));
       strcpy(PreProc, arg);
