@@ -93,6 +93,11 @@ static char	*PreArg[64];
 static int	PreCnt = 0;
 static char	out1[64];
 
+void pre_arg_append(char* arg) {
+  assert(PreCnt < sizeof(PreArg));
+  PreArg[PreCnt++] = arg;
+}
+
 char	**trailfilename;	/* new option 'k' */
 
 void	explain(int);
@@ -310,7 +315,7 @@ alldone(int estatus)
 		if (cutoff)
 		{	sprintf(&pan_runtime[strlen(pan_runtime)], "-u%d ", cutoff);
 		}
-		for (i = 1; i <= PreCnt; i++)
+		for (i = 0; i < PreCnt; i++)
 		{	strcat(pan_runtime, PreArg[i]);
 			strcat(pan_runtime, " ");
 		}
@@ -602,7 +607,7 @@ preprocess(char *a, char *b, int a_tmp)
 
 	assert(strlen(PreProc) < sizeof(precmd));
 	strcpy(precmd, PreProc);
-	for (i = 1; i <= PreCnt; i++)
+	for (i = 0; i < PreCnt; i++)
 	{	strcat(precmd, " ");
 		strcat(precmd, PreArg[i]);
 	}
@@ -975,9 +980,10 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
 		case 'b': args->no_print = 1; break;
 		case 'C': args->Caccess = 1; break;
 		case 'c': args->columns = 1; break;
-    case 'D': PreArg[++PreCnt] = arg; break;
+    case 'D':
+    case 'E':
+    case 'U': pre_arg_append(arg); break;
 		case 'd': args->dumptab = 1; break;
-    case 'E': PreArg[++PreCnt] = arg; break;
 		case 'e': args->product++; break; /* see also 'L' */
 		case 'F': args->ltl_file = arg; break;
 		case 'f': args->add_ltl = arg; break;
@@ -1041,7 +1047,6 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
       }
       break;
     }
-    case 'U': PreArg[++PreCnt] = arg; break;
     case 'u': args->cutoff = atoi(arg); break;
     case 'v': args->verbose += 32; break;
     case 'V': printf("%s\n", SpinVersion); break;
