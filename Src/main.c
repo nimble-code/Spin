@@ -1013,16 +1013,7 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
 		case 'C': args->Caccess = 1; break;
 		case 'c': args->columns = 1; break;
     case 'D':
-    case 'U': {
-      unsigned long arg_len = strlen(arg);
-      // Allocate enough space for the dash and character, e.g. '-D'
-      char* cli_arg = emalloc(arg_len + 2 + 1);
-      cli_arg[0] = '-';
-      cli_arg[1] = key; // Append a '-D' or '-U'
-      strcpy(cli_arg + 2, arg);
-      pre_arg_append(cli_arg);
-      break;
-    }
+    case 'U': pre_arg_append(prepend_arg(key, arg)); break;
     case 'E': pre_arg_append(arg); break;
 		case 'd': args->dumptab = 1; break;
 		case 'e': args->product++; break; /* see also 'L' */
