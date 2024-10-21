@@ -746,16 +746,6 @@ default value for N is 10, default for M is 1\n\
   {0},
 };
 
-enum opt_level {
-  OPT_LEVEL_DATAFLOW,
-  OPT_LEVEL_DEAD_VARIABLE_ELIM,
-  OPT_LEVEL_STATEMENT_MERGING,
-  OPT_LEVEL_RV_MERGING,
-  OPT_LEVEL_CASE_CACHING,
-  OPT_OLD_PRIO_RULES,
-  OPT_NO_IMPLIES_SEMIS,
-};
-
 int
 optimizations(int nr)
 {
