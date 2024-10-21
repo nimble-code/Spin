@@ -737,6 +737,7 @@ default value for N is 10, default for M is 1\n\
   {0, 'u', "N", 0, "stop a simulation run after N steps"},
   {0, 'v', 0, 0, "verbose, more warnings"},
   {0, 'w', 0, 0, "very verbose (when combined with -l or -g)"},
+  {0, 'x', 0, 0, "internal - reserved use"},
   {0, 'X', 0, 0, "reserved for use by xspin interface"},
   {0, 'Y', 0, OPTION_ALIAS, 0},
   {0, 'Z', 0, OPTION_ALIAS, 0},
@@ -969,10 +970,40 @@ struct cli_args {
   int xspin;
   int limited_vis;
   int preprocessonly;
+
+  int parse_run; // Set when parsing the options to -run
 };
+
+static char* prepend_arg(const char c, const char* arg) {
+  char* tmp = emalloc(strlen(arg) + 2 + 1);
+  sprintf(tmp, "-%c%s", c, arg);
+  return tmp;
+}
 
 static error_t parse_opt(int key, char *arg, struct argp_state *state) {
   struct cli_args *args = state->input;
+
+  // Handle the run args separately
+  if (args->parse_run) {
+    switch (key) {
+      case 'D': /* eg -DNP */
+      /*	  case 'E': conflicts with runtime arg */
+      case 'O': /* eg -O2 */
+      case 'U': /* to undefine a macro */
+        add_comptime(prepend_arg(key, arg)); break;
+#if 0
+      case 'w': /* conflicts with bitstate runtime arg */
+      verbose += 64; 
+      break;
+#endif
+      case 'W': args->norecompile = 1; break;
+      case OPT_KEY_LTL: add_runtime("-N"); add_runtime("-ltl"); break; /* prop name */
+      case OPT_KEY_LINK: add_comptime("-link");
+      default: add_runtime(prepend_arg(key, arg)); break; /* -bfs etc. */
+    }
+
+    return 0;
+  }
 
   switch (key) {
 		case 'A': args->export_ast = 1; break;
@@ -1028,20 +1059,26 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
     case OPT_KEY_SEARCH:
     case OPT_KEY_REPLAY:
     case OPT_KEY_RUN: {
-      if (key == OPT_KEY_REPLAY) {
-        args->replay = 1;
-        add_runtime("-r");
+      switch (key) {
+        case OPT_KEY_RUN: {
+          Srand((unsigned int) args->T);
+        }
+        case OPT_KEY_REPLAY: {
+          args->replay = 1;
+          add_runtime("-r");
+        }
       }
 
-      Srand((unsigned int) args->T);
       if (args->buzzed != 0) {
-        fatal("cannot combine -x with -run -replay or -search", (char *)0);
+        argp_failure(state, 1, 0, "cannot combine -x with -run -replay or -search");
+        return EINVAL;
       }
 
-      buzzed = 2;
-      analyze = 1;
+      args->buzzed = 2;
+      args->analyze = 1;
 
-      // TODO: Parse run args here
+      // Handle future args as passed into the run command
+      args->parse_run = 1;
       break;
     }
     case 'r': args->verbose += 8; break;
@@ -1063,8 +1100,9 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
     case 'w': args->verbose += 64; break;
     case 'W': args->norecompile = 1; break; /* 6.4.7: for swarm/biterate */
     case 'x': { /* internal - reserved use */
-      if (buzzed != 0) {
-        fatal("cannot combine -x with -run -search or -replay", (char *)0);
+      if (args->buzzed != 0) {
+        argp_failure(state, 1, 0, "cannot combine -x with -run -search or -replay");
+        return EINVAL;
       }
       args->buzzed = 1; /* implies also -a -o3 */
       args->pan_runtime = "-d";
