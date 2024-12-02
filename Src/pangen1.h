@@ -2122,6 +2122,7 @@ static const char *Code2d[] = {
 	"	#ifdef EVENT_TRACE",
 	"static char _tp = 'n'; static int _qid = 0;",
 	"	#endif",
+	"int enabled(int, int);",
 	"uchar",
 	"do_transit(Trans *t, short II)",
 	"{	uchar _m = 0;",
