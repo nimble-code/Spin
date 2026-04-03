@@ -777,7 +777,7 @@ spit_recvs(FILE *f1, FILE *f2)	/* called from pangen2.c */
 markit:			fprintf(f2, "\tIs_Recv[%d] = 1;\n", e->Seqno);
 			break;
 		case D_STEP:
-			s = e->n->sl->this;
+			s = e->n->sl->thisS;
 			switch (s->frst->n->ntyp) {
 			case DO:
 				fatal("unexpected: do at start of d_step", (char *) 0);
@@ -822,10 +822,10 @@ ana_seq(Sequence *s)
 		From = e->seqno;
 
 		if (e->n->ntyp == UNLESS)
-			ana_seq(e->sub->this);
+			ana_seq(e->sub->thisS);
 		else if (e->sub)
 		{	for (h = e->sub; h; h = h->nxt)
-			{	g = huntstart(h->this->frst);
+			{	g = huntstart(h->thisS->frst);
 				To = g->seqno;
 
 				if (g->n->ntyp != 'c'
@@ -836,12 +836,12 @@ ana_seq(Sequence *s)
 				/* else it's a dead link */
 			}
 			for (h = e->sub; h; h = h->nxt)
-				ana_seq(h->this);
+				ana_seq(h->thisS);
 		} else if (e->n->ntyp == ATOMIC
 			||  e->n->ntyp == D_STEP
 			||  e->n->ntyp == NON_ATOMIC)
 		{
-			t = e->n->sl->this;
+			t = e->n->sl->thisS;
 			g = huntstart(t->frst);
 			t->last->nxt = e->nxt;
 			To = g->seqno;
@@ -871,10 +871,10 @@ ana_seq(Sequence *s)
 			&&  e->n->ntyp != GOTO
 			&&  e->n->ntyp != '.')
 			for (h = e->esc; h; h = h->nxt)
-			{	g = huntstart(h->this->frst);
+			{	g = huntstart(h->thisS->frst);
 				To = g->seqno;
 				FSM_EDGE(From, To, ZE);
-				ana_seq(h->this);
+				ana_seq(h->thisS);
 			}
 		}
 

@@ -40,7 +40,7 @@ repro_sub(Element *e)
 		break;
 	}
 	indent++;
-	repro_seq(e->n->sl->this);
+	repro_seq(e->n->sl->thisS);
 	indent--;
 
 	doindent();
@@ -60,10 +60,10 @@ repro_seq(Sequence *s)
 
 		if (e->n->ntyp == UNLESS)
 		{	printf("/* normal */ {\n");
-			repro_seq(e->n->sl->this);
+			repro_seq(e->n->sl->thisS);
 			doindent();
 			printf("} unless {\n");
-			repro_seq(e->n->sl->nxt->this);
+			repro_seq(e->n->sl->nxt->thisS);
 			doindent();
 			printf("}; /* end unless */\n");
 		} else if (e->sub)
@@ -75,7 +75,7 @@ repro_seq(Sequence *s)
 
 			for (h = e->sub; h; h = h->nxt)
 			{	indent--; doindent(); indent++; printf("::\n");
-				repro_seq(h->this);
+				repro_seq(h->thisS);
 				printf("\n");
 			}
 

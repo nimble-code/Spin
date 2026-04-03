@@ -91,7 +91,7 @@ find_min(Sequence *s)
 			if (e->n->ntyp == ATOMIC
 			||  e->n->ntyp == NON_ATOMIC
 			||  e->n->ntyp == D_STEP)
-			{	int n = find_min(e->n->sl->this);
+			{	int n = find_min(e->n->sl->thisS);
 				if (n < s->minel)
 				{	s->minel = n;
 				}
@@ -99,7 +99,7 @@ find_min(Sequence *s)
 			{	s->minel = e->Seqno;
 			}
 			for (l = e->sub; l; l = l->nxt)
-			{	int n = find_min(l->this);
+			{	int n = find_min(l->thisS);
 				if (n < s->minel)
 				{	s->minel = n;
 		}	}	}
@@ -328,7 +328,7 @@ okay:
 					{	p_talk(og, 1);
 		
 						if (og->n->ntyp == D_STEP)
-						og = og->n->sl->this->frst;
+						og = og->n->sl->thisS->frst;
 		
 						printf("\t[");
 						comment(stdout, og->n, 0);
@@ -361,7 +361,7 @@ keepgoing:		if (dothis->merge_start)
 				{	p_talk(dothis, 1);
 	
 					if (dothis->n->ntyp == D_STEP)
-					dothis = dothis->n->sl->this->frst;
+					dothis = dothis->n->sl->thisS->frst;
 		
 					printf("\t[");
 					comment(stdout, dothis->n, 0);

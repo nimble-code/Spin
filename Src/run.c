@@ -48,7 +48,7 @@ rev_escape(SeqList *e)
 
 	if (e)
 	{	if ((r = rev_escape(e->nxt)) == ZE) /* reversed order */
-		{	r = eval_sub(e->this->frst);
+		{	r = eval_sub(e->thisS->frst);
 	}	}
 
 	return r;		
@@ -81,7 +81,7 @@ eval_sub(Element *e)
 	}
 	if (e->n->ntyp == UNLESS)
 	{	/* escapes were distributed into sequence */
-		return eval_sub(e->sub->this->frst);
+		return eval_sub(e->sub->thisS->frst);
 	} else if (e->sub)	/* true for IF, DO, and UNLESS */
 	{	Element *has_else = ZE;
 		Element *bas_else = ZE;
@@ -107,25 +107,25 @@ eval_sub(Element *e)
 			&& !Escape_Check
 			&& !(e->status&(D_ATOM))
 			&& depth >= jumpsteps
-			&& z->this->frst
-			&& (xspin || (verbose&32) || Enabled0(z->this->frst)))
-			{	if (z->this->frst->n->ntyp == ELSE)
-				{	has_else = (Rvous)?ZE:z->this->frst->nxt;
+			&& z->thisS->frst
+			&& (xspin || (verbose&32) || Enabled0(z->thisS->frst)))
+			{	if (z->thisS->frst->n->ntyp == ELSE)
+				{	has_else = (Rvous)?ZE:z->thisS->frst->nxt;
 					nr_else = j;
 					continue;
 				}
 				printf("\tchoice %d: ", j);
 #if 0
-				if (z->this->frst->n)
-					printf("line %d, ", z->this->frst->n->ln);
+				if (z->thisS->frst->n)
+					printf("line %d, ", z->thisS->frst->n->ln);
 #endif
-				if (!Enabled0(z->this->frst))
+				if (!Enabled0(z->thisS->frst))
 					printf("unexecutable, ");
 				else
 				{	nr_choices++;
 					only_pos = j;
 				}
-				comment(stdout, z->this->frst->n, 0);
+				comment(stdout, z->thisS->frst->n, 0);
 				printf("\n");
 		}	}
 
@@ -179,9 +179,9 @@ eval_sub(Element *e)
 		has_else = ZE;
 		bas_else = ZE;
 		for (i = 0, z = e->sub; i < j+k; i++)
-		{	if (z->this->frst
-			&&  z->this->frst->n->ntyp == ELSE)
-			{	bas_else = z->this->frst;
+		{	if (z->thisS->frst
+			&&  z->thisS->frst->n->ntyp == ELSE)
+			{	bas_else = z->thisS->frst;
 				has_else = (Rvous)?ZE:bas_else->nxt;
 				if (!interactive || depth < jumpsteps
 				|| Escape_Check
@@ -190,11 +190,11 @@ eval_sub(Element *e)
 					continue;
 				}
 			}
-			if (z->this->frst
-			&&  ((z->this->frst->n->ntyp == ATOMIC
-			  ||  z->this->frst->n->ntyp == D_STEP)
-			  &&  z->this->frst->n->sl->this->frst->n->ntyp == ELSE))
-			{	bas_else = z->this->frst->n->sl->this->frst;
+			if (z->thisS->frst
+			&&  ((z->thisS->frst->n->ntyp == ATOMIC
+			  ||  z->thisS->frst->n->ntyp == D_STEP)
+			  &&  z->thisS->frst->n->sl->thisS->frst->n->ntyp == ELSE))
+			{	bas_else = z->thisS->frst->n->sl->thisS->frst;
 				has_else = (Rvous)?ZE:bas_else->nxt;
 				if (!interactive || depth < jumpsteps
 				|| Escape_Check
@@ -204,7 +204,7 @@ eval_sub(Element *e)
 				}
 			}
 			if (i >= k)
-			{	if ((f = eval_sub(z->this->frst)) != ZE)
+			{	if ((f = eval_sub(z->thisS->frst)) != ZE)
 					return f;
 				else if (interactive && depth >= jumpsteps
 				&& !(e->status&(D_ATOM)))
@@ -219,15 +219,15 @@ eval_sub(Element *e)
 	} else
 	{	if (e->n->ntyp == ATOMIC
 		||  e->n->ntyp == D_STEP)
-		{	f = e->n->sl->this->frst;
-			g = e->n->sl->this->last;
+		{	f = e->n->sl->thisS->frst;
+			g = e->n->sl->thisS->last;
 			g->nxt = e->nxt;
 			if (!(g = eval_sub(f)))	/* atomic guard */
 				return ZE;
 			return g;
 		} else if (e->n->ntyp == NON_ATOMIC)
-		{	f = e->n->sl->this->frst;
-			g = e->n->sl->this->last;
+		{	f = e->n->sl->thisS->frst;
+			g = e->n->sl->thisS->last;
 			g->nxt = e->nxt;		/* close it */
 			return eval_sub(f);
 		} else if (e->n->ntyp == '.')
@@ -242,10 +242,10 @@ eval_sub(Element *e)
 				printf("] has escape(s): ");
 				for (x = e->esc; x; x = x->nxt)
 				{	printf("[");
-					g = x->this->frst;
+					g = x->thisS->frst;
 					if (g->n->ntyp == ATOMIC
 					||  g->n->ntyp == NON_ATOMIC)
-						g = g->n->sl->this->frst;
+						g = g->n->sl->thisS->frst;
 					comment(stdout, g->n, 0);
 					printf("] ");
 				}
@@ -272,7 +272,7 @@ eval_sub(Element *e)
 					}
 				} else
 				{	for (x = e->esc; x; x = x->nxt)
-					{	if ((g = eval_sub(x->this->frst)) != ZE)
+					{	if ((g = eval_sub(x->thisS->frst)) != ZE)
 						{	if (verbose&4)
 							{	printf("\tEscape taken ");
 								if (g->n && g->n->fn)
@@ -466,9 +466,9 @@ eval(Lextok *now)
 			comment(stdout, now->lft, 0);
 			printf(")\n");
 		     if (s_trail && !xspin) return 1;
-		     wrapup(1); /* doesn't return */
+		     wrapup(1); /* doesn't return */ /*fallthrough*/
 
-	case  IF: case DO: case BREAK: case UNLESS:	/* compound */
+	case  IF: /*fallthrough*/ case DO: /*fallthrough*/ case BREAK: /*fallthrough*/ case UNLESS: /*fallthrough*/	/* compound */
 	case   '.': return 1;	/* return label for compound */
 	case   '@': return 0;	/* stop state */
 	case  ELSE: return 1;	/* only hit here in guided trails */
@@ -646,20 +646,20 @@ Enabled0(Element *e)
 		if (Rvous) return 0;
 		return 1;
 	case UNLESS:
-		return Enabled0(e->sub->this->frst);
+		return Enabled0(e->sub->thisS->frst);
 	case ATOMIC:
 	case D_STEP:
 	case NON_ATOMIC:
-		return Enabled0(e->n->sl->this->frst);
+		return Enabled0(e->n->sl->thisS->frst);
 	}
 	if (e->sub)	/* true for IF, DO, and UNLESS */
 	{	for (z = e->sub; z; z = z->nxt)
-			if (Enabled0(z->this->frst))
+			if (Enabled0(z->thisS->frst))
 				return 1;
 		return 0;
 	}
 	for (z = e->esc; z; z = z->nxt)
-	{	if (Enabled0(z->this->frst))
+	{	if (Enabled0(z->thisS->frst))
 			return 1;
 	}
 #if 0
