@@ -102,7 +102,7 @@ mk_rdy(Symbol *n, Lextok *p, Sequence *s, int det, Lextok *prov, enum btypes b)
 	for (fpt = fp->lft;  fpt; fpt = fpt->rgt)
 	{	j++;	/* count # of parameters */
 	}
-	Npars = max(Npars, j);
+	Npars = MaX(Npars, j);
 
 	return ready;
 }
@@ -111,7 +111,7 @@ void
 check_mtypes(Lextok *pnm, Lextok *args)	/* proctype name, actual params */
 {	ProcList *p = NULL;
 	Lextok *fp, *fpt, *at;
-	char *s, *t;
+	const char *s, *t;
 
 	if (pnm && pnm->sym)
 	{	for (p = ready; p; p = p->nxt)
@@ -186,7 +186,7 @@ formdump(void)
 }
 
 void
-announce(char *w)
+announce(const char *w)
 {
 	if (columns)
 	{	extern char GBuf[];
@@ -396,12 +396,12 @@ silent_moves(Element *e)
 		cross_dsteps(e->n, f->n);
 		return f; /* guard against goto cycles */
 	case UNLESS:
-		return silent_moves(e->sub->this->frst);
+		return silent_moves(e->sub->thisS->frst);
 	case NON_ATOMIC:
 	case ATOMIC:
 	case D_STEP:
-		e->n->sl->this->last->nxt = e->nxt;
-		return silent_moves(e->n->sl->this->frst);
+		e->n->sl->thisS->last->nxt = e->nxt;
+		return silent_moves(e->n->sl->thisS->frst);
 	case '.':
 		return silent_moves(e->nxt);
 	}
@@ -508,7 +508,7 @@ try_more:	for (X_lst = run_lst, k = 1; X_lst; X_lst = X_lst->nxt)
 			proc_no_ch = no_choice;
 			proc_k = k;
 			for (z = X_lst->pc->sub, j=0; z; z = z->nxt)
-			{	Element *y = silent_moves(z->this->frst);
+			{	Element *y = silent_moves(z->thisS->frst);
 				int unex;
 				if (!y) continue;
 

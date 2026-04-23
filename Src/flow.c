@@ -76,7 +76,7 @@ Rjumpslocal(Element *q, Element *stop)
 				return 0;
 		}	}
 		for (h = f->sub; h; h = h->nxt)
-		{	if (!Rjumpslocal(h->this->frst, h->this->last))
+		{	if (!Rjumpslocal(h->thisS->frst, h->thisS->last))
 				return 0;
 	
 	}	}
@@ -146,12 +146,12 @@ prune_opts(Lextok *n)
 		return;
 
 	for (l = n->sl; l; l = l->nxt)	/* find sequences of unlabeled skips */
-		check_sequence(l->this);
+		check_sequence(l->thisS);
 }
 
 Sequence *
 close_seq(int nottop)
-{	Sequence *s = cur_s->this;
+{	Sequence *s = cur_s->thisS;
 	Symbol *z;
 
 	if (nottop == 0)	/* end of proctype body */
@@ -277,7 +277,7 @@ SeqList *
 seqlist(Sequence *s, SeqList *r)
 {	SeqList *t = (SeqList *) emalloc(sizeof(SeqList));
 
-	t->this = s;
+	t->thisS = s;
 	t->nxt = r;
 	return t;
 }
@@ -339,18 +339,18 @@ loose_ends(void)	/* properly tie-up ends of sub-sequences */
 				f = f->nxt;
 			if (0) printf("link %d, {%d .. %d} -> %d (ntyp=%d) was %d\n",
 				e->seqno,
-				e->n->sl->this->frst->seqno,
-				e->n->sl->this->last->seqno,
+				e->n->sl->thisS->frst->seqno,
+				e->n->sl->thisS->last->seqno,
 				f?f->seqno:-1, f?f->n->ntyp:-1,
-				e->n->sl->this->last->nxt?e->n->sl->this->last->nxt->seqno:-1);
-			if (!e->n->sl->this->last->nxt)
-				e->n->sl->this->last->nxt = f;
+				e->n->sl->thisS->last->nxt?e->n->sl->thisS->last->nxt->seqno:-1);
+			if (!e->n->sl->thisS->last->nxt)
+				e->n->sl->thisS->last->nxt = f;
 			else
-			{	if (e->n->sl->this->last->nxt->n->ntyp != GOTO)
-				{	if (!f || e->n->sl->this->last->nxt->seqno != f->seqno)
+			{	if (e->n->sl->thisS->last->nxt->n->ntyp != GOTO)
+				{	if (!f || e->n->sl->thisS->last->nxt->seqno != f->seqno)
 					non_fatal("unexpected: loose ends", (char *)0);
 				} else
-					e->n->sl->this->last = e->n->sl->this->last->nxt;
+					e->n->sl->thisS->last = e->n->sl->thisS->last->nxt;
 				/*
 				 * fix_dest can push a goto into the nxt position
 				 * in that case the goto wins and f is not needed
@@ -397,9 +397,9 @@ if_seq(Lextok *n)
 	int	ref_chans = 0;
 
 	for (z = s; z; z = z->nxt)
-	{	if (!z->this->frst)
+	{	if (!z->thisS->frst)
 			continue;
-		if (z->this->frst->n->ntyp == ELSE)
+		if (z->thisS->frst->n->ntyp == ELSE)
 		{	if (move_else)
 				fatal("duplicate `else'", (char *) 0);
 			if (z->nxt)	/* is not already at the end */
@@ -411,7 +411,7 @@ if_seq(Lextok *n)
 				continue;
 			}
 		} else
-			ref_chans |= has_chanref(z->this->frst->n);
+			ref_chans |= has_chanref(z->thisS->frst->n);
 		prev_z = z;
 	}
 	if (move_else)
@@ -423,8 +423,8 @@ if_seq(Lextok *n)
 	}
 	if (prev_z
 	&&  ref_chans
-	&&  prev_z->this->frst->n->ntyp == ELSE)
-	{	prev_z->this->frst->n->val = 1;
+	&&  prev_z->thisS->frst->n->ntyp == ELSE)
+	{	prev_z->thisS->frst->n->val = 1;
 		has_badelse++;
 		if (has_xu)
 		{	fatal("invalid use of 'else' combined with i/o and xr/xs assertions,",
@@ -440,16 +440,16 @@ if_seq(Lextok *n)
 	e->n->sl = s;			/* preserve as info only */
 	e->sub = s;
 	for (z = s; z; z = z->nxt)
-		add_el(t, z->this);	/* append target */
+		add_el(t, z->thisS);	/* append target */
 
 	if (tok == DO)
-	{	add_el(t, cur_s->this); /* target upfront */
+	{	add_el(t, cur_s->thisS); /* target upfront */
 		t = new_el(nn(n, BREAK, ZN, ZN)); /* break target */
 		set_lab(break_dest(), t);	/* new exit  */
 		popbreak();
 	}
-	add_el(e, cur_s->this);
-	add_el(t, cur_s->this);
+	add_el(e, cur_s->thisS);
+	add_el(t, cur_s->thisS);
 	return e;			/* destination node for label */
 }
 
@@ -458,12 +458,12 @@ escape_el(Element *f, Sequence *e)
 {	SeqList *z;
 
 	for (z = f->esc; z; z = z->nxt)
-		if (z->this == e)
+		if (z->thisS == e)
 			return;	/* already there */
 
 	/* cover the lower-level escapes of this state */
 	for (z = f->esc; z; z = z->nxt)
-		attach_escape(z->this, e);
+		attach_escape(z->thisS, e);
 
 	/* now attach escape to the state itself */
 
@@ -477,21 +477,21 @@ escape_el(Element *f, Sequence *e)
 #endif
 	switch (f->n->ntyp) {
 	case UNLESS:
-		attach_escape(f->sub->this, e);
+		attach_escape(f->sub->thisS, e);
 		break;
 	case IF:
 	case DO:
 		for (z = f->sub; z; z = z->nxt)
-			attach_escape(z->this, e);
+			attach_escape(z->thisS, e);
 		break;
 	case D_STEP:
 		/* attach only to the guard stmnt */
-		escape_el(f->n->sl->this->frst, e);
+		escape_el(f->n->sl->thisS->frst, e);
 		break;
 	case ATOMIC:
 	case NON_ATOMIC:
 		/* attach to all stmnts */
-		attach_escape(f->n->sl->this, e);
+		attach_escape(f->n->sl->thisS, e);
 		break;
 	}
 }
@@ -524,21 +524,21 @@ unless_seq(Lextok *n)
 
 	/* append the target state to both */
 	for (z = s; z; z = z->nxt)
-		add_el(t, z->this);
+		add_el(t, z->thisS);
 
 	/* attach escapes to all states in normal sequence */
-	attach_escape(s->this, s->nxt->this);
+	attach_escape(s->thisS, s->nxt->thisS);
 
-	add_el(e, cur_s->this);
-	add_el(t, cur_s->this);
+	add_el(e, cur_s->thisS);
+	add_el(t, cur_s->thisS);
 #ifdef DEBUG
 	printf("unless element (%d,%d):\n", e->Seqno, t->Seqno);
 	for (z = s; z; z = z->nxt)
 	{	Element *x; printf("\t%d,%d,%d :: ",
-		z->this->frst->Seqno,
-		z->this->extent->Seqno,
-		z->this->last->Seqno);
-		for (x = z->this->frst; x; x = x->nxt)
+		z->thisS->frst->Seqno,
+		z->thisS->extent->Seqno,
+		z->thisS->last->Seqno);
+		for (x = z->thisS->frst; x; x = x->nxt)
 			printf("(%d)", x->Seqno);
 		printf("\n");
 	}
@@ -601,7 +601,7 @@ add_seq(Lextok *n)
 	if (innermost->ntyp != IF
 	&&  innermost->ntyp != DO
 	&&  innermost->ntyp != UNLESS)
-		add_el(e, cur_s->this);
+		add_el(e, cur_s->thisS);
 }
 
 void
@@ -842,12 +842,12 @@ make_atomic(Sequence *s, int added)
 	case NON_ATOMIC:
 	case ATOMIC:
 		/* redo and search for the last step of that sequence */
-		make_atomic(f->n->sl->this, added);
+		make_atomic(f->n->sl->thisS, added);
 		break;
 
 	case UNLESS:
 		/* escapes are folded into main sequence */
-		make_atomic(f->sub->this, added);
+		make_atomic(f->sub->thisS, added);
 		break;
 
 	default:
@@ -936,7 +936,7 @@ match_struct(Symbol *s, Symbol *t)
 }
 
 void
-valid_name(Lextok *a3, Lextok *a5, Lextok *a8, char *tp)
+valid_name(Lextok *a3, Lextok *a5, Lextok *a8, const char *tp)
 {
 	if (a3->ntyp != NAME)
 	{	fatal("%s ( .name : from .. to ) { ... }", tp);
@@ -1121,7 +1121,7 @@ walk_atomic(Element *a, Element *b, int added)
 		case NON_ATOMIC:
 mknonat:		f->n->ntyp = NON_ATOMIC; /* can jump here */
 			h = f->n->sl;
-			walk_atomic(h->this->frst, h->this->last, added);
+			walk_atomic(h->thisS->frst, h->thisS->last, added);
 			break;
 		case UNLESS:
 			if (added)
@@ -1130,7 +1130,7 @@ mknonat:		f->n->ntyp = NON_ATOMIC; /* can jump here */
 			}
 		}
 		for (h = f->sub; h; h = h->nxt)
-			walk_atomic(h->this->frst, h->this->last, added);
+			walk_atomic(h->thisS->frst, h->thisS->last, added);
 		if (f == b)
 			break;
 	}

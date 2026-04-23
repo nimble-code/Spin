@@ -47,8 +47,8 @@ extern void	putpostlude(void);
 static void	putpages(void);
 
 static void
-psline(int x0, int y0, int x1, int y1, char *color)
-{	char *side = "last";
+psline(int x0, int y0, int x1, int y1, const char *color)
+{	const char *side = "last";
 
 	if (x0 == x1)	/* gridline */
 	{	fprintf(pfd, ".c create line %d %d %d %d -fill %s -tags grid -width 1 \n",
@@ -85,7 +85,7 @@ psline(int x0, int y0, int x1, int y1, char *color)
 }
 
 static void
-colbox(int ix, int iy, int w, int h_unused, char *color)
+colbox(int ix, int iy, int w, __attribute__ ((unused)) int h_unused, const char *color)
 {	int x = ix*WW;
 	int y = iy*HH;
 
@@ -150,7 +150,7 @@ spitbox(int ix, int y, char *s)
 {	float bw;	/* box width */
 	char d[256], *t, *z;
 	int a, i, x = ix+1;
-	char *color = "black";
+	const char *color = "black";
 
 	if (y > 0)
 	{	stepnumber(y);
@@ -338,7 +338,7 @@ putarrow(int from, int to)
 }
 
 void
-pstext(int x, char *s)
+pstext(int x, const char *s)
 {	char *tmp = emalloc((int) strlen(s)+1);
 
 	strcpy(tmp, s);
@@ -359,7 +359,7 @@ pstext(int x, char *s)
 }
 
 void
-dotag(FILE *fd, char *s)
+dotag(FILE *fd, const char *s)
 {	extern int columns, notabs; extern RunList *X_lst;
 	int i = (!strncmp(s, "MSC: ", 5))?5:0;
 	int pid = s_trail ? (prno - Have_claim) : (X_lst?X_lst->pid:0);

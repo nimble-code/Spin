@@ -24,7 +24,7 @@ static unsigned long	Caches, CacheHits;
 static int ismatch(Node *, Node *);
 static int sameform(Node *, Node *);
 
-extern void fatal(char *, char *);
+extern void fatal(const char *, const char *);
 
 void
 ini_cache(void)

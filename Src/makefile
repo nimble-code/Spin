@@ -4,7 +4,9 @@
 # terms in the LICENSE file that is included in this source directory.
 # Tool documentation is available at http://spinroot.com
 
+CXX?=g++
 CC?=gcc
+# CC?=$(CXX)
 CFLAGS?=-O2 -DNXT -Wall -pedantic
 	# on some systems add: -I/usr/include
 	# on a PC:    make CFLAGS="-O2 -DNXT -DPC"
@@ -15,9 +17,23 @@ CFLAGS?=-O2 -DNXT -Wall -pedantic
 	# or:         make CC=clang CFLAGS="-fsanitize=address -g"
 
 # for a more picky compilation use gcc-4 and add:
-PICKY=-std=c99 -Wstrict-prototypes -pedantic -fno-strength-reduce \
+PICKY=-std=c99 -Wstrict-prototypes \
+	-pedantic -fno-strength-reduce \
 	-fno-builtin -W -Wshadow -Wpointer-arith \
-	-Wcast-qual -Winline -Wall
+	-Wcast-qual -Winline -Wall \
+	-Werror
+
+PICKYXX=-std=c++23 \
+	-pedantic -fno-strength-reduce \
+	-fno-builtin -W -Wshadow -Wpointer-arith \
+	-Wcast-qual -Winline -Wall \
+	-Werror
+
+ifeq ($(CC), $(CXX))
+CFLAGS+=$(PICKYXX)
+else
+CFLAGS+=$(PICKY)
+endif
 
 # when running spin with a different compiler:
 			# on OS2:         spin -Picc -E/Pd+ -E/Q+
@@ -40,8 +56,8 @@ spin:	makefile $(SPIN_OS) $(TL_OS) spin.o
 	$(CC) $(CFLAGS) -o spin spin.o $(SPIN_OS) $(TL_OS) $(LDFLAGS)
 
 install: spin
-	$(INSTALL) spin $(DESTDIR)/bin/spin
-	$(INSTALL) ../Man/spin.1 $(DESTDIR)/share/man/man1/spin.1
+	mkdir -p $(DESTDIR)/bin            && $(INSTALL) spin $(DESTDIR)/bin/spin
+	mkdir -p $(DESTDIR)/share/man/man1 && $(INSTALL) ../Man/spin.1 $(DESTDIR)/share/man/man1/spin.1
 
 spin.o:	makefile spin.y
 	$(YACC) $(YFLAGS) spin.y
