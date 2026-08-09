@@ -815,7 +815,7 @@ c_wrapper(FILE *fd)	/* allow pan.c to print out global sv entries */
 	for (lst = Mtypes; lst; lst = lst->nxt)
 	{	fprintf(fd, "	if (strcmp(s, \"%s\") == 0)\n", lst->nm);
 		fprintf(fd, "	switch (x) {\n");
-	        for (n = lst->mt, j = 1; n && j; n = n->rgt, j++)
+	        for (n = lst->mt, j = 1; n; n = n->rgt, j++)
 	                fprintf(fd, "\tcase %d: Printf(\"%s\"); return;\n",
 				j, n->lft->sym->name);
 		fprintf(fd, "	default: Printf(\"%%d\", x); return;\n");

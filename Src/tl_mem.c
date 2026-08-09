@@ -55,7 +55,7 @@ tl_emalloc(int U)
 		All_Mem += (unsigned long) u*sizeof(union M);
 	} else
 	{	if (!freelist[u])
-		{	r = req[u] += req[u] ? req[u] : 1;
+		{	r = (req[u] += (req[u] ? req[u] : 1));
 			if (r >= NOTOOBIG)
 			{	r = req[u] = NOTOOBIG;
 			}

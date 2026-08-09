@@ -2,3 +2,8 @@
 Src/spin
 Src/y.tab.h
 Src/y.output
+compile_commands.json
+level1.tasks
+PVS-Studio-Report.md
+PVS-Studio.log
+PVS-Studio.tasks

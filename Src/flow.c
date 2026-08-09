@@ -68,7 +68,7 @@ Rjumpslocal(Element *q, Element *stop)
 
 	/* allow no jumps out of a d_step sequence */
 	for (f = q; f && f != stop; f = f->nxt)
-	{	if (f && f->n && f->n->ntyp == GOTO)
+	{	if (f->n && f->n->ntyp == GOTO)
 		{	lb = get_lab(f->n, 0);
 			if (!lb || lb->Seqno < DstepStart)
 			{	lineno = f->n->ln;

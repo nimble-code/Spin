@@ -173,7 +173,7 @@ eval_sub(Element *e)
 		{	if (e->n && e->n->indstep >= 0)
 				k = 0;	/* select 1st executable guard */
 			else
-				k = Rand()%j;	/* nondeterminism */
+				k = (j > 0) ? (Rand()%j) : 0;	/* nondeterminism */
 		}
 
 		has_else = ZE;
@@ -646,7 +646,9 @@ Enabled0(Element *e)
 		if (Rvous) return 0;
 		return 1;
 	case UNLESS:
-		return Enabled0(e->sub->this->frst);
+		if (e->sub && e->sub->this)
+			return Enabled0(e->sub->this->frst);
+		return 0;
 	case ATOMIC:
 	case D_STEP:
 	case NON_ATOMIC:

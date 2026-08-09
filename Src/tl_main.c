@@ -90,7 +90,7 @@ tl_UnGetchar(void)
 static void
 tl_stats(void)
 {	extern int Stack_mx;
-	printf("total memory used: %9ld\n", All_Mem);
+	printf("total memory used: %9ld\n", (long) All_Mem);
 	printf("largest stack sze: %9d\n", Stack_mx);
 	cache_stats();
 	a_stats();

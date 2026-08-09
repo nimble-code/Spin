@@ -159,7 +159,7 @@ match_trail(void)
 	}
 
 	if ((fd = fopen(snap, "r")) == NULL)
-	{	snap[strlen(snap)-2] = '\0';	/* .tra */
+	{	if (strlen(snap) >= 2) snap[strlen(snap)-2] = '\0';	/* .tra */
 		if ((fd = fopen(snap, "r")) == NULL)
 		{	if ((q = strchr(oFname->name, '.')) != NULL)
 			{	*q = '\0';
@@ -174,7 +174,7 @@ match_trail(void)
 				if ((fd = fopen(snap, "r")) != NULL)
 					goto okay;
 
-				snap[strlen(snap)-2] = '\0';	/* last try */
+				if (strlen(snap) >= 2) snap[strlen(snap)-2] = '\0';	/* last try */
 				if ((fd = fopen(snap, "r")) != NULL)
 					goto okay;
 			}
@@ -414,6 +414,7 @@ lost_trail(void)
 		printf("(state %d) - d %d\n", n, l);
 	}
 	wrapup(1);	/* no return */
+	alldone(1);
 }
 
 int

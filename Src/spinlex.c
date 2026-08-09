@@ -1190,7 +1190,8 @@ prep_inline(Symbol *s, Lextok *nms)
 	for (t = nms; t; t = t->rgt)
 		if (t->lft)
 		{	if (t->lft->ntyp != NAME)
-			fatal("bad param to inline %s", s?s->name:"--");
+			{	fatal("bad param to inline %s", s?s->name:"--");
+			}
 			t->lft->sym->hidden |= 32;
 		}
 
@@ -1972,21 +1973,21 @@ yylex(void)
 			{	IArgno = 0;
 				IArg_cont[0][0] = '\0';
 			} else
-			{	assert(strlen(IArg_cont[IArgno])+strlen(yytext) < sizeof(IArg_cont));
+			{	assert(strlen(IArg_cont[IArgno])+strlen(yytext) < sizeof(IArg_cont[IArgno]));
 				strcat(IArg_cont[IArgno], yytext);
 			}
 		} else if (strcmp(yytext, ")") == 0)
 		{	if (--IArg_nst > 0)
-			{	assert(strlen(IArg_cont[IArgno])+strlen(yytext) < sizeof(IArg_cont));
+			{	assert(strlen(IArg_cont[IArgno])+strlen(yytext) < sizeof(IArg_cont[IArgno]));
 				strcat(IArg_cont[IArgno], yytext);
 			}
 		} else if (c == CONST && yytext[0] == '\'')
 		{	sprintf(yytext, "'%c'", yylval->val);
-			assert(strlen(IArg_cont[IArgno])+strlen(yytext) < sizeof(IArg_cont));
+			assert(strlen(IArg_cont[IArgno])+strlen(yytext) < sizeof(IArg_cont[IArgno]));
 			strcat(IArg_cont[IArgno], yytext);
 		} else if (c == CONST)
 		{	sprintf(yytext, "%d", yylval->val);
-			assert(strlen(IArg_cont[IArgno])+strlen(yytext) < sizeof(IArg_cont));
+			assert(strlen(IArg_cont[IArgno])+strlen(yytext) < sizeof(IArg_cont[IArgno]));
 			strcat(IArg_cont[IArgno], yytext);
 		} else
 		{
@@ -2012,7 +2013,7 @@ yylex(void)
 			case AND: 	strcpy(yytext, "&&"); break;
 			case OR:	strcpy(yytext, "||"); break;
 			}
-			assert(strlen(IArg_cont[IArgno])+strlen(yytext) < sizeof(IArg_cont));
+			assert(strlen(IArg_cont[IArgno])+strlen(yytext) < sizeof(IArg_cont[IArgno]));
 			strcat(IArg_cont[IArgno], yytext);
 		}
 	}

@@ -89,8 +89,8 @@ cached(Node *n)
 void
 cache_stats(void)
 {
-	printf("cache stores     : %9ld\n", Caches);
-	printf("cache hits       : %9ld\n", CacheHits);
+	printf("cache stores     : %9ld\n", (long) Caches);
+	printf("cache hits       : %9ld\n", (long) CacheHits);
 }
 
 void
@@ -139,6 +139,7 @@ dupnode(Node *n)
 
 	if (!n) return n;
 	d = getnode(n);
+	if (!d) return NULL;
 	d->lft = dupnode(n->lft);
 	d->rgt = dupnode(n->rgt);
 	return d;
@@ -242,7 +243,7 @@ isequal(Node *a, Node *b)
 
 	if (!a || !b)
 	{	if (!a)
-		{	if (b->ntyp == TRUE)
+		{	if (b && b->ntyp == TRUE)
 				return 1;
 		} else
 		{	if (a->ntyp == TRUE)

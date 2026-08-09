@@ -454,10 +454,7 @@ comwork(FILE *fd, Lextok *now, int m)
 					if (c == '\"') buf[j] = '\'';
 					if (c == '\0') break;
 				}
-				if (now->ntyp == PRINT)
-					fprintf(fd, "printf");
-				else
-					fprintf(fd, "annotate");
+				fprintf(fd, "printf");
 				fprintf(fd, "(%s", buf);
 			}
 			for (v = now->lft; v; v = v->rgt)
@@ -467,7 +464,8 @@ comwork(FILE *fd, Lextok *now, int m)
 			break;
 	case PRINTM:	fprintf(fd, "printm(");
 			{ char *s = 0;
-		  	  if (now->lft->sym
+		  	  if (now->lft
+		  	  &&  now->lft->sym
 		  	  &&  now->lft->sym->mtype_name)
 		  	  {	s = now->lft->sym->mtype_name->name;
 		  	  }
@@ -528,7 +526,7 @@ comwork(FILE *fd, Lextok *now, int m)
 	case UNLESS:	fprintf(fd, "unless"); break;
 	case TIMEOUT:	fprintf(fd, "timeout"); break;
 	default:	if (isprint(now->ntyp))
-				fprintf(fd, "'%c'", now->ntyp);
+				fprintf(fd, "'%c'", (char) now->ntyp);
 			else
 				fprintf(fd, "%d", now->ntyp);
 			break;

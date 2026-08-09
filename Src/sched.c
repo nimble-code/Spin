@@ -1008,7 +1008,7 @@ getlocal(Lextok *sn)
 	r = findloc(s);
 	if (r && r->type == STRUCT)
 		return Rval_struct(sn, r, 1); /* 1 = check init */
-	if (in_bound(r, n))
+	if (r && in_bound(r, n))
 		return cast_val(r->type, r->val[n], r->nbits);
 	return 0;
 }
@@ -1018,7 +1018,7 @@ setlocal(Lextok *p, int m)
 {	Symbol *r = findloc(p->sym);
 	int n = eval(p->lft);
 
-	if (in_bound(r, n))
+	if (r && in_bound(r, n))
 	{	if (r->type == STRUCT)
 			(void) Lval_struct(p, r, 1, m); /* 1 = check init */
 		else
