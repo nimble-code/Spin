@@ -456,7 +456,7 @@ walk_struct(FILE *ofd, int dowhat, char *s, Symbol *z, char *a, char *b, char *c
 void
 c_struct(FILE *fd, char *ipref, Symbol *z)
 {	Lextok *fp, *tl;
-	char pref[512], eprefix[300];
+	char pref[512], eprefix[512];
 	int ix;
 
 	ini_struct(z);
@@ -467,7 +467,7 @@ c_struct(FILE *fd, char *ipref, Symbol *z)
 	{	strcpy(eprefix, ipref);
 		if (z->nel > 1 || z->isarray == 1)
 		{	/* insert index before last '.' */
-			eprefix[strlen(eprefix)-1] = '\0';
+			if (strlen(eprefix) > 0) eprefix[strlen(eprefix)-1] = '\0';
 			sprintf(pref, "[ %d ].", ix);
 			strcat(eprefix, pref);
 		}
@@ -497,7 +497,7 @@ dump_struct(Symbol *z, char *prefix, RunList *r)
 		for (fp = z->Sval[ix]; fp; fp = fp->rgt)
 		for (tl = fp->lft; tl; tl = tl->rgt)
 		{	if (tl->sym->type == STRUCT)
-			{	char pref[300];
+			{	char pref[512];
 				strcpy(pref, eprefix);
 				strcat(pref, ".");
 				strcat(pref, tl->sym->name);

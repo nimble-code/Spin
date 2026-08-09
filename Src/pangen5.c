@@ -121,14 +121,15 @@ static int howdeep = 0;
 
 static int
 eligible(FSM_trans *v)
-{	Element	*el = ZE;
-	Lextok	*lt = ZN;
+{	Element	*el;
+	Lextok	*lt;
 
-	if (v) el = v->step;
-	if (el) lt = v->step->n;
+	if (!v || !v->step || !v->step->n)
+		return 0;
+	el = v->step;
+	lt = el->n;
 
-	if (!lt				/* dead end */
-	||  v->nxt			/* has alternatives */
+	if (v->nxt			/* has alternatives */
 	||  el->esc			/* has an escape */
 	||  (el->status&CHECK2)		/* remotely referenced */
 	||  lt->ntyp == ATOMIC

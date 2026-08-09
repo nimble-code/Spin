@@ -834,9 +834,7 @@ set_el(int n, Element *e)
 		e->nxt = e;
 		g = e;
 		mk_accepting(n, e);
-	} else
-
-	if (e->n->ntyp == GOTO)
+	} else if (e->n->ntyp == GOTO)
 	{	g = get_lab(e->n, 1);
 		g = huntele(g, e->status, -1);
 	} else if (e->nxt)

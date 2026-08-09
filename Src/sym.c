@@ -237,7 +237,6 @@ setptype(Lextok *mtype_name, Lextok *n, int t, Lextok *vis)	/* predefined types 
 	{	if (n->sym->type && !(n->sym->hidden&32))
 		{	lineno = n->ln; Fname = n->fn;
 			fatal("redeclaration of '%s'", n->sym->name);
-			lineno = oln;
 		}
 		n->sym->type = (short) t;
 
@@ -245,7 +244,6 @@ setptype(Lextok *mtype_name, Lextok *n, int t, Lextok *vis)	/* predefined types 
 		{	lineno = n->ln; Fname = n->fn;
 			fatal("missing semi-colon after '%s'?",
 				mtype_name->sym->name);
-			lineno = oln;
 		}
 
 		if (mtype_name && n->sym->mtype_name

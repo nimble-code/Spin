@@ -1123,10 +1123,10 @@ valTpe(Lextok *n)
 	7*DELTA = @, process deletion (conditionally safe)
 	 */
 	switch (n->ntyp) { /* a series of fall-thru cases: */
-	case   FULL:	res += DELTA;		/* add 3*DELTA + chan nr */
-	case  EMPTY:	res += DELTA;		/* add 2*DELTA + chan nr */
+	case   FULL:	res += DELTA;		/* add 3*DELTA + chan nr */ /* FALLTHROUGH */
+	case  EMPTY:	res += DELTA;		/* add 2*DELTA + chan nr */ /* FALLTHROUGH */
 	case    'r':
-	case NEMPTY:	res += DELTA;		/* add 1*DELTA + chan nr */
+	case NEMPTY:	res += DELTA;		/* add 1*DELTA + chan nr */ /* FALLTHROUGH */
 	case    's':
 	case  NFULL:	res += getNid(n->lft);	/* add channel nr */
 			break;
@@ -1295,7 +1295,7 @@ static CaseCache *casing[6];
 static int
 identical(Lextok *p, Lextok *q)
 {
-	if ((!p && q) || (p && !q))
+	if ((!p) != (!q))
 		return 0;
 	if (!p)
 		return 1;
@@ -2299,7 +2299,6 @@ has_global(Lextok *n)
 		{	if (old_priority_rules)
 			{	if (n_seen != n->sym)
 					fatal("cannot refer to _priority with -o6", (char *) 0);
-				n_seen = n->sym;
 			}
 			return 0;
 		}
@@ -3204,7 +3203,8 @@ putstmnt(FILE *fd, Lextok *now, int m)
 
 	case PRINTM:
 		{ char *s = 0;
-		  if (now->lft->sym
+		  if (now->lft
+		  &&  now->lft->sym
 		  &&  now->lft->sym->mtype_name)
 		  {	s = now->lft->sym->mtype_name->name;
 		  }
