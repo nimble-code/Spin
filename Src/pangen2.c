@@ -3204,7 +3204,8 @@ putstmnt(FILE *fd, Lextok *now, int m)
 
 	case PRINTM:
 		{ char *s = 0;
-		  if (now->lft->sym
+		  if (now->lft
+		  &&  now->lft->sym
 		  &&  now->lft->sym->mtype_name)
 		  {	s = now->lft->sym->mtype_name->name;
 		  }

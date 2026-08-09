@@ -163,9 +163,9 @@ qsend(Lextok *n)
 	tcgetattr(0,&initial_settings);
  
 	new_settings = initial_settings;
-	new_settings.c_lflag &= ~ICANON;
-	new_settings.c_lflag &= ~ECHO;
-	new_settings.c_lflag &= ~ISIG;
+	new_settings.c_lflag &= ~(tcflag_t)ICANON;
+	new_settings.c_lflag &= ~(tcflag_t)ECHO;
+	new_settings.c_lflag &= ~(tcflag_t)ISIG;
 	new_settings.c_cc[VMIN] = 0;
 	new_settings.c_cc[VTIME] = 0;
  }

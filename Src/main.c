@@ -596,12 +596,12 @@ preprocess(char *a, char *b, int a_tmp)
 	assert(strlen(PreProc) < sizeof(precmd));
 	strcpy(precmd, PreProc);
 	for (i = 1; i <= PreCnt; i++)
-	{	strcat(precmd, " ");
+	{	if (strlen(precmd) + 1 + strlen(PreArg[i]) >= sizeof(precmd))
+		{	fprintf(stdout, "spin: too many -D args, aborting\n");
+			alldone(1);
+		}
+		strcat(precmd, " ");
 		strcat(precmd, PreArg[i]);
-	}
-	if (strlen(precmd) > sizeof(precmd))
-	{	fprintf(stdout, "spin: too many -D args, aborting\n");
-		alldone(1);
 	}
 	sprintf(cmd, "%s \"%s\" > \"%s\"", precmd, a, b);
 	if (e_system(2, (const char *)cmd))	/* preprocessing step */
