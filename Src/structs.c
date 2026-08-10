@@ -456,7 +456,7 @@ walk_struct(FILE *ofd, int dowhat, char *s, Symbol *z, char *a, char *b, char *c
 void
 c_struct(FILE *fd, char *ipref, Symbol *z)
 {	Lextok *fp, *tl;
-	char pref[512], eprefix[300];
+	char pref[512], eprefix[512];
 	int ix;
 
 	ini_struct(z);
@@ -467,7 +467,7 @@ c_struct(FILE *fd, char *ipref, Symbol *z)
 	{	strcpy(eprefix, ipref);
 		if (z->nel > 1 || z->isarray == 1)
 		{	/* insert index before last '.' */
-			eprefix[strlen(eprefix)-1] = '\0';
+			if (strlen(eprefix) > 0) eprefix[strlen(eprefix)-1] = '\0';
 			sprintf(pref, "[ %d ].", ix);
 			strcat(eprefix, pref);
 		}
@@ -497,7 +497,7 @@ dump_struct(Symbol *z, char *prefix, RunList *r)
 		for (fp = z->Sval[ix]; fp; fp = fp->rgt)
 		for (tl = fp->lft; tl; tl = tl->rgt)
 		{	if (tl->sym->type == STRUCT)
-			{	char pref[300];
+			{	char pref[512];
 				strcpy(pref, eprefix);
 				strcat(pref, ".");
 				strcat(pref, tl->sym->name);
@@ -547,10 +547,12 @@ retrieve(Lextok **targ, int i, int want, Lextok *n, int Ntyp)
 		{	for (k = 0; k < tl->sym->nel; k++, j++)
 			{	if (j == want)
 				{	*targ = cpnn(tl, 1, 0, 0);
-					(*targ)->lft = nn(ZN, CONST, ZN, ZN);
-					(*targ)->lft->val = k;
-					if (Ntyp)
-					(*targ)->ntyp = (short) Ntyp;
+					if (*targ)
+					{	(*targ)->lft = nn(ZN, CONST, ZN, ZN);
+						(*targ)->lft->val = k;
+						if (Ntyp)
+						(*targ)->ntyp = (short) Ntyp;
+					}
 					return -1;
 				}
 	}	}	}
@@ -613,8 +615,10 @@ mk_explicit(Lextok *n, int Ok, int Ntyp)
 		bld = mk_explicit(n->rgt->lft, Ok, Ntyp);
 		for (x = bld; x; x = x->rgt)
 		{	y = cpnn(n, 1, 0, 0);
-			y->rgt = nn(ZN, '.', x->lft, ZN);
-			x->lft = y;
+			if (y)
+			{	y->rgt = nn(ZN, '.', x->lft, ZN);
+				x->lft = y;
+			}
 		}
 
 		return bld;
@@ -636,8 +640,10 @@ mk_explicit(Lextok *n, int Ok, int Ntyp)
 			fatal("bad structure %s", n->sym->name);
 		}
 		x = cpnn(n, 1, 0, 0);
-		x->rgt = nn(ZN, '.', bld->lft, ZN);
-		bld->lft = x;
+		if (x)
+		{	x->rgt = nn(ZN, '.', bld->lft, ZN);
+			bld->lft = x;
+		}
 	}
 	return bld;
 }

@@ -259,6 +259,10 @@ e_system(int v, const char *s)
 	return system(s);
 }
 
+#if defined(__GNUC__) || defined(__clang__)
+void alldone(int) __attribute__((noreturn));
+#endif
+
 void
 alldone(int estatus)
 {	char *ptr;
@@ -511,7 +515,7 @@ runit:
 
 			/* increase -w every itsr_n-th run */
 			if ((itsr_n > 0 && (itsr == 0 || (itsr%itsr_n) != 0))
-			||  (change_param(tmp, "-w", 36, 18) >= 0))	/* max 4G bit statespace */
+			||  (change_param(tmp, "-w", 36, 18) > 0))	/* max 4G bit statespace */
 			{	(void) change_param(tmp, "-h", 500, 0);	/* hash function 0.499 */
 				(void) change_param(tmp, "-p_rotate", 256, 0); /* if defined */
 				(void) change_param(tmp, "-k", 4, 1);	/* nr bits per state 0->1,2,3 */
@@ -596,12 +600,12 @@ preprocess(char *a, char *b, int a_tmp)
 	assert(strlen(PreProc) < sizeof(precmd));
 	strcpy(precmd, PreProc);
 	for (i = 1; i <= PreCnt; i++)
-	{	strcat(precmd, " ");
+	{	if (strlen(precmd) + 1 + strlen(PreArg[i]) >= sizeof(precmd))
+		{	fprintf(stdout, "spin: too many -D args, aborting\n");
+			alldone(1);
+		}
+		strcat(precmd, " ");
 		strcat(precmd, PreArg[i]);
-	}
-	if (strlen(precmd) > sizeof(precmd))
-	{	fprintf(stdout, "spin: too many -D args, aborting\n");
-		alldone(1);
 	}
 	sprintf(cmd, "%s \"%s\" > \"%s\"", precmd, a, b);
 	if (e_system(2, (const char *)cmd))	/* preprocessing step */
@@ -933,7 +937,10 @@ main(int argc, char *argv[])
 		case 'n': T = atoi(&argv[1][2]); tl_terse = 1; break;
 		case 'O': old_scope_rules = 1; break;
 		case 'o': usedopts += optimizations(argv[1][2]); break;
-		case 'P': assert(strlen((const char *) &argv[1][2]) < sizeof(PreProc));
+		case 'P': if (strlen((const char *) &argv[1][2]) >= sizeof(PreProc))
+			  {	fprintf(stderr, "spin: -P argument too long\n");
+				alldone(1);
+			  }
 			  strcpy(PreProc, (const char *) &argv[1][2]);
 			  break;
 		case 'p': if (argv[1][2] == 'p')
@@ -1076,7 +1083,10 @@ samecase:			if (buzzed != 0)
 		strcpy(out1, "pan.pre");
 
 		if (add_ltl || nvr_file)
-		{	assert(strlen(argv[1])+6 < sizeof(out2));
+		{	if (strlen(argv[1]) + 6 >= sizeof(out2))
+			{	printf("spin: filename too long\n");
+				alldone(1);
+			}
 			sprintf(out2, "%s.nvr", argv[1]);
 			if ((fd = fopen(out2, MFLAGS)) == NULL)
 			{	printf("spin: cannot create tmp file %s\n",
@@ -1108,7 +1118,10 @@ samecase:			if (buzzed != 0)
 			alldone(1);
 		}
 
-		assert(strlen(argv[1])+1 < sizeof(cmd));
+		if (strlen(argv[1]) + 2 >= sizeof(cmd))
+		{	printf("spin: filename too long\n");
+			alldone(1);
+		}
 
 		if (strncmp(argv[1], "progress", (size_t) 8) == 0
 		||  strncmp(argv[1], "accept", (size_t) 6) == 0)
@@ -1273,6 +1286,13 @@ fatal(char *s1, char *s2)
 	alldone(1);
 }
 
+#define ARENA_BLOCK_SIZE	(256 * 1024)	/* 256 KB blocks */
+#define ARENA_MAX_SMALL		256		/* max size eligible for arena */
+
+static char  *arena_buf = NULL;
+static size_t arena_remain = 0;
+static unsigned long arena_total = 0;
+
 char *
 emalloc(size_t n)
 {	char *tmp;
@@ -1281,6 +1301,29 @@ emalloc(size_t n)
 	if (n == 0)
 		return NULL;	/* robert shelton 10/20/06 */
 
+	/* Align to pointer size */
+	n = (n + sizeof(void *) - 1) & ~(sizeof(void *) - 1);
+
+	if (n <= ARENA_MAX_SMALL)
+	{	/* Fast bump-pointer path for small objects */
+		if (arena_remain < n)
+		{	size_t bsz = ARENA_BLOCK_SIZE;
+			if (!(arena_buf = (char *) malloc(bsz)))
+			{	printf("spin: out of memory in arena allocator\n");
+				fatal("not enough memory", (char *)0);
+			}
+			memset(arena_buf, 0, bsz);
+			arena_remain = bsz;
+			arena_total += bsz;
+		}
+		tmp = arena_buf;
+		arena_buf += n;
+		arena_remain -= n;
+		cnt += (unsigned long) n;
+		return tmp;
+	}
+
+	/* Slow path for large objects */
 	if (!(tmp = (char *) malloc(n)))
 	{	printf("spin: allocated %ld Gb, wanted %d bytes more\n",
 			cnt/(1024*1024*1024), (int) n);
@@ -1289,6 +1332,14 @@ emalloc(size_t n)
 	cnt += (unsigned long) n;
 	memset(tmp, 0, n);
 	return tmp;
+}
+
+char *
+emstrdup(const char *s)
+{	size_t n = strlen(s) + 1;
+	char *d = emalloc(n);
+	memcpy(d, s, n);
+	return d;
 }
 
 void
@@ -1334,9 +1385,25 @@ setaccess(Symbol *sp, Symbol *what, int cnt, int t)
 	sp->access = a;
 }
 
+#define LEXTOK_CHUNK_SIZE 1024
+
+static Lextok *
+alloc_lextok(void)
+{
+	static Lextok *chunk = NULL;
+	static int chunk_idx = LEXTOK_CHUNK_SIZE;
+
+	if (chunk_idx >= LEXTOK_CHUNK_SIZE)
+	{
+		chunk = (Lextok *) emalloc(LEXTOK_CHUNK_SIZE * sizeof(Lextok));
+		chunk_idx = 0;
+	}
+	return &chunk[chunk_idx++];
+}
+
 Lextok *
 nn(Lextok *s, int t, Lextok *ll, Lextok *rl)
-{	Lextok *n = (Lextok *) emalloc(sizeof(Lextok));
+{	Lextok *n = alloc_lextok();
 	static int warn_nn = 0;
 
 	n->uiid = is_inline();	/* record origin of the statement */

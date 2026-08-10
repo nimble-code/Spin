@@ -163,9 +163,9 @@ qsend(Lextok *n)
 	tcgetattr(0,&initial_settings);
  
 	new_settings = initial_settings;
-	new_settings.c_lflag &= ~ICANON;
-	new_settings.c_lflag &= ~ECHO;
-	new_settings.c_lflag &= ~ISIG;
+	new_settings.c_lflag &= ~(tcflag_t)ICANON;
+	new_settings.c_lflag &= ~(tcflag_t)ECHO;
+	new_settings.c_lflag &= ~(tcflag_t)ISIG;
 	new_settings.c_cc[VMIN] = 0;
 	new_settings.c_cc[VTIME] = 0;
  }
@@ -438,7 +438,7 @@ try_slot:
 		}
 		if (!full)
 			continue;	/* test */
-		if (m && m->lft->ntyp != CONST && m->lft->ntyp != EVAL)
+		if (m->lft->ntyp != CONST && m->lft->ntyp != EVAL)
 		{	(void) setval(m->lft, q->contents[i*q->nflds+j]);
 			typ_ck(q->fld_width[j], Sym_typ(m->lft), "recv");
 		}
@@ -791,42 +791,39 @@ nochan_manip(Lextok *p, Lextok *n, int d)	/* p=lhs n=rhs */
 		return;
 	}
 
-	if (d == 0 && p->sym && p->sym->type == CHAN)
+	if (d == 0 && p->sym->type == CHAN)
 	{	setaccess(p->sym, ZS, 0, 'L');
 
-		if (n && n->ntyp == CONST)
+		if (n->ntyp == CONST)
 			fatal("invalid asgn to chan", (char *) 0);
 
-		if (n && n->sym && n->sym->type == CHAN)
+		if (n->sym && n->sym->type == CHAN)
 		{	setaccess(n->sym, ZS, 0, 'V');
 			return;
 		}	
 	}
 
-	if (!d && n && n->ismtyp)	/* rhs is an mtype value (a constant) */
+	if (!d && n->ismtyp)	/* rhs is an mtype value (a constant) */
 	{	char *lhs = "_unnamed_", *rhs = "_unnamed_";
 
-		if (p->sym)
-		{	lhs = p->sym->mtype_name?p->sym->mtype_name->name:"_unnamed_";
-		}
+		lhs = p->sym->mtype_name?p->sym->mtype_name->name:"_unnamed_";
 		if (n->sym)
 		{	rhs = which_mtype(n->sym->name); /* only for constants */
 		}
 
-		if (p->sym && !p->sym->mtype_name && n->sym)
+		if (!p->sym->mtype_name && n->sym)
 		{	p->sym->mtype_name = (Symbol *) emalloc(sizeof(Symbol));
 			p->sym->mtype_name->name = rhs;
 		} else if (strcmp(lhs, rhs) != 0)
 		{	fprintf(stderr, "spin: %s:%d, Error: '%s' is type '%s' but '%s' is type '%s'\n",
 				p->fn->name, p->ln,
-				p->sym?p->sym->name:"?", lhs,
+				p->sym->name, lhs,
 				n->sym?n->sym->name:"?", rhs);
 			non_fatal("type error", (char *) 0);
 	}	}
 
 	/* ok on the rhs of an assignment: */
-	if (!n
-	||  n->ntyp == LEN   || n->ntyp == RUN
+	if (n->ntyp == LEN   || n->ntyp == RUN
 	||  n->ntyp == FULL  || n->ntyp == NFULL
 	||  n->ntyp == EMPTY || n->ntyp == NEMPTY
 	||  n->ntyp == 'R')

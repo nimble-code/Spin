@@ -264,7 +264,7 @@ def_use(Lextok *now, int code)
 		def_use(now->lft, DEREF_DEF|DEREF_USE|USE|code);
 		for (v = now->rgt; v; v = v->rgt)
 		{	if (v->lft->ntyp == EVAL)
-			{	if (v->lft->ntyp == ',')
+			{	if (v->lft->lft && v->lft->lft->ntyp == ',')
 				{	def_use(v->lft->lft, code);	/* will add USE */
 				} else
 				{	def_use(v->lft, code);	/* will add USE */
@@ -278,7 +278,7 @@ def_use(Lextok *now, int code)
 		def_use(now->lft, DEREF_USE|USE|code);
 		for (v = now->rgt; v; v = v->rgt)
 		{	if (v->lft->ntyp == EVAL)
-			{	if (v->lft->ntyp == ',')
+			{	if (v->lft->lft && v->lft->lft->ntyp == ',')
 				{	def_use(v->lft->lft, code); /* will add USE */
 				} else
 				{	def_use(v->lft, code); /* will add USE */
@@ -2001,9 +2001,9 @@ subgraph(AST *a, FSM_state *f, int out)
 
 	if (verbose&32)
 		printf("possible pair %d %d -- %d\n",
-			f->from, h->from, (g[i]&(1<<j))?1:0);
+			f->from, h->from, (g[i]&(1UL<<j))?1:0);
 	
-	if (g[i]&(1<<j))		/* also a forward dominance pair */
+	if (g[i]&(1UL<<j))		/* also a forward dominance pair */
 		AST_pair(a, h, f->from);	/* record this pair */
 }
 
@@ -2036,7 +2036,7 @@ act_dom(AST *a)
 			}
 			i = cnt / BPW;
 			j = cnt % BPW;	/* assert(j <= 32); */
-			if (!(f->dom[i]&(1<<j)))
+			if (!(f->dom[i]&(1UL<<j)))
 			{	continue;
 			}
 			for (t = fsm_tbl[cnt]->t, i = 0; t; t = t->nxt)
@@ -2186,20 +2186,20 @@ init_dom(AST *a)
 		if (f->from == a->i_st)
 		{	i = a->i_st / BPW;
 			j = a->i_st % BPW; /* assert(j <= 32); */
-			f->dom[i] = (1<<j);			/* (1) */
+			f->dom[i] = (1UL<<j);			/* (1) */
 		} else						/* (2) */
 		{	for (i = 0; i < a->nwords; i++)
 			{	f->dom[i] = (ulong) ~0;		/* all 1's */
 			}
 			if (a->nstates % BPW)
 			for (i = (a->nstates % BPW); i < (int) BPW; i++)
-			{	f->dom[a->nwords-1] &= ~(1<< ((ulong) i)); /* clear tail */
+			{	f->dom[a->nwords-1] &= ~(1UL<< ((ulong) i)); /* clear tail */
 			}
 			for (cnt = 0; cnt < a->nstates; cnt++)
 			{	if (!fsm_tbl[cnt]->seen)
 				{	i = cnt / BPW;
 					j = cnt % BPW; /* assert(j <= 32); */
-					f->dom[i] &= ~(1<< ((ulong) j));
+					f->dom[i] &= ~(1UL<< ((ulong) j));
 	}	}	}	}
 }
 
@@ -2229,7 +2229,7 @@ dom_perculate(AST *a, FSM_state *f)
 
 	i = f->from / BPW;
 	j = f->from % BPW;	/* assert(j <= 32); */
-	ndom[i] |= (1<<j);			/* (5a) */
+	ndom[i] |= (1UL<<j);			/* (5a) */
 
 	for (i = 0; i < a->nwords; i++)
 		if (f->dom[i] != ndom[i])

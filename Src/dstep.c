@@ -315,7 +315,7 @@ static void
 putCode(FILE *fd, Element *f, Element *last, Element *next, int isguard)
 {	Element *e, *N;
 	SeqList *h; int i;
-	char NextOpt[64];
+	static char NextOpt[64][64];
 	static int bno = 0;
 
 	for (e = f; e; e = e->nxt)
@@ -396,14 +396,15 @@ putCode(FILE *fd, Element *f, Element *last, Element *next, int isguard)
 			}
 		} else
 		{	for (h = e->sub, i=1; h; h = h->nxt, i++)
-			{	sprintf(NextOpt, "goto S_%.3d_%d",
+			{	Level++;
+				sprintf(NextOpt[Level], "goto S_%.3d_%d",
 					e->Seqno, i);
-				NextLab[++Level] = NextOpt;
+				NextLab[Level] = NextOpt[Level];
 				N = (e->n && e->n->ntyp == DO) ? e : e->nxt;
 				putCode(fd, h->this->frst,
 					h->this->extent, N, 1);
 				Level--;
-				fprintf(fd, "%s: /* 3 */\n", &NextOpt[5]);
+				fprintf(fd, "%s: /* 3 */\n", &NextOpt[Level][5]);
 				LastGoto = 0;
 			}
 			if (!LastGoto)

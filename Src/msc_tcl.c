@@ -306,7 +306,7 @@ putprelude(void)
 		else
 		sprintf(snap, "%s.trail", oFname?oFname->name:"msc");
 		if (!(fd = fopen(snap, "r")))
-		{	snap[strlen(snap)-2] = '\0';
+		{	if (strlen(snap) >= 2) snap[strlen(snap)-2] = '\0';
 			if (!(fd = fopen(snap, "r")))
 				fatal("cannot open trail file", (char *) 0);
 		}

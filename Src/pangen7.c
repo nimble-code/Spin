@@ -312,6 +312,8 @@ static int
 claim_has_accept(ProcList *p)
 {	Label *l;
 
+	if (!p || !p->n) return 0;
+
 	for (l = labtab; l; l = l->nxt)
 	{	if (strcmp(l->c->name, p->n->name) == 0
 		&&  strncmp(l->s->name, "accept", 6) == 0)
@@ -834,9 +836,7 @@ set_el(int n, Element *e)
 		e->nxt = e;
 		g = e;
 		mk_accepting(n, e);
-	} else
-
-	if (e->n->ntyp == GOTO)
+	} else if (e->n->ntyp == GOTO)
 	{	g = get_lab(e->n, 1);
 		g = huntele(g, e->status, -1);
 	} else if (e->nxt)
